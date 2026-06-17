@@ -1,0 +1,48 @@
+# Cấu hình tinh chỉnh Kronos trên rổ cổ phiếu VN50
+data:
+  data_path: "data_cleaned"
+  lookback_window: 126
+  predict_window: 5
+  max_context: 132
+  clip: 5.0
+  # Phân tách thời gian tuyệt đối (Temporal Splitting)
+  train_end_date: "2023-01-01"
+  val_end_date: "2024-01-01"
+
+training:
+  tokenizer_epochs: 10
+  basemodel_epochs: 20
+  batch_size: 32
+  log_interval: 50
+  num_workers: 4
+  seed: 42
+  
+  tokenizer_learning_rate: 0.00005  # LR = 5e-5 cho controlled tokenizer adaptation
+  predictor_learning_rate: 0.000001 # LR = 1e-6 cho predictor fine-tuning
+  
+  adam_beta1: 0.9
+  adam_beta2: 0.95
+  adam_weight_decay: 0.1
+  accumulation_steps: 1
+
+model_paths:
+  pretrained_tokenizer: "pretrained/Kronos-Tokenizer-base"
+  pretrained_predictor: "pretrained/Kronos-base"
+  exp_name: "vn50_daily"
+  base_path: "finetune_csv/finetuned"
+  base_save_path: ""
+  finetuned_tokenizer: ""
+  tokenizer_save_name: "tokenizer"
+  basemodel_save_name: "basemodel"
+
+experiment:
+  name: "kronos_vn50_finetune"
+  description: "Finetune Kronos on VN50 daily stock data"
+  use_comet: false
+  train_tokenizer: true
+  train_basemodel: true
+  skip_existing: false
+
+device:
+  use_cuda: true
+  device_id: 0

@@ -94,6 +94,9 @@ def create_dataloaders(config):
     if not dist.is_available() or not dist.is_initialized() or dist.get_rank() == 0:
         print("Creating tokenizer training data loaders...")
     
+    train_end_date = config.loader.get('data.train_end_date', '2023-01-01')
+    val_end_date = config.loader.get('data.val_end_date', '2024-01-01')
+    
     train_dataset = CustomKlineDataset(
         data_path=config.data_path,
         data_type="train",
@@ -103,7 +106,9 @@ def create_dataloaders(config):
         seed=config.seed,
         train_ratio=config.train_ratio,
         val_ratio=config.val_ratio,
-        test_ratio=config.test_ratio
+        test_ratio=config.test_ratio,
+        train_end_date=train_end_date,
+        val_end_date=val_end_date
     )
     
     val_dataset = CustomKlineDataset(
@@ -115,7 +120,9 @@ def create_dataloaders(config):
         seed=config.seed + 1,
         train_ratio=config.train_ratio,
         val_ratio=config.val_ratio,
-        test_ratio=config.test_ratio
+        test_ratio=config.test_ratio,
+        train_end_date=train_end_date,
+        val_end_date=val_end_date
     )
     
     use_ddp = dist.is_available() and dist.is_initialized()
@@ -237,15 +244,24 @@ def train_tokenizer(model, device, config, save_dir, logger):
         tot_val_loss_sum_rank = 0.0
         val_sample_count_rank = 0
         
+        unique_s1_tokens = set()
+        unique_s2_tokens = set()
+        
         with torch.no_grad():
             for ori_batch_x, _ in val_loader:
                 ori_batch_x = ori_batch_x.to(device, non_blocking=True)
-                zs, _, _, _ = (model.module if use_ddp else model)(ori_batch_x)
+                zs, _, _, z_indices_val = (model.module if use_ddp else model)(ori_batch_x)
                 _, z = zs
                 val_loss_item = F.mse_loss(z, ori_batch_x)
                 
                 tot_val_loss_sum_rank += val_loss_item.item() * ori_batch_x.size(0)
                 val_sample_count_rank += ori_batch_x.size(0)
+                
+                # Tính unique tokens cho S1 và S2
+                s1_idx = z_indices_val & 1023
+                s2_idx = (z_indices_val >> 10) & 1023
+                unique_s1_tokens.update(s1_idx.cpu().numpy().flatten())
+                unique_s2_tokens.update(s2_idx.cpu().numpy().flatten())
         
         if use_ddp:
             tensor_sum = torch.tensor([tot_val_loss_sum_rank, val_sample_count_rank], dtype=torch.float64, device=device)
@@ -255,15 +271,27 @@ def train_tokenizer(model, device, config, save_dir, logger):
             avg_val_loss = (tot_val_loss_all / val_count_all) if val_count_all > 0 else 0.0
         else:
             avg_val_loss = tot_val_loss_sum_rank / val_sample_count_rank if val_sample_count_rank > 0 else 0
+            
+        s1_util = len(unique_s1_tokens) / 1024.0 * 100
+        s2_util = len(unique_s2_tokens) / 1024.0 * 100
+        avg_util = (s1_util + s2_util) / 2.0
         
         epoch_time = time.time() - epoch_start_time
         epoch_summary = (f"\n--- Epoch {epoch+1}/{config.tokenizer_epochs} Summary ---\n"
                        f"Validation Loss: {avg_val_loss:.4f}\n"
+                       f"Codebook Utilization: S1 = {s1_util:.2f}%, S2 = {s2_util:.2f}%, Avg = {avg_util:.2f}%\n"
                        f"Epoch Time: {format_time(epoch_time)}\n"
                        f"Total Training Time: {format_time(time.time() - epoch_start_time)}\n")
         logger.info(epoch_summary)
         if rank == 0:
             print(epoch_summary)
+            
+        if avg_util < 30.0:
+            collapse_msg = f"[!] Early stopping triggered due to codebook collapse (Avg utilization = {avg_util:.2f}% < 30.0%)"
+            logger.info(collapse_msg)
+            if rank == 0:
+                print(collapse_msg)
+            break
         
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss

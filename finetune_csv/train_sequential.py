@@ -289,6 +289,18 @@ class SequentialTrainer:
                 if not success:
                     print("Basemodel training failed, terminating training")
                     return False
+                
+                # Đánh giá Directional Accuracy trên tập Test (2024-nay)
+                if self.rank == 0:
+                    try:
+                        evaluate_directional_accuracy(
+                            self.config,
+                            self.config.finetuned_tokenizer_path,
+                            self.config.basemodel_best_model_path,
+                            self.device
+                        )
+                    except Exception as eval_err:
+                        print(f"Error during Directional Accuracy evaluation: {str(eval_err)}")
             else:
                 print("Skipping Basemodel training phase")
             
@@ -314,6 +326,95 @@ class SequentialTrainer:
         
         finally:
             pass
+
+
+def evaluate_directional_accuracy(config, tokenizer_path, predictor_path, device):
+    import random
+    import pandas as pd
+    import numpy as np
+    from finetune_base_model import CustomKlineDataset
+    
+    print("\n" + "="*60)
+    print("Evaluating Directional Accuracy (DA) on Test Set (2024-present)")
+    print("="*60)
+    
+    # Load fine-tuned models
+    tokenizer = KronosTokenizer.from_pretrained(tokenizer_path).to(device)
+    model = Kronos.from_pretrained(predictor_path).to(device)
+    
+    predictor = KronosPredictor(model, tokenizer, device=device, max_context=config.max_context, clip=config.clip)
+    
+    # Khởi tạo dataset test
+    test_end_date = config.loader.get('data.val_end_date', '2024-01-01')
+    test_dataset = CustomKlineDataset(
+        data_path=config.data_path,
+        data_type='test',
+        lookback_window=config.lookback_window,
+        predict_window=config.predict_window,
+        clip=config.clip,
+        seed=config.seed + 2,
+        train_end_date=config.loader.get('data.train_end_date', '2023-01-01'),
+        val_end_date=test_end_date
+    )
+    
+    if len(test_dataset) == 0:
+        print("Test dataset is empty, skipping Directional Accuracy evaluation.")
+        return
+        
+    # Lấy ngẫu nhiên tối đa 200 windows để tăng tốc quá trình đánh giá
+    sample_indices = list(range(len(test_dataset)))
+    if len(sample_indices) > 200:
+        random.seed(42)
+        sample_indices = random.sample(sample_indices, 200)
+        
+    correct_dir = 0
+    total_eval = 0
+    
+    for idx in sample_indices:
+        symbol, start_idx = test_dataset.global_index_map[idx]
+        df = test_dataset.stock_data[symbol]
+        
+        lookback_df = df.iloc[start_idx : start_idx + config.lookback_window].copy()
+        future_df = df.iloc[start_idx + config.lookback_window : start_idx + config.lookback_window + config.predict_window].copy()
+        
+        if len(future_df) < config.predict_window:
+            continue
+            
+        current_close = lookback_df.iloc[-1]['close']
+        actual_close_5d = future_df.iloc[-1]['close']
+        
+        x_timestamps = lookback_df['timestamps']
+        y_timestamps = future_df['timestamps']
+        
+        try:
+            pred_df = predictor.predict(
+                lookback_df, 
+                x_timestamps, 
+                y_timestamps, 
+                pred_len=config.predict_window, 
+                sample_count=5, 
+                verbose=False
+            )
+            predicted_close_5d = pred_df.iloc[-1]['close']
+            
+            actual_change = actual_close_5d - current_close
+            predicted_change = predicted_close_5d - current_close
+            
+            if (actual_change > 0 and predicted_change > 0) or (actual_change <= 0 and predicted_change <= 0):
+                correct_dir += 1
+            total_eval += 1
+        except Exception as e:
+            continue
+            
+    if total_eval > 0:
+        da = (correct_dir / total_eval) * 100
+        print(f"Directional Accuracy (DA) evaluated on {total_eval} random test windows: {da:.2f}%")
+        if da < 52.0:
+            print("[WARNING] Directional Accuracy is below 52%! The model might have no predictive power.")
+        else:
+            print("[SUCCESS] Directional Accuracy is above 52%! The model passes the basic evaluation threshold.")
+    else:
+        print("No successful evaluations could be performed.")
 
 
 def main():

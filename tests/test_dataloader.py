@@ -1,0 +1,157 @@
+import os
+import tempfile
+import pandas as pd
+import numpy as np
+import pytest
+import torch
+from finetune_base_model import CustomKlineDataset
+
+def create_mock_stock_data(temp_dir):
+    # Stock A: 200 days, normal
+    dates_a = pd.date_range(start="2022-01-01", periods=200, freq="D")
+    df_a = pd.DataFrame({
+        "timestamps": dates_a,
+        "open": np.linspace(100, 150, 200),
+        "high": np.linspace(105, 155, 200),
+        "low": np.linspace(95, 145, 200),
+        "close": np.linspace(101, 151, 200),
+        "volume": np.random.randint(1000, 5000, 200),
+        "amount": np.random.randint(100000, 500000, 200)
+    })
+    df_a.to_csv(os.path.join(temp_dir, "STOCK_A.csv"), index=False)
+
+    # Stock B: 200 days, with some NaNs and flat pricing (zero std risk)
+    dates_b = pd.date_range(start="2022-01-01", periods=200, freq="D")
+    df_b = pd.DataFrame({
+        "timestamps": dates_b,
+        "open": np.full(200, 50.0),
+        "high": np.full(200, 50.0),
+        "low": np.full(200, 50.0),
+        "close": np.full(200, 50.0),
+        "volume": np.zeros(200),  # Flat volume -> std = 0
+        "amount": np.zeros(200)   # Flat amount -> std = 0
+    })
+    # Inject NaNs to check filtering
+    df_b.loc[:20, ["open", "high", "low", "close"]] = np.nan
+    df_b.to_csv(os.path.join(temp_dir, "STOCK_B.csv"), index=False)
+
+
+def test_no_stock_boundary_crossing():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        create_mock_stock_data(temp_dir)
+        
+        # Instantiate dataset
+        dataset = CustomKlineDataset(
+            data_path=temp_dir,
+            data_type="train",
+            lookback_window=50,
+            predict_window=5,
+            clip=5.0,
+            seed=42,
+            train_end_date="2022-06-01",
+            val_end_date="2022-08-01"
+        )
+        
+        # Verify that all windows belong to a single stock
+        for idx in range(len(dataset)):
+            symbol, start_idx = dataset.global_index_map[idx]
+            # Verify the start index fits within the length of the stock df
+            df = dataset.stock_data[symbol]
+            assert start_idx >= 0
+            assert start_idx + dataset.window <= len(df)
+
+
+def test_temporal_leakage():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        create_mock_stock_data(temp_dir)
+        
+        train_end = "2022-06-01"
+        val_end = "2022-07-15"
+        
+        train_dataset = CustomKlineDataset(
+            data_path=temp_dir,
+            data_type="train",
+            lookback_window=30,
+            predict_window=5,
+            clip=5.0,
+            train_end_date=train_end,
+            val_end_date=val_end
+        )
+        
+        val_dataset = CustomKlineDataset(
+            data_path=temp_dir,
+            data_type="val",
+            lookback_window=30,
+            predict_window=5,
+            clip=5.0,
+            train_end_date=train_end,
+            val_end_date=val_end
+        )
+        
+        test_dataset = CustomKlineDataset(
+            data_path=temp_dir,
+            data_type="test",
+            lookback_window=30,
+            predict_window=5,
+            clip=5.0,
+            train_end_date=train_end,
+            val_end_date=val_end
+        )
+        
+        train_end_dt = pd.to_datetime(train_end)
+        val_end_dt = pd.to_datetime(val_end)
+        
+        # Train dataset windows must end BEFORE train_end
+        for idx in range(len(train_dataset)):
+            symbol, start_idx = train_dataset.global_index_map[idx]
+            df = train_dataset.stock_data[symbol]
+            end_time = df.loc[start_idx + train_dataset.window - 1, "timestamps"]
+            assert end_time < train_end_dt
+            
+        # Val dataset windows must end BETWEEN train_end and val_end
+        for idx in range(len(val_dataset)):
+            symbol, start_idx = val_dataset.global_index_map[idx]
+            df = val_dataset.stock_data[symbol]
+            end_time = df.loc[start_idx + val_dataset.window - 1, "timestamps"]
+            assert end_time >= train_end_dt
+            assert end_time < val_end_dt
+            
+        # Test dataset windows must end ON OR AFTER val_end
+        for idx in range(len(test_dataset)):
+            symbol, start_idx = test_dataset.global_index_map[idx]
+            df = test_dataset.stock_data[symbol]
+            end_time = df.loc[start_idx + test_dataset.window - 1, "timestamps"]
+            assert end_time >= val_end_dt
+
+
+def test_zero_division_protection():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        create_mock_stock_data(temp_dir)
+        
+        # Stock B contains flat volume and amount (std = 0)
+        # Verify that loading from Stock B does not throw division by zero and has no NaNs/Infs
+        dataset = CustomKlineDataset(
+            data_path=temp_dir,
+            data_type="all", # Train/Val/Test filters won't apply to "all" (fallback to full df)
+            lookback_window=30,
+            predict_window=5,
+            clip=5.0,
+            train_end_date="2099-01-01", # High end date to include all
+            val_end_date="2099-01-01"
+        )
+        
+        # Verify indices pointing to STOCK_B
+        stock_b_windows = [i for i, (sym, _) in enumerate(dataset.global_index_map) if sym == "STOCK_B"]
+        assert len(stock_b_windows) > 0, "No valid windows extracted for Stock B"
+        
+        # Fetch a window and verify Z-scored values are valid finite numbers
+        idx = stock_b_windows[0]
+        x_tensor, x_stamp_tensor = dataset[idx]
+        
+        assert not torch.isnan(x_tensor).any(), "Z-scored tensor contains NaNs"
+        assert not torch.isinf(x_tensor).any(), "Z-scored tensor contains Infs"
+        
+        # Flat volume and amount should become 0 after subtraction and division by epsilon
+        # Let's check volume and amount columns (indexes 4 and 5)
+        assert torch.allclose(x_tensor[:, 4], torch.zeros_like(x_tensor[:, 4])), "Flat volume did not resolve to 0"
+        assert torch.allclose(x_tensor[:, 5], torch.zeros_like(x_tensor[:, 5])), "Flat amount did not resolve to 0"

@@ -25,7 +25,8 @@ from config_loader import CustomFinetuneConfig
 class CustomKlineDataset(Dataset):
     
     def __init__(self, data_path, data_type='train', lookback_window=90, predict_window=10, 
-                 clip=5.0, seed=100, train_ratio=0.7, val_ratio=0.15, test_ratio=0.15):
+                 clip=5.0, seed=100, train_ratio=0.7, val_ratio=0.15, test_ratio=0.15,
+                 train_end_date='2023-01-01', val_end_date='2024-01-01'):
         self.data_path = data_path
         self.data_type = data_type
         self.lookback_window = lookback_window
@@ -33,96 +34,100 @@ class CustomKlineDataset(Dataset):
         self.window = lookback_window + predict_window + 1
         self.clip = clip
         self.seed = seed
-        self.train_ratio = train_ratio
-        self.val_ratio = val_ratio
-        self.test_ratio = test_ratio
+        self.train_end_date = pd.to_datetime(train_end_date)
+        self.val_end_date = pd.to_datetime(val_end_date)
         
         self.feature_list = ['open', 'high', 'low', 'close', 'volume', 'amount']
         self.time_feature_list = ['minute', 'hour', 'weekday', 'day', 'month']
         
         self.py_rng = random.Random(seed)
         
-        self._load_and_preprocess_data()
-        self._split_data_by_time()
+        self._load_and_preprocess_multi_stock()
+        self._build_global_index_map()
         
-        self.n_samples = len(self.data) - self.window + 1
-            
-        print(f"[{data_type.upper()}] Data length: {len(self.data)}, Available samples: {self.n_samples}")
+        print(f"[{data_type.upper()}] Loaded {len(self.stock_data)} stocks, Total available windows: {len(self.global_index_map)}")
     
-    def _load_and_preprocess_data(self):
-        df = pd.read_csv(self.data_path)
-        
-        df['timestamps'] = pd.to_datetime(df['timestamps'])
-        df = df.sort_values('timestamps').reset_index(drop=True)
-        
-        self.timestamps = df['timestamps'].copy()
-        
-        df['minute'] = df['timestamps'].dt.minute
-        df['hour'] = df['timestamps'].dt.hour
-        df['weekday'] = df['timestamps'].dt.weekday
-        df['day'] = df['timestamps'].dt.day
-        df['month'] = df['timestamps'].dt.month
-        
-        self.data = df[self.feature_list + self.time_feature_list].copy()
-        
-        if self.data.isnull().any().any():
-            print("Warning: Missing values found in data, performing forward fill")
-            self.data = self.data.fillna(method='ffill')
-        
-        print(f"Original data time range: {self.timestamps.min()} to {self.timestamps.max()}")
-        print(f"Original data total length: {len(df)} records")
-    
-    def _split_data_by_time(self):
-        total_length = len(self.data)
-        
-        train_end = int(total_length * self.train_ratio)
-        val_end = int(total_length * (self.train_ratio + self.val_ratio))
-        
-        if self.data_type == 'train':
-            self.data = self.data.iloc[:train_end].copy()
-            self.timestamps = self.timestamps.iloc[:train_end].copy()
-            print(f"[{self.data_type.upper()}] Training set: first {train_end} time points ({self.train_ratio})")
-            print(f"[{self.data_type.upper()}] Training set time range: {self.timestamps.min()} to {self.timestamps.max()}")
-        elif self.data_type == 'val':
-            self.data = self.data.iloc[train_end:val_end].copy()
-            self.timestamps = self.timestamps.iloc[train_end:val_end].copy()
-            print(f"[{self.data_type.upper()}] Validation set: time points {train_end+1} to {val_end} ({self.val_ratio})")
-            print(f"[{self.data_type.upper()}] Validation set time range: {self.timestamps.min()} to {self.timestamps.max()}")
-        elif self.data_type == 'test':
-            self.data = self.data.iloc[val_end:].copy()
-            self.timestamps = self.timestamps.iloc[val_end:].copy()
-            print(f"[{self.data_type.upper()}] Test set: after time point {val_end+1}")
-            print(f"[{self.data_type.upper()}] Test set time range: {self.timestamps.min()} to {self.timestamps.max()}")
-        
-        print(f"[{self.data_type.upper()}] Data length after split: {len(self.data)} records")
-    
-    def set_epoch_seed(self, epoch):
-        epoch_seed = self.seed + epoch
-        self.py_rng.seed(epoch_seed)
-        self.current_epoch = epoch
-    
-    def __len__(self):
-        return self.n_samples
-    
-    def __getitem__(self, idx):
-        max_start = len(self.data) - self.window
-        if max_start <= 0:
-            raise ValueError("Data length insufficient to create samples")
-        
-        if self.data_type == 'train':
-            epoch = getattr(self, 'current_epoch', 0)
-            start_idx = (idx * 9973 + (epoch + 1) * 104729) % (max_start + 1)
+    def _load_and_preprocess_multi_stock(self):
+        import glob
+        if os.path.isdir(self.data_path):
+            csv_files = glob.glob(os.path.join(self.data_path, "*.csv"))
         else:
-            start_idx = idx % (max_start + 1)
+            csv_files = [self.data_path]
+            
+        self.stock_data = {}
         
-        end_idx = start_idx + self.window
+        for fpath in csv_files:
+            symbol = os.path.splitext(os.path.basename(fpath))[0]
+            df = pd.read_csv(fpath)
+            
+            df['timestamps'] = pd.to_datetime(df['timestamps'])
+            df = df.sort_values('timestamps').reset_index(drop=True)
+            
+            # Cố định giờ giao dịch 09:00
+            df['minute'] = 0
+            df['hour'] = 9
+            df['weekday'] = df['timestamps'].dt.weekday
+            df['day'] = df['timestamps'].dt.day
+            df['month'] = df['timestamps'].dt.month
+            
+            self.stock_data[symbol] = df
+            
+    def _build_global_index_map(self):
+        self.global_index_map = []
         
-        window_data = self.data.iloc[start_idx:end_idx]
+        for symbol, df in self.stock_data.items():
+            data_len = len(df)
+            if data_len < self.window:
+                continue
+                
+            for i in range(data_len - self.window + 1):
+                # Phân loại dựa trên timestamp của phiên cuối cùng của cửa sổ trượt
+                end_time = df.loc[i + self.window - 1, 'timestamps']
+                
+                if self.data_type == 'train':
+                    if end_time >= self.train_end_date:
+                        continue
+                elif self.data_type == 'val':
+                    if end_time < self.train_end_date or end_time >= self.val_end_date:
+                        continue
+                elif self.data_type == 'test':
+                    if end_time < self.val_end_date:
+                        continue
+                
+                # Bộ lọc NaN: loại bỏ nếu tỷ lệ NaN > 10%
+                window_df = df.iloc[i : i + self.window]
+                nan_count = window_df[self.feature_list].isnull().sum().sum()
+                total_elements = len(window_df) * len(self.feature_list)
+                nan_ratio = nan_count / total_elements
+                
+                if nan_ratio > 0.10:
+                    continue
+                    
+                self.global_index_map.append((symbol, i))
+                
+    def set_epoch_seed(self, epoch):
+        pass
         
-        x = window_data[self.feature_list].values.astype(np.float32)
-        x_stamp = window_data[self.time_feature_list].values.astype(np.float32)
+    def __len__(self):
+        return len(self.global_index_map)
         
-        x_mean, x_std = np.mean(x, axis=0), np.std(x, axis=0)
+    def __getitem__(self, idx):
+        if idx >= len(self.global_index_map):
+            raise IndexError("Index out of bounds")
+            
+        symbol, start_idx = self.global_index_map[idx]
+        df = self.stock_data[symbol]
+        window_df = df.iloc[start_idx : start_idx + self.window].copy()
+        
+        # Điền khuyết cục bộ trong window
+        if window_df[self.feature_list].isnull().any().any():
+            window_df[self.feature_list] = window_df[self.feature_list].fillna(method='ffill').fillna(method='bfill')
+            
+        x = window_df[self.feature_list].values.astype(np.float32)
+        x_stamp = window_df[self.time_feature_list].values.astype(np.float32)
+        
+        x_mean = np.mean(x, axis=0)
+        x_std = np.std(x, axis=0)
         x = (x - x_mean) / (x_std + 1e-5)
         x = np.clip(x, -self.clip, self.clip)
         
@@ -182,6 +187,9 @@ def create_dataloaders(config):
     if not dist.is_available() or not dist.is_initialized() or dist.get_rank() == 0:
         print("Creating data loaders...")
     
+    train_end_date = config.loader.get('data.train_end_date', '2023-01-01')
+    val_end_date = config.loader.get('data.val_end_date', '2024-01-01')
+    
     train_dataset = CustomKlineDataset(
         data_path=config.data_path,
         data_type='train',
@@ -191,7 +199,9 @@ def create_dataloaders(config):
         seed=config.seed,
         train_ratio=config.train_ratio,
         val_ratio=config.val_ratio,
-        test_ratio=config.test_ratio
+        test_ratio=config.test_ratio,
+        train_end_date=train_end_date,
+        val_end_date=val_end_date
     )
     
     val_dataset = CustomKlineDataset(
@@ -203,7 +213,9 @@ def create_dataloaders(config):
         seed=config.seed + 1,
         train_ratio=config.train_ratio,
         val_ratio=config.val_ratio,
-        test_ratio=config.test_ratio
+        test_ratio=config.test_ratio,
+        train_end_date=train_end_date,
+        val_end_date=val_end_date
     )
     
     use_ddp = dist.is_available() and dist.is_initialized()
