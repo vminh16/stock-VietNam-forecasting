@@ -79,3 +79,7 @@ venv.bak/
 temp/
 tmp/
 .python-version
+
+# data
+data/
+data_cleaned
