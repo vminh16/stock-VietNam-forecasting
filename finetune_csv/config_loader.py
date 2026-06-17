@@ -102,7 +102,7 @@ class ConfigLoader:
         print("=" * 50)
         print("Current configuration:")
         print("=" * 50)
-        yaml.dump(self.config, default_flow_style=False, allow_unicode=True, indent=2)
+        print(yaml.dump(self.config, default_flow_style=False, allow_unicode=True, indent=2))
         print("=" * 50)
 
 
@@ -143,8 +143,12 @@ class CustomFinetuneConfig:
         self.log_interval = training_config.get('log_interval', 50)
         self.num_workers = training_config.get('num_workers', 6)
         self.seed = training_config.get('seed', 100)
-        self.tokenizer_learning_rate = training_config.get('tokenizer_learning_rate', 2e-4)
-        self.predictor_learning_rate = training_config.get('predictor_learning_rate', 4e-5)
+        self.tokenizer_learning_rate = training_config.get('tokenizer_learning_rate', 5e-5)
+        self.predictor_learning_rate = training_config.get('predictor_learning_rate', 1e-6)
+        if self.tokenizer_learning_rate > 5e-5:
+            print(f"[WARNING] Configured tokenizer learning rate ({self.tokenizer_learning_rate}) is higher than SPEC recommendation (5e-5)")
+        if self.predictor_learning_rate > 1e-6:
+            print(f"[WARNING] Configured predictor learning rate ({self.predictor_learning_rate}) is higher than SPEC recommendation (1e-6)")
         self.adam_beta1 = training_config.get('adam_beta1', 0.9)
         self.adam_beta2 = training_config.get('adam_beta2', 0.95)
         self.adam_weight_decay = training_config.get('adam_weight_decay', 0.1)

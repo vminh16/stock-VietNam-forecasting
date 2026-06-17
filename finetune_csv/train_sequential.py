@@ -392,7 +392,7 @@ def evaluate_directional_accuracy(config, tokenizer_path, predictor_path, device
                 x_timestamps, 
                 y_timestamps, 
                 pred_len=config.predict_window, 
-                sample_count=5, 
+                sample_count=50, 
                 verbose=False
             )
             predicted_close_5d = pred_df.iloc[-1]['close']

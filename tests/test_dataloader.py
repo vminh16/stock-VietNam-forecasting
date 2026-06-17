@@ -108,20 +108,28 @@ def test_temporal_leakage():
             end_time = df.loc[start_idx + train_dataset.window - 1, "timestamps"]
             assert end_time < train_end_dt
             
-        # Val dataset windows must end BETWEEN train_end and val_end
+        # Val dataset windows must end before val_end and target starts after train_end + gap_buffer (5 days)
         for idx in range(len(val_dataset)):
             symbol, start_idx = val_dataset.global_index_map[idx]
             df = val_dataset.stock_data[symbol]
+            
+            first_val_idx = df[df['timestamps'] >= train_end_dt].index[0]
+            target_start_idx = start_idx + val_dataset.lookback_window
+            
+            assert target_start_idx >= first_val_idx + 5, "Val target started too early (gap buffer violated)"
+            
             end_time = df.loc[start_idx + val_dataset.window - 1, "timestamps"]
-            assert end_time >= train_end_dt
             assert end_time < val_end_dt
             
-        # Test dataset windows must end ON OR AFTER val_end
+        # Test dataset windows target starts after val_end + gap_buffer (5 days)
         for idx in range(len(test_dataset)):
             symbol, start_idx = test_dataset.global_index_map[idx]
             df = test_dataset.stock_data[symbol]
-            end_time = df.loc[start_idx + test_dataset.window - 1, "timestamps"]
-            assert end_time >= val_end_dt
+            
+            first_test_idx = df[df['timestamps'] >= val_end_dt].index[0]
+            target_start_idx = start_idx + test_dataset.lookback_window
+            
+            assert target_start_idx >= first_test_idx + 5, "Test target started too early (gap buffer violated)"
 
 
 def test_zero_division_protection():

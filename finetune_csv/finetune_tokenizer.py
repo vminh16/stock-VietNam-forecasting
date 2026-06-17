@@ -104,9 +104,6 @@ def create_dataloaders(config):
         predict_window=config.predict_window,
         clip=config.clip,
         seed=config.seed,
-        train_ratio=config.train_ratio,
-        val_ratio=config.val_ratio,
-        test_ratio=config.test_ratio,
         train_end_date=train_end_date,
         val_end_date=val_end_date
     )
@@ -118,9 +115,6 @@ def create_dataloaders(config):
         predict_window=config.predict_window,
         clip=config.clip,
         seed=config.seed + 1,
-        train_ratio=config.train_ratio,
-        val_ratio=config.val_ratio,
-        test_ratio=config.test_ratio,
         train_end_date=train_end_date,
         val_end_date=val_end_date
     )
@@ -184,6 +178,7 @@ def train_tokenizer(model, device, config, save_dir, logger):
 
     best_val_loss = float("inf")
     batch_idx_global = 0
+    prev_val_bsq_loss = float("inf")
     
     accumulation_steps = getattr(config, 'accumulation_steps', 1)
     
@@ -217,7 +212,8 @@ def train_tokenizer(model, device, config, save_dir, logger):
                 current_batch_total_loss += loss.item()
                 loss_scaled.backward()
             
-            torch.nn.utils.clip_grad_norm_((model.module if use_ddp else model).parameters(), max_norm=2.0)
+            # Khắc phục C3: Gradient clipping ở mức 1.0 thay vì 2.0
+            torch.nn.utils.clip_grad_norm_((model.module if use_ddp else model).parameters(), max_norm=1.0)
             optimizer.step()
             scheduler.step()
             optimizer.zero_grad()
@@ -242,6 +238,7 @@ def train_tokenizer(model, device, config, save_dir, logger):
         
         model.eval()
         tot_val_loss_sum_rank = 0.0
+        tot_val_bsq_loss_sum_rank = 0.0
         val_sample_count_rank = 0
         
         unique_s1_tokens = set()
@@ -250,11 +247,12 @@ def train_tokenizer(model, device, config, save_dir, logger):
         with torch.no_grad():
             for ori_batch_x, _ in val_loader:
                 ori_batch_x = ori_batch_x.to(device, non_blocking=True)
-                zs, _, _, z_indices_val = (model.module if use_ddp else model)(ori_batch_x)
+                zs, val_bsq_loss, _, z_indices_val = (model.module if use_ddp else model)(ori_batch_x)
                 _, z = zs
                 val_loss_item = F.mse_loss(z, ori_batch_x)
                 
                 tot_val_loss_sum_rank += val_loss_item.item() * ori_batch_x.size(0)
+                tot_val_bsq_loss_sum_rank += val_bsq_loss.item() * ori_batch_x.size(0)
                 val_sample_count_rank += ori_batch_x.size(0)
                 
                 # Tính unique tokens cho S1 và S2
@@ -264,13 +262,16 @@ def train_tokenizer(model, device, config, save_dir, logger):
                 unique_s2_tokens.update(s2_idx.cpu().numpy().flatten())
         
         if use_ddp:
-            tensor_sum = torch.tensor([tot_val_loss_sum_rank, val_sample_count_rank], dtype=torch.float64, device=device)
+            tensor_sum = torch.tensor([tot_val_loss_sum_rank, tot_val_bsq_loss_sum_rank, val_sample_count_rank], dtype=torch.float64, device=device)
             dist.all_reduce(tensor_sum, op=dist.ReduceOp.SUM)
             tot_val_loss_all = tensor_sum[0].item()
-            val_count_all = int(tensor_sum[1].item())
+            tot_val_bsq_loss_all = tensor_sum[1].item()
+            val_count_all = int(tensor_sum[2].item())
             avg_val_loss = (tot_val_loss_all / val_count_all) if val_count_all > 0 else 0.0
+            avg_val_bsq_loss = (tot_val_bsq_loss_all / val_count_all) if val_count_all > 0 else 0.0
         else:
             avg_val_loss = tot_val_loss_sum_rank / val_sample_count_rank if val_sample_count_rank > 0 else 0
+            avg_val_bsq_loss = tot_val_bsq_loss_sum_rank / val_sample_count_rank if val_sample_count_rank > 0 else 0
             
         s1_util = len(unique_s1_tokens) / 1024.0 * 100
         s2_util = len(unique_s2_tokens) / 1024.0 * 100
@@ -279,12 +280,24 @@ def train_tokenizer(model, device, config, save_dir, logger):
         epoch_time = time.time() - epoch_start_time
         epoch_summary = (f"\n--- Epoch {epoch+1}/{config.tokenizer_epochs} Summary ---\n"
                        f"Validation Loss: {avg_val_loss:.4f}\n"
+                       f"Validation BSQ Loss: {avg_val_bsq_loss:.4f}\n"
                        f"Codebook Utilization: S1 = {s1_util:.2f}%, S2 = {s2_util:.2f}%, Avg = {avg_util:.2f}%\n"
                        f"Epoch Time: {format_time(epoch_time)}\n"
                        f"Total Training Time: {format_time(time.time() - epoch_start_time)}\n")
         logger.info(epoch_summary)
         if rank == 0:
             print(epoch_summary)
+            
+        # Khắc phục H3: Early stopping nếu validation bsq_loss tăng > 5% so với epoch trước
+        if epoch > 0 and avg_val_bsq_loss > prev_val_bsq_loss * 1.05:
+            early_stop_bsq_msg = (f"[!] Early stopping: bsq_loss increased from "
+                                  f"{prev_val_bsq_loss:.4f} to {avg_val_bsq_loss:.4f} (> 5%)")
+            logger.info(early_stop_bsq_msg)
+            if rank == 0:
+                print(early_stop_bsq_msg)
+            break
+            
+        prev_val_bsq_loss = avg_val_bsq_loss
             
         if avg_util < 30.0:
             collapse_msg = f"[!] Early stopping triggered due to codebook collapse (Avg utilization = {avg_util:.2f}% < 30.0%)"
@@ -314,12 +327,11 @@ def main():
                        help='Configuration file path (default: config.yaml)')
     args = parser.parse_args()
     
+    # Khắc phục H2: Xóa config load trùng lặp
     config = CustomFinetuneConfig(args.config)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
-    
-    config = CustomFinetuneConfig(args.config)
     
     os.makedirs(config.tokenizer_save_path, exist_ok=True)
     
@@ -328,7 +340,7 @@ def main():
     
     set_seed(config.seed)
     
-    # 加载预训练tokenizer
+    # Tải tokenizer đã pre-train (Dịch tiếng Trung L3)
     if getattr(config, 'pre_trained_tokenizer', True):
         logger.info("Loading pretrained tokenizer...")
         print("Loading pretrained tokenizer...")

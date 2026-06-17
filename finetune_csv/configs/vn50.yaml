@@ -3,7 +3,7 @@ data:
   data_path: "data_cleaned"
   lookback_window: 126
   predict_window: 5
-  max_context: 132
+  max_context: 512
   clip: 5.0
   # Phân tách thời gian tuyệt đối (Temporal Splitting)
   train_end_date: "2023-01-01"
