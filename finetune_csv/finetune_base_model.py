@@ -314,15 +314,24 @@ def evaluate_val_directional_accuracy(model, tokenizer, val_dataset, device, con
         return 0.0
         
     try:
-        pred_dfs = predictor.predict_batch(
-            df_list, 
-            x_ts_list, 
-            y_ts_list, 
-            pred_len=config.predict_window, 
-            sample_count=5, 
-            verbose=False
-        )
-        
+        # Batch evaluation to prevent Out Of Memory (OOM) on GPU
+        eval_batch_size = 16
+        pred_dfs = []
+        for i in range(0, len(df_list), eval_batch_size):
+            batch_dfs = df_list[i : i + eval_batch_size]
+            batch_x_ts = x_ts_list[i : i + eval_batch_size]
+            batch_y_ts = y_ts_list[i : i + eval_batch_size]
+            
+            batch_preds = predictor.predict_batch(
+                batch_dfs, 
+                batch_x_ts, 
+                batch_y_ts, 
+                pred_len=config.predict_window, 
+                sample_count=5, 
+                verbose=False
+            )
+            pred_dfs.extend(batch_preds)
+            
         correct_dir = 0
         total_eval = 0
         for i, pred_df in enumerate(pred_dfs):

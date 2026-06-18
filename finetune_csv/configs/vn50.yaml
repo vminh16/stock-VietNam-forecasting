@@ -40,7 +40,7 @@ lora:
 optimization:
   amp_enabled: true
   pre_tokenize: true
-  checkpoint_resume: true
+  checkpoint_resume: false
   checkpoint_interval: 1
 
 model_paths:
