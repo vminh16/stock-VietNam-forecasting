@@ -150,8 +150,10 @@ class CustomKlineDataset(Dataset):
         x_double = window_df[self.feature_list].values.astype(np.float64)
         x_stamp = window_df[self.time_feature_list].values.astype(np.float32)
         
-        x_mean = np.mean(x_double, axis=0)
-        x_std = np.std(x_double, axis=0)
+        # Tính toán mean/std trên cửa sổ lookback để tránh rò rỉ dữ liệu tương lai
+        x_lookback = x_double[:self.lookback_window]
+        x_mean = np.mean(x_lookback, axis=0)
+        x_std = np.std(x_lookback, axis=0)
         x_norm = (x_double - x_mean) / (x_std + 1e-5)
         x_norm = np.clip(x_norm, -self.clip, self.clip).astype(np.float32)
         

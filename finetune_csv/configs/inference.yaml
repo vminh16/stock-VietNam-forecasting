@@ -1,0 +1,30 @@
+data:
+  data_path: "data_cleaned"
+  lookback_window: 126
+  predict_window: 5
+  max_context: 512
+  clip: 5.0
+  train_end_date: "2023-01-01"
+  val_end_date: "2024-01-01"
+
+inference:
+  # Trọng số pre-trained gốc (mốc baseline)
+  tokenizer_path: "pretrained/Kronos-Tokenizer-base"
+  predictor_path: "pretrained/Kronos-base"
+  
+  # LoRA (nếu đánh giá mô hình fine-tuned thì set enabled: true và điền path)
+  use_lora: false
+  adapter_path: ""
+  
+  # Cấu hình sinh dự báo
+  sample_count: 20   # Số lượng stochastic paths sinh song song để lấy kỳ vọng giảm phương sai
+  temperature: 1.0
+  top_p: 0.99
+  top_k: 0
+  
+  # Cấu hình đánh giá
+  eval_batch_size: 16
+  eval_samples_limit: 500 # Giới hạn số cửa sổ đánh giá mỗi tập
+  
+  # Lưu kết quả
+  output_dir: "reports/inference_baseline"

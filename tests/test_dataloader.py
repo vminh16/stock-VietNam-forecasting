@@ -163,3 +163,81 @@ def test_zero_division_protection():
         # Let's check volume and amount columns (indexes 4 and 5)
         assert torch.allclose(x_tensor[:, 4], torch.zeros_like(x_tensor[:, 4])), "Flat volume did not resolve to 0"
         assert torch.allclose(x_tensor[:, 5], torch.zeros_like(x_tensor[:, 5])), "Flat amount did not resolve to 0"
+
+
+def test_zscore_no_leakage():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # We will create two directories with identical historical (first 100 days) data, 
+        # but different future/target data (next 11 days).
+        dir_1 = os.path.join(temp_dir, "dir_1")
+        dir_2 = os.path.join(temp_dir, "dir_2")
+        os.makedirs(dir_1)
+        os.makedirs(dir_2)
+        
+        # Lookback = 100, predict = 10, window = 111
+        lookback = 100
+        predict = 10
+        dates = pd.date_range(start="2022-01-01", periods=111, freq="D")
+        
+        # First 100 days are identical
+        prices_base = np.linspace(100, 120, 100)
+        # Next 11 days (predict + 1 target) are different
+        prices_future_1 = np.linspace(120, 130, 11)
+        prices_future_2 = np.linspace(120, 1000, 11) # massive jump
+        
+        open_1 = np.concatenate([prices_base, prices_future_1])
+        open_2 = np.concatenate([prices_base, prices_future_2])
+        
+        df_1 = pd.DataFrame({
+            "timestamps": dates,
+            "open": open_1,
+            "high": open_1 + 2,
+            "low": open_1 - 2,
+            "close": open_1 + 1,
+            "volume": np.ones(111) * 1000,
+            "amount": np.ones(111) * 100000
+        })
+        
+        df_2 = pd.DataFrame({
+            "timestamps": dates,
+            "open": open_2,
+            "high": open_2 + 2,
+            "low": open_2 - 2,
+            "close": open_2 + 1,
+            "volume": np.ones(111) * 1000,
+            "amount": np.ones(111) * 100000
+        })
+        
+        df_1.to_csv(os.path.join(dir_1, "STOCK.csv"), index=False)
+        df_2.to_csv(os.path.join(dir_2, "STOCK.csv"), index=False)
+        
+        # Load dataset 1
+        ds_1 = CustomKlineDataset(
+            data_path=dir_1,
+            data_type="train",
+            lookback_window=lookback,
+            predict_window=predict,
+            clip=5.0,
+            train_end_date="2099-01-01",
+            val_end_date="2099-01-01"
+        )
+        
+        # Load dataset 2
+        ds_2 = CustomKlineDataset(
+            data_path=dir_2,
+            data_type="train",
+            lookback_window=lookback,
+            predict_window=predict,
+            clip=5.0,
+            train_end_date="2099-01-01",
+            val_end_date="2099-01-01"
+        )
+        
+        x_1, _ = ds_1[0]
+        x_2, _ = ds_2[0]
+        
+        # Lookback parts (first 100 rows) of the normalized tensors should be identical
+        # If there is leakage, the massive jump in df_2 future window will pull up the mean
+        # and standard deviation of the entire window, resulting in different normalized values for the first 100 rows.
+        assert torch.allclose(x_1[:lookback], x_2[:lookback], atol=1e-4), "Z-score leakage detected! Lookback normalization is affected by future values."
+
