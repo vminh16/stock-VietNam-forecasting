@@ -11,19 +11,37 @@ data:
 
 training:
   tokenizer_epochs: 10
-  basemodel_epochs: 20
-  batch_size: 32
+  basemodel_epochs: 30
+  batch_size: 16
   log_interval: 50
   num_workers: 4
   seed: 42
   
   tokenizer_learning_rate: 0.00005  # LR = 5e-5 cho controlled tokenizer adaptation
-  predictor_learning_rate: 0.000001 # LR = 1e-6 cho predictor fine-tuning
+  predictor_learning_rate: 0.00002  # LR = 2e-5 (giảm 5 lần để tránh phá vỡ manifold)
   
   adam_beta1: 0.9
   adam_beta2: 0.95
-  adam_weight_decay: 0.1
+  adam_weight_decay: 0.1           # Lực kéo L2 mạnh, chống overfitting
   accumulation_steps: 1
+  
+  # --- Optimization Objective (Early Stopping) ---
+  early_stopping_monitor: "val_directional_accuracy"
+  early_stopping_mode: "max"
+  early_stopping_patience: 5
+
+lora:
+  enabled: true
+  rank: 8                           # Giảm dung lượng adapter
+  alpha: 8                          # Scaling Factor = 1.0 (Ổn định hóa)
+  dropout: 0.25                     # Dropout cao cho tập dữ liệu nhỏ
+  target_modules: ["q_proj", "v_proj"] # Chỉ train Q và V (giảm 50% params LoRA, K và Out_proj giữ nguyên)
+
+optimization:
+  amp_enabled: true
+  pre_tokenize: true
+  checkpoint_resume: true
+  checkpoint_interval: 1
 
 model_paths:
   pretrained_tokenizer: "pretrained/Kronos-Tokenizer-base"
@@ -31,7 +49,7 @@ model_paths:
   exp_name: "vn50_daily"
   base_path: "finetune_csv/finetuned"
   base_save_path: ""
-  finetuned_tokenizer: ""
+  finetuned_tokenizer: "finetune_csv/finetuned/vn50_daily/tokenizer/best_model"
   tokenizer_save_name: "tokenizer"
   basemodel_save_name: "basemodel"
 

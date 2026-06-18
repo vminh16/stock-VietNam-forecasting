@@ -15,7 +15,7 @@ from logging.handlers import RotatingFileHandler
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-sys.path.append("../")
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from model import KronosTokenizer
 from finetune_base_model import CustomKlineDataset
 from config_loader import CustomFinetuneConfig
@@ -347,7 +347,7 @@ def main():
         tokenizer = KronosTokenizer.from_pretrained(config.pretrained_tokenizer_path)
     else:
         print("pre_trained_tokenizer=False, randomly initializing Tokenizer architecture")
-        import json, os
+        import json
         cfg_path = os.path.join(config.pretrained_tokenizer_path, 'config.json')
         with open(cfg_path, 'r') as f:
             arch = json.load(f)

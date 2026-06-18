@@ -18,9 +18,19 @@ import datetime
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-sys.path.append('../')
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from model import Kronos, KronosTokenizer, KronosPredictor
 from config_loader import CustomFinetuneConfig
+from training_utils import (
+    create_amp_context, 
+    amp_backward_step,
+    save_checkpoint, 
+    load_checkpoint,
+    PreTokenizedDataset,
+    get_base_kronos_model,
+    get_ddp_unwrapped_model
+)
+from lora_utils import apply_lora, save_lora, merge_and_save_lora_offline
 
 
 class CustomKlineDataset(Dataset):
@@ -256,6 +266,92 @@ def create_dataloaders(config):
     return train_loader, val_loader, train_dataset, val_dataset, train_sampler, val_sampler
 
 
+def evaluate_val_directional_accuracy(model, tokenizer, val_dataset, device, config):
+    import random
+    model.eval()
+    tokenizer.eval()
+    
+    unwrapped_model = get_ddp_unwrapped_model(model)
+    # Move tokenizer to device temporarily for prediction
+    tokenizer = tokenizer.to(device)
+    
+    predictor = KronosPredictor(unwrapped_model, tokenizer, device=device, max_context=config.max_context, clip=config.clip)
+    
+    total_val_windows = len(val_dataset)
+    if total_val_windows == 0:
+        return 0.0
+        
+    sample_indices = list(range(total_val_windows))
+    if len(sample_indices) > 200:
+        # Deterministic sample using fixed seed
+        rng = random.Random(42)
+        sample_indices = rng.sample(sample_indices, 200)
+        
+    df_list = []
+    x_ts_list = []
+    y_ts_list = []
+    actual_changes = []
+    
+    for idx in sample_indices:
+        symbol, start_idx = val_dataset.global_index_map[idx]
+        df = val_dataset.stock_data[symbol]
+        
+        lookback_df = df.iloc[start_idx : start_idx + config.lookback_window].copy()
+        future_df = df.iloc[start_idx + config.lookback_window : start_idx + config.lookback_window + config.predict_window].copy()
+        
+        if len(future_df) < config.predict_window:
+            continue
+            
+        current_close = lookback_df.iloc[-1]['close']
+        actual_close_5d = future_df.iloc[-1]['close']
+        
+        df_list.append(lookback_df)
+        x_ts_list.append(lookback_df['timestamps'])
+        y_ts_list.append(future_df['timestamps'])
+        actual_changes.append(actual_close_5d - current_close)
+        
+    if len(df_list) == 0:
+        return 0.0
+        
+    try:
+        pred_dfs = predictor.predict_batch(
+            df_list, 
+            x_ts_list, 
+            y_ts_list, 
+            pred_len=config.predict_window, 
+            sample_count=5, 
+            verbose=False
+        )
+        
+        correct_dir = 0
+        total_eval = 0
+        for i, pred_df in enumerate(pred_dfs):
+            current_close = df_list[i].iloc[-1]['close']
+            predicted_close_5d = pred_df.iloc[-1]['close']
+            predicted_change = predicted_close_5d - current_close
+            actual_change = actual_changes[i]
+            
+            if (actual_change > 0 and predicted_change > 0) or (actual_change <= 0 and predicted_change <= 0):
+                correct_dir += 1
+            total_eval += 1
+            
+        # Return tokenizer to CPU if pre_tokenize is enabled to save GPU VRAM
+        if getattr(config, 'pre_tokenize', False):
+            tokenizer = tokenizer.cpu()
+            torch.cuda.empty_cache()
+            
+        if total_eval > 0:
+            return (correct_dir / total_eval) * 100
+        else:
+            return 0.0
+    except Exception as e:
+        print(f"Error during validation Directional Accuracy calculation: {str(e)}")
+        if getattr(config, 'pre_tokenize', False):
+            tokenizer = tokenizer.cpu()
+            torch.cuda.empty_cache()
+        return 0.0
+
+
 def train_model(model, tokenizer, device, config, save_dir, logger):
     logger.info("Starting training...")
     use_ddp = dist.is_available() and dist.is_initialized()
@@ -263,8 +359,56 @@ def train_model(model, tokenizer, device, config, save_dir, logger):
     world_size = dist.get_world_size() if use_ddp else 1
     
     train_loader, val_loader, train_dataset, val_dataset, train_sampler, val_sampler = create_dataloaders(config)
+    
+    # === Pre-tokenize (nếu enabled) ===
+    use_pretokenized = getattr(config, 'pre_tokenize', False)
+    if use_pretokenized:
+        logger.info("Pre-tokenizing training and validation data...")
+        if rank == 0:
+            print("Pre-tokenizing training and validation data...")
+        
+        train_pre_dataset = PreTokenizedDataset(train_dataset, tokenizer, device, batch_size=config.batch_size)
+        val_pre_dataset = PreTokenizedDataset(val_dataset, tokenizer, device, batch_size=config.batch_size)
+        
+        # Giải phóng tokenizer khỏi GPU để tiết kiệm VRAM
+        tokenizer = tokenizer.cpu()
+        torch.cuda.empty_cache()
+        
+        # Tạo lại DataLoaders bảo toàn sampler của DDP
+        if use_ddp:
+            train_sampler = DistributedSampler(train_pre_dataset, num_replicas=dist.get_world_size(), rank=dist.get_rank(), shuffle=True)
+            val_sampler = DistributedSampler(val_pre_dataset, num_replicas=dist.get_world_size(), rank=dist.get_rank(), shuffle=False, drop_last=False)
+
+        train_loader = DataLoader(
+            train_pre_dataset,
+            batch_size=config.batch_size,
+            shuffle=(train_sampler is None),
+            num_workers=config.num_workers,
+            pin_memory=(device.type == 'cuda'),
+            drop_last=True,
+            sampler=train_sampler
+        )
+        val_loader = DataLoader(
+            val_pre_dataset,
+            batch_size=config.batch_size,
+            shuffle=False,
+            num_workers=config.num_workers,
+            pin_memory=(device.type == 'cuda'),
+            drop_last=False,
+            sampler=val_sampler
+        )
+    
+    # === LoRA (nếu enabled) ===
+    use_lora = getattr(config, 'use_lora', False)
+    if use_lora:
+        model = apply_lora(model, config)
+        
+    # Trainable parameters list
+    trainable_params = [p for p in model.parameters() if p.requires_grad]
+
+    # Optimizer — chỉ tối ưu các tham số trainable
     optimizer = torch.optim.AdamW(
-        model.parameters(),
+        trainable_params,
         lr=config.predictor_learning_rate,
         betas=(config.adam_beta1, config.adam_beta2),
         weight_decay=config.adam_weight_decay
@@ -283,10 +427,42 @@ def train_model(model, tokenizer, device, config, save_dir, logger):
         local_rank = int(os.environ.get("LOCAL_RANK", "0"))
         model = DDP(model, device_ids=[local_rank], output_device=local_rank, find_unused_parameters=False)
 
-    best_val_loss = float('inf')
-    batch_idx_global = 0
+    # Early stopping & best model tracking parameters
+    monitor_metric = getattr(config, 'early_stopping_monitor', 'val_loss')
+    monitor_mode = getattr(config, 'early_stopping_mode', 'min')
+    patience = getattr(config, 'early_stopping_patience', 5)
+    patience_counter = 0
     
-    for epoch in range(config.basemodel_epochs):
+    best_val_loss = float('inf')
+    if monitor_mode == 'max':
+        best_monitor_val = -float('inf')
+    else:
+        best_monitor_val = float('inf')
+        
+    batch_idx_global = 0
+    start_epoch = 0
+    
+    # === AMP ===
+    amp_enabled, scaler = create_amp_context(device, getattr(config, 'amp_enabled', False))
+    
+    # === Checkpoint resume ===
+    ckpt_path = os.path.join(save_dir, "checkpoint.pt")
+    if getattr(config, 'checkpoint_resume', False) and os.path.exists(ckpt_path):
+        start_epoch, best_val_loss = load_checkpoint(ckpt_path, model, optimizer, scheduler, scaler, device)
+        logger.info(f"Resumed training from epoch {start_epoch} with best_val_loss: {best_val_loss:.4f}")
+        if rank == 0:
+            print(f"Resumed training from epoch {start_epoch} with best_val_loss: {best_val_loss:.4f}")
+        if monitor_metric == 'val_loss':
+            best_monitor_val = best_val_loss
+        elif monitor_metric == 'val_directional_accuracy':
+            if rank == 0:
+                logger.info("Evaluating baseline Validation Directional Accuracy for resumed checkpoint...")
+                print("Evaluating baseline Validation Directional Accuracy for resumed checkpoint...")
+                best_monitor_val = evaluate_val_directional_accuracy(model, tokenizer, val_dataset, device, config)
+                logger.info(f"Baseline Validation Directional Accuracy: {best_monitor_val:.2f}%")
+                print(f"Baseline Validation Directional Accuracy: {best_monitor_val:.2f}%")
+
+    for epoch in range(start_epoch, config.basemodel_epochs):
         epoch_start_time = time.time()
         model.train()
         
@@ -298,36 +474,53 @@ def train_model(model, tokenizer, device, config, save_dir, logger):
         epoch_train_loss = 0.0
         train_batches = 0
         
-        for batch_idx, (batch_x, batch_x_stamp) in enumerate(train_loader):
-            batch_x = batch_x.to(device, non_blocking=True)
-            batch_x_stamp = batch_x_stamp.to(device, non_blocking=True)
-            
-            with torch.no_grad():
-                token_seq_0, token_seq_1 = tokenizer.encode(batch_x, half=True)
+        for batch_idx, batch_data in enumerate(train_loader):
+            if use_pretokenized:
+                s1_tokens, s2_tokens, batch_x_stamp = batch_data
+                s1_tokens = s1_tokens.to(device, non_blocking=True)
+                s2_tokens = s2_tokens.to(device, non_blocking=True)
+                batch_x_stamp = batch_x_stamp.to(device, non_blocking=True)
+                # Cast về int64 (long) để tương thích với Embedding layer
+                token_seq_0, token_seq_1 = s1_tokens.long(), s2_tokens.long()
+            else:
+                batch_x, batch_x_stamp = batch_data
+                batch_x = batch_x.to(device, non_blocking=True)
+                batch_x_stamp = batch_x_stamp.to(device, non_blocking=True)
+                
+                with torch.no_grad():
+                    with torch.amp.autocast('cuda', enabled=amp_enabled):
+                        token_seq_0, token_seq_1 = tokenizer.encode(batch_x, half=True)
             
             token_in = [token_seq_0[:, :-1], token_seq_1[:, :-1]]
             token_out = [token_seq_0[:, 1:], token_seq_1[:, 1:]]
             
-            logits = (model.module if use_ddp else model)(token_in[0], token_in[1], batch_x_stamp[:, :-1, :])
-            loss, s1_loss, s2_loss = (model.module if use_ddp else model).head.compute_loss(logits[0], logits[1], token_out[0], token_out[1])
-            
             optimizer.zero_grad()
-            loss.backward()
-            # Khắc phục C3: Gradient clipping ở mức 1.0 thay vì 3.0
-            torch.nn.utils.clip_grad_norm_((model.module if use_ddp else model).parameters(), max_norm=1.0)
-            optimizer.step()
+            with torch.amp.autocast('cuda', enabled=amp_enabled):
+                logits = model(token_in[0], token_in[1], batch_x_stamp[:, :-1, :])
+                base_kronos = get_base_kronos_model(model)
+                loss, s1_loss, s2_loss = base_kronos.head.compute_loss(logits[0], logits[1], token_out[0], token_out[1])
+            
+            # Khắc phục lỗi NaN/Inf Loss theo torch-training-guard
+            if torch.isnan(loss) or torch.isinf(loss):
+                raise RuntimeError(f"NaN/Inf loss encountered at Epoch {epoch+1}, Step {batch_idx+1}.")
+                
+            amp_backward_step(scaler, loss, optimizer, trainable_params, max_norm=1.0)
             scheduler.step()
             
             epoch_train_loss += loss.item()
             train_batches += 1
             
             if (batch_idx_global + 1) % config.log_interval == 0:
+                # Tính tổng gradient norm để giám sát ổn định số học
+                total_grad_norm = sum(p.grad.norm().item() ** 2 for p in trainable_params if p.grad is not None) ** 0.5
                 lr = optimizer.param_groups[0]['lr']
                 log_msg = (f"[Epoch {epoch+1}/{config.basemodel_epochs}, Step {batch_idx+1}/{len(train_loader)}] "
-                          f"LR: {lr:.6f}, Loss: {loss.item():.4f}")
+                          f"LR: {lr:.6f}, Loss: {loss.item():.4f}, Grad Norm: {total_grad_norm:.4f}")
                 logger.info(log_msg)
                 if rank == 0:
                     print(log_msg)
+                if total_grad_norm > 100.0:
+                    logger.warning(f"Gradient explosion warning: norm={total_grad_norm:.4f} at global step {batch_idx_global+1}")
             
             batch_idx_global += 1
         
@@ -336,16 +529,27 @@ def train_model(model, tokenizer, device, config, save_dir, logger):
         val_batches = 0
         
         with torch.no_grad():
-            for batch_x, batch_x_stamp in val_loader:
-                batch_x = batch_x.to(device, non_blocking=True)
-                batch_x_stamp = batch_x_stamp.to(device, non_blocking=True)
+            for batch_data in val_loader:
+                if use_pretokenized:
+                    s1_tokens, s2_tokens, batch_x_stamp = batch_data
+                    s1_tokens = s1_tokens.to(device, non_blocking=True)
+                    s2_tokens = s2_tokens.to(device, non_blocking=True)
+                    batch_x_stamp = batch_x_stamp.to(device, non_blocking=True)
+                    token_seq_0, token_seq_1 = s1_tokens.long(), s2_tokens.long()
+                else:
+                    batch_x, batch_x_stamp = batch_data
+                    batch_x = batch_x.to(device, non_blocking=True)
+                    batch_x_stamp = batch_x_stamp.to(device, non_blocking=True)
+                    with torch.amp.autocast('cuda', enabled=amp_enabled):
+                        token_seq_0, token_seq_1 = tokenizer.encode(batch_x, half=True)
                 
-                token_seq_0, token_seq_1 = tokenizer.encode(batch_x, half=True)
                 token_in = [token_seq_0[:, :-1], token_seq_1[:, :-1]]
                 token_out = [token_seq_0[:, 1:], token_seq_1[:, 1:]]
                 
-                logits = (model.module if use_ddp else model)(token_in[0], token_in[1], batch_x_stamp[:, :-1, :])
-                loss, _, _ = (model.module if use_ddp else model).head.compute_loss(logits[0], logits[1], token_out[0], token_out[1])
+                with torch.amp.autocast('cuda', enabled=amp_enabled):
+                    logits = model(token_in[0], token_in[1], batch_x_stamp[:, :-1, :])
+                    base_kronos = get_base_kronos_model(model)
+                    loss, _, _ = base_kronos.head.compute_loss(logits[0], logits[1], token_out[0], token_out[1])
                 
                 val_loss += loss.item()
                 val_batches += 1
@@ -363,24 +567,92 @@ def train_model(model, tokenizer, device, config, save_dir, logger):
             avg_train_loss = epoch_train_loss / train_batches if train_batches > 0 else 0
             avg_val_loss = val_loss / val_batches if val_batches > 0 else 0
         
+        # Evaluate validation Directional Accuracy (DA)
+        val_da = 0.0
+        if rank == 0:
+            val_da = evaluate_val_directional_accuracy(model, tokenizer, val_dataset, device, config)
+            
         epoch_time = time.time() - epoch_start_time
         epoch_summary = (f"\n--- Epoch {epoch+1}/{config.basemodel_epochs} Summary ---\n"
                        f"Training Loss: {avg_train_loss:.4f}\n"
                        f"Validation Loss: {avg_val_loss:.4f}\n"
+                       f"Validation Directional Accuracy: {val_da:.2f}%\n"
                        f"Epoch Time: {epoch_time:.2f} seconds\n")
         logger.info(epoch_summary)
         if rank == 0:
             print(epoch_summary)
+            
+        # === Lưu checkpoint định kỳ ===
+        checkpoint_interval = getattr(config, 'checkpoint_interval', 1)
+        if rank == 0 and (epoch + 1) % checkpoint_interval == 0:
+            save_checkpoint(ckpt_path, model, optimizer, scheduler, scaler, epoch, best_val_loss)
         
-        if avg_val_loss < best_val_loss:
-            best_val_loss = avg_val_loss
-            if rank == 0:
+        # Check early stopping and save best model (rank 0 decides, others receive signal)
+        stop_training = torch.tensor(0, dtype=torch.int32, device=device)
+        
+        if rank == 0:
+            current_monitor_val = val_da if monitor_metric == 'val_directional_accuracy' else avg_val_loss
+            
+            improved = False
+            if monitor_mode == 'max':
+                if current_monitor_val > best_monitor_val:
+                    best_monitor_val = current_monitor_val
+                    improved = True
+            else:
+                if current_monitor_val < best_monitor_val:
+                    best_monitor_val = current_monitor_val
+                    improved = True
+                    
+            if improved:
+                patience_counter = 0
+                best_val_loss = avg_val_loss # Maintain best_val_loss for checkpoint compatibility
+                
                 model_save_path = os.path.join(save_dir, "best_model")
                 os.makedirs(model_save_path, exist_ok=True)
-                (model.module if use_ddp else model).save_pretrained(model_save_path)
-                save_msg = f"Best model saved to: {model_save_path} (validation loss: {best_val_loss:.4f})"
+                
+                unwrapped_model = get_ddp_unwrapped_model(model)
+                if use_lora:
+                    adapter_path = os.path.join(save_dir, "best_lora")
+                    save_lora(unwrapped_model, adapter_path)
+                    save_msg = f"Best adapter saved to: {adapter_path} ({monitor_metric}: {best_monitor_val:.4f})"
+                else:
+                    unwrapped_model.save_pretrained(model_save_path)
+                    save_msg = f"Best model saved to: {model_save_path} ({monitor_metric}: {best_monitor_val:.4f})"
+                    
                 logger.info(save_msg)
                 print(save_msg)
+            else:
+                patience_counter += 1
+                logger.info(f"Early stopping patience counter: {patience_counter}/{patience}")
+                print(f"Early stopping patience counter: {patience_counter}/{patience}")
+                if patience_counter >= patience:
+                    stop_training.fill_(1)
+                    
+        # Broadcast early stopping signal in case of DDP
+        if use_ddp:
+            dist.broadcast(stop_training, src=0)
+            
+        if stop_training.item() == 1:
+            if rank == 0:
+                logger.info(f"Early stopping triggered at Epoch {epoch+1}.")
+                print(f"Early stopping triggered at Epoch {epoch+1}.")
+            break
+                
+    # === Gộp trọng số LoRA ngoại tuyến (chỉ thực hiện 1 lần duy nhất ở cuối) ===
+    if rank == 0 and use_lora:
+        adapter_path = os.path.join(save_dir, "best_lora")
+        model_save_path = os.path.join(save_dir, "best_model")
+        if os.path.exists(adapter_path):
+            merge_msg = f"Starting final offline merge of LoRA weights to: {model_save_path}..."
+            logger.info(merge_msg)
+            print(merge_msg)
+            merge_and_save_lora_offline(
+                base_model_path=config.pretrained_predictor_path,
+                adapter_path=adapter_path,
+                output_path=model_save_path
+            )
+            logger.info("Final offline merge completed successfully!")
+            print("Final offline merge completed successfully!")
     
     return best_val_loss
 
@@ -412,7 +684,7 @@ def main():
     if getattr(config, 'pre_trained_tokenizer', True):
         tokenizer = KronosTokenizer.from_pretrained(config.finetuned_tokenizer_path)
     else:
-        import json, os
+        import json
         print("pre_trained_tokenizer=False, randomly initializing Tokenizer architecture for training")
         cfg_path_tok = os.path.join(config.pretrained_tokenizer_path if hasattr(config, 'pretrained_tokenizer_path') else config.finetuned_tokenizer_path, 'config.json')
         with open(cfg_path_tok, 'r') as f:
@@ -439,7 +711,7 @@ def main():
     if getattr(config, 'pre_trained_predictor', True):
         model = Kronos.from_pretrained(config.pretrained_predictor_path)
     else:
-        import json, os
+        import json
         print("pre_trained_predictor=False, randomly initializing Predictor architecture for training")
         cfg_path = os.path.join(config.pretrained_predictor_path, 'config.json')
         with open(cfg_path, 'r') as f:

@@ -145,14 +145,35 @@ class CustomFinetuneConfig:
         self.seed = training_config.get('seed', 100)
         self.tokenizer_learning_rate = training_config.get('tokenizer_learning_rate', 5e-5)
         self.predictor_learning_rate = training_config.get('predictor_learning_rate', 1e-6)
+        
+        # lora configuration
+        lora_config = self.loader.get('lora', {})
+        self.use_lora = lora_config.get('enabled', False)
+        self.lora_rank = lora_config.get('rank', 16)
+        self.lora_alpha = lora_config.get('alpha', 32)
+        self.lora_dropout = lora_config.get('dropout', 0.1)
+        self.lora_target_modules = lora_config.get('target_modules', ["q_proj", "k_proj", "v_proj", "out_proj"])
+
+        # optimization configuration
+        opt_config = self.loader.get('optimization', {})
+        self.amp_enabled = opt_config.get('amp_enabled', False)
+        self.pre_tokenize = opt_config.get('pre_tokenize', False)
+        self.checkpoint_resume = opt_config.get('checkpoint_resume', False)
+        self.checkpoint_interval = opt_config.get('checkpoint_interval', 1)
+
         if self.tokenizer_learning_rate > 5e-5:
             print(f"[WARNING] Configured tokenizer learning rate ({self.tokenizer_learning_rate}) is higher than SPEC recommendation (5e-5)")
-        if self.predictor_learning_rate > 1e-6:
+        if not self.use_lora and self.predictor_learning_rate > 1e-6:
             print(f"[WARNING] Configured predictor learning rate ({self.predictor_learning_rate}) is higher than SPEC recommendation (1e-6)")
         self.adam_beta1 = training_config.get('adam_beta1', 0.9)
         self.adam_beta2 = training_config.get('adam_beta2', 0.95)
         self.adam_weight_decay = training_config.get('adam_weight_decay', 0.1)
         self.accumulation_steps = training_config.get('accumulation_steps', 1)
+        
+        # early stopping configuration
+        self.early_stopping_monitor = training_config.get('early_stopping_monitor', 'val_loss')
+        self.early_stopping_mode = training_config.get('early_stopping_mode', 'min')
+        self.early_stopping_patience = training_config.get('early_stopping_patience', 5)
         
         model_paths = self.loader.get_model_paths()
         self.exp_name = model_paths.get('exp_name', 'default_experiment')
