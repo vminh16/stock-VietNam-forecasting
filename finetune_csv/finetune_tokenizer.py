@@ -21,6 +21,76 @@ from finetune_base_model import CustomKlineDataset
 from config_loader import CustomFinetuneConfig
 
 
+class TokenizerEarlyStopping:
+    def __init__(self, patience=3, recon_threshold=1.05, 
+                 s2_collapse_threshold=0.25, kl_drift_threshold=0.5):
+        self.patience = patience
+        self.recon_threshold = recon_threshold
+        self.s2_collapse_threshold = s2_collapse_threshold
+        self.kl_drift_threshold = kl_drift_threshold
+        self.best_recon = float('inf')
+        self.no_improve_count = 0
+        self.initial_s1_dist = None  # P0_S1
+        self.initial_s2_dist = None  # P0_S2
+        
+    def _kl_divergence(self, p, q):
+        p = np.array(p, dtype=np.float64) + 1e-10
+        q = np.array(q, dtype=np.float64) + 1e-10
+        p = p / p.sum()
+        q = q / q.sum()
+        return np.sum(p * np.log(p / q))
+
+    def set_initial_distributions(self, s1_counts, s2_counts):
+        p_s1 = np.array(s1_counts, dtype=np.float64) + 1e-10
+        p_s2 = np.array(s2_counts, dtype=np.float64) + 1e-10
+        self.initial_s1_dist = p_s1 / p_s1.sum()
+        self.initial_s2_dist = p_s2 / p_s2.sum()
+        
+    def check(self, val_recon_loss, s1_util, s2_util, s1_counts, s2_counts):
+        p_s1 = np.array(s1_counts, dtype=np.float64) + 1e-10
+        p_s1 = p_s1 / p_s1.sum()
+        
+        p_s2 = np.array(s2_counts, dtype=np.float64) + 1e-10
+        p_s2 = p_s2 / p_s2.sum()
+        
+        if self.initial_s1_dist is None:
+            self.initial_s1_dist = p_s1.copy()
+            self.initial_s2_dist = p_s2.copy()
+            return False, [], 0.0
+            
+        kl_s1 = self._kl_divergence(p_s1, self.initial_s1_dist)
+        kl_s2 = self._kl_divergence(p_s2, self.initial_s2_dist)
+        kl_drift = (kl_s1 + kl_s2) / 2.0
+        
+        if val_recon_loss < self.best_recon:
+            self.best_recon = val_recon_loss
+            self.no_improve_count = 0
+        else:
+            self.no_improve_count += 1
+            
+        reasons = []
+        
+        # 1. Reconstruction Loss degradation
+        if val_recon_loss > self.best_recon * self.recon_threshold:
+            reasons.append(f"recon_loss degraded: {val_recon_loss:.6f} > {self.best_recon:.6f} x {self.recon_threshold}")
+            
+        # 2. S2 codebook collapse
+        s2_util_ratio = s2_util / 100.0
+        if s2_util_ratio < self.s2_collapse_threshold:
+            reasons.append(f"S2 codebook collapse: {s2_util:.2f}% < {self.s2_collapse_threshold:.0%}")
+            
+        # 3. KL drift
+        if kl_drift > self.kl_drift_threshold:
+            reasons.append(f"KL drift excessive: {kl_drift:.4f} > {self.kl_drift_threshold}")
+            
+        # 4. Patience
+        if self.no_improve_count >= self.patience:
+            reasons.append(f"patience exhausted: {self.no_improve_count}/{self.patience} epochs without improvement")
+            
+        should_stop = len(reasons) > 0
+        return should_stop, reasons, kl_drift
+
+
 def set_seed(seed: int, rank: int = 0):
     actual_seed = seed
     random.seed(actual_seed)
@@ -182,6 +252,56 @@ def train_tokenizer(model, device, config, save_dir, logger):
     
     accumulation_steps = getattr(config, 'accumulation_steps', 1)
     
+    # Khởi tạo Tokenizer Early Stopping từ config
+    tok_es_patience = config.loader.get('early_stopping_tokenizer.patience', 3)
+    tok_es_recon_threshold = config.loader.get('early_stopping_tokenizer.recon_relative_threshold', 1.05)
+    tok_es_s2_collapse_threshold = config.loader.get('early_stopping_tokenizer.s2_collapse_threshold', 0.25)
+    tok_es_kl_drift_threshold = config.loader.get('early_stopping_tokenizer.kl_drift_threshold', 0.5)
+
+    early_stopper = TokenizerEarlyStopping(
+        patience=tok_es_patience,
+        recon_threshold=tok_es_recon_threshold,
+        s2_collapse_threshold=tok_es_s2_collapse_threshold,
+        kl_drift_threshold=tok_es_kl_drift_threshold
+    )
+    
+    # Thu thập phân phối ban đầu P0 trước khi fine-tune (Epoch 0)
+    logger.info("Calculating baseline codebook distribution (P0)...")
+    if rank == 0:
+        print("Calculating baseline codebook distribution (P0)...")
+    
+    model.eval()
+    init_s1_counts = np.zeros(1024, dtype=np.int64)
+    init_s2_counts = np.zeros(1024, dtype=np.int64)
+    
+    with torch.no_grad():
+        for ori_batch_x, _ in val_loader:
+            ori_batch_x = ori_batch_x.to(device, non_blocking=True)
+            _, _, _, z_indices_val = (model.module if use_ddp else model)(ori_batch_x)
+            
+            s1_idx = z_indices_val & 1023
+            s2_idx = (z_indices_val >> 10) & 1023
+            
+            s1_flat = s1_idx.cpu().numpy().flatten()
+            s2_flat = s2_idx.cpu().numpy().flatten()
+            
+            init_s1_counts += np.bincount(s1_flat, minlength=1024)
+            init_s2_counts += np.bincount(s2_flat, minlength=1024)
+            
+    if use_ddp:
+        s1_tensor = torch.from_numpy(init_s1_counts).to(device)
+        s2_tensor = torch.from_numpy(init_s2_counts).to(device)
+        dist.all_reduce(s1_tensor, op=dist.ReduceOp.SUM)
+        dist.all_reduce(s2_tensor, op=dist.ReduceOp.SUM)
+        init_s1_counts = s1_tensor.cpu().numpy()
+        init_s2_counts = s2_tensor.cpu().numpy()
+        
+    early_stopper.set_initial_distributions(init_s1_counts, init_s2_counts)
+    logger.info("Baseline distribution (P0) calculated.")
+    if rank == 0:
+        print("Baseline distribution (P0) calculated.")
+
+    
     for epoch in range(config.tokenizer_epochs):
         epoch_start_time = time.time()
         model.train()
@@ -244,6 +364,9 @@ def train_tokenizer(model, device, config, save_dir, logger):
         unique_s1_tokens = set()
         unique_s2_tokens = set()
         
+        s1_counts = np.zeros(1024, dtype=np.int64)
+        s2_counts = np.zeros(1024, dtype=np.int64)
+        
         with torch.no_grad():
             for ori_batch_x, _ in val_loader:
                 ori_batch_x = ori_batch_x.to(device, non_blocking=True)
@@ -260,6 +383,12 @@ def train_tokenizer(model, device, config, save_dir, logger):
                 s2_idx = (z_indices_val >> 10) & 1023
                 unique_s1_tokens.update(s1_idx.cpu().numpy().flatten())
                 unique_s2_tokens.update(s2_idx.cpu().numpy().flatten())
+                
+                # Đếm tần suất xuất hiện của codebook
+                s1_flat = s1_idx.cpu().numpy().flatten()
+                s2_flat = s2_idx.cpu().numpy().flatten()
+                s1_counts += np.bincount(s1_flat, minlength=1024)
+                s2_counts += np.bincount(s2_flat, minlength=1024)
         
         if use_ddp:
             tensor_sum = torch.tensor([tot_val_loss_sum_rank, tot_val_bsq_loss_sum_rank, val_sample_count_rank], dtype=torch.float64, device=device)
@@ -269,6 +398,13 @@ def train_tokenizer(model, device, config, save_dir, logger):
             val_count_all = int(tensor_sum[2].item())
             avg_val_loss = (tot_val_loss_all / val_count_all) if val_count_all > 0 else 0.0
             avg_val_bsq_loss = (tot_val_bsq_loss_all / val_count_all) if val_count_all > 0 else 0.0
+            
+            s1_counts_tensor = torch.from_numpy(s1_counts).to(device)
+            s2_counts_tensor = torch.from_numpy(s2_counts).to(device)
+            dist.all_reduce(s1_counts_tensor, op=dist.ReduceOp.SUM)
+            dist.all_reduce(s2_counts_tensor, op=dist.ReduceOp.SUM)
+            s1_counts = s1_counts_tensor.cpu().numpy()
+            s2_counts = s2_counts_tensor.cpu().numpy()
         else:
             avg_val_loss = tot_val_loss_sum_rank / val_sample_count_rank if val_sample_count_rank > 0 else 0
             avg_val_bsq_loss = tot_val_bsq_loss_sum_rank / val_sample_count_rank if val_sample_count_rank > 0 else 0
@@ -277,33 +413,34 @@ def train_tokenizer(model, device, config, save_dir, logger):
         s2_util = len(unique_s2_tokens) / 1024.0 * 100
         avg_util = (s1_util + s2_util) / 2.0
         
+        # Gọi early stopper đa tiêu chí để kiểm tra
+        should_stop, stop_reasons, kl_drift = early_stopper.check(
+            val_recon_loss=avg_val_loss,
+            s1_util=s1_util,
+            s2_util=s2_util,
+            s1_counts=s1_counts,
+            s2_counts=s2_counts
+        )
+        
         epoch_time = time.time() - epoch_start_time
         epoch_summary = (f"\n--- Epoch {epoch+1}/{config.tokenizer_epochs} Summary ---\n"
-                       f"Validation Loss: {avg_val_loss:.4f}\n"
-                       f"Validation BSQ Loss: {avg_val_bsq_loss:.4f}\n"
+                       f"Validation Loss (Recon): {avg_val_loss:.6f}\n"
+                       f"Validation BSQ Loss: {avg_val_bsq_loss:.6f}\n"
                        f"Codebook Utilization: S1 = {s1_util:.2f}%, S2 = {s2_util:.2f}%, Avg = {avg_util:.2f}%\n"
+                       f"KL Drift: {kl_drift:.4f} nats\n"
                        f"Epoch Time: {format_time(epoch_time)}\n"
                        f"Total Training Time: {format_time(time.time() - epoch_start_time)}\n")
         logger.info(epoch_summary)
         if rank == 0:
             print(epoch_summary)
             
-        # Khắc phục H3: Early stopping nếu validation bsq_loss tăng > 5% so với epoch trước
-        if epoch > 0 and avg_val_bsq_loss > prev_val_bsq_loss * 1.05:
-            early_stop_bsq_msg = (f"[!] Early stopping: bsq_loss increased from "
-                                  f"{prev_val_bsq_loss:.4f} to {avg_val_bsq_loss:.4f} (> 5%)")
-            logger.info(early_stop_bsq_msg)
-            if rank == 0:
-                print(early_stop_bsq_msg)
-            break
-            
         prev_val_bsq_loss = avg_val_bsq_loss
             
-        if avg_util < 30.0:
-            collapse_msg = f"[!] Early stopping triggered due to codebook collapse (Avg utilization = {avg_util:.2f}% < 30.0%)"
-            logger.info(collapse_msg)
+        if should_stop:
+            stop_msg = f"[!] Early stopping triggered. Reasons:\n" + "\n".join([f"  - {r}" for r in stop_reasons])
+            logger.info(stop_msg)
             if rank == 0:
-                print(collapse_msg)
+                print(stop_msg)
             break
         
         if avg_val_loss < best_val_loss:
@@ -312,7 +449,7 @@ def train_tokenizer(model, device, config, save_dir, logger):
                 model_save_path = os.path.join(save_dir, "best_model")
                 os.makedirs(model_save_path, exist_ok=True)
                 (model.module if use_ddp else model).save_pretrained(model_save_path)
-                save_msg = f"Best model saved to: {model_save_path} (validation loss: {best_val_loss:.4f})"
+                save_msg = f"Best model saved to: {model_save_path} (validation loss: {best_val_loss:.6f})"
                 logger.info(save_msg)
                 print(save_msg)
     

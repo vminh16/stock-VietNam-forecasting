@@ -236,8 +236,80 @@ def test_zscore_no_leakage():
         x_1, _ = ds_1[0]
         x_2, _ = ds_2[0]
         
-        # Lookback parts (first 100 rows) of the normalized tensors should be identical
-        # If there is leakage, the massive jump in df_2 future window will pull up the mean
-        # and standard deviation of the entire window, resulting in different normalized values for the first 100 rows.
         assert torch.allclose(x_1[:lookback], x_2[:lookback], atol=1e-4), "Z-score leakage detected! Lookback normalization is affected by future values."
+
+
+def test_predict_window_uses_lookback_stats():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        dates = pd.date_range(start="2022-01-01", periods=150, freq="D")
+        df = pd.DataFrame({
+            "timestamps": dates,
+            "open": np.linspace(100, 150, 150),
+            "high": np.linspace(102, 152, 150),
+            "low": np.linspace(98, 148, 150),
+            "close": np.linspace(101, 151, 150),
+            "volume": np.ones(150) * 1000,
+            "amount": np.ones(150) * 120000
+        })
+        df.to_csv(os.path.join(temp_dir, "STOCK.csv"), index=False)
+        
+        lookback = 126
+        predict = 5
+        
+        ds = CustomKlineDataset(
+            data_path=temp_dir,
+            data_type="train",
+            lookback_window=lookback,
+            predict_window=predict,
+            clip=5.0,
+            train_end_date="2099-01-01",
+            val_end_date="2099-01-01"
+        )
+        
+        x, _ = ds[0]
+        window_df = ds.stock_data["STOCK"].iloc[0 : 132]
+        x_raw = window_df[['open', 'high', 'low', 'close', 'volume', 'amount']].values.astype(np.float64)
+        
+        x_lookback = x_raw[:lookback]
+        manual_mean = np.mean(x_lookback, axis=0)
+        manual_std = np.std(x_lookback, axis=0)
+        
+        expected_norm = (x_raw - manual_mean) / (manual_std + 1e-5)
+        expected_norm = np.clip(expected_norm, -5.0, 5.0).astype(np.float32)
+        
+        np.testing.assert_allclose(x.numpy(), expected_norm, rtol=1e-5)
+
+
+def test_zero_std_lookback_guard():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        lookback = 126
+        predict = 5
+        prices = np.concatenate([np.full(lookback, 100.0), np.linspace(100, 200, predict + 1)])
+        dates = pd.date_range(start="2022-01-01", periods=132, freq="D")
+        
+        df = pd.DataFrame({
+            "timestamps": dates,
+            "open": prices,
+            "high": prices,
+            "low": prices,
+            "close": prices,
+            "volume": np.ones(132) * 1000,
+            "amount": np.ones(132) * 100000
+        })
+        df.to_csv(os.path.join(temp_dir, "STOCK.csv"), index=False)
+        
+        ds = CustomKlineDataset(
+            data_path=temp_dir,
+            data_type="train",
+            lookback_window=lookback,
+            predict_window=predict,
+            clip=5.0,
+            train_end_date="2099-01-01",
+            val_end_date="2099-01-01"
+        )
+        
+        x, _ = ds[0]
+        np.testing.assert_allclose(x[:lookback, 3].numpy(), np.zeros(lookback), atol=1e-5)
+        assert not torch.isnan(x).any()
+
 

@@ -154,6 +154,8 @@ class CustomKlineDataset(Dataset):
         x_lookback = x_double[:self.lookback_window]
         x_mean = np.mean(x_lookback, axis=0)
         x_std = np.std(x_lookback, axis=0)
+        # Khắc phục Edge Case: Tránh chia cho std quá nhỏ (flat periods, suspended stocks)
+        x_std = np.where(x_std < 1e-6, 1.0, x_std)
         x_norm = (x_double - x_mean) / (x_std + 1e-5)
         x_norm = np.clip(x_norm, -self.clip, self.clip).astype(np.float32)
         

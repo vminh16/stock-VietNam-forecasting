@@ -9,8 +9,9 @@ import torch
 import matplotlib.pyplot as plt
 from datetime import datetime
 
-# Add parent directory and current directory to system path
+# Add parent directory, finetune_csv and current directory to system path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../finetune_csv')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '.')))
 
 from model import Kronos, KronosTokenizer
@@ -133,6 +134,8 @@ def predict_batch_mean(predictor, df_list, x_timestamp_list, y_timestamp_list, p
         y_stamp = y_time_df.values.astype(np.float32)
 
         x_mean, x_std = np.mean(x, axis=0), np.std(x, axis=0)
+        # Khắc phục Edge Case: Tránh chia cho std quá nhỏ (flat periods, suspended stocks)
+        x_std = np.where(x_std < 1e-6, 1.0, x_std)
         x_norm = (x - x_mean) / (x_std + 1e-5)
         x_norm = np.clip(x_norm, -predictor.clip, predictor.clip)
 

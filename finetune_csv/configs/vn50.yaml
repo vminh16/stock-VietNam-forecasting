@@ -30,6 +30,13 @@ training:
   early_stopping_mode: "max"
   early_stopping_patience: 5
 
+  # --- Multi-Criteria Early Stopping for Tokenizer ---
+  early_stopping_tokenizer:
+    patience: 3
+    recon_relative_threshold: 1.05
+    s2_collapse_threshold: 0.25
+    kl_drift_threshold: 0.5
+
 lora:
   enabled: true
   rank: 8                           # Giảm dung lượng adapter
@@ -46,10 +53,10 @@ optimization:
 model_paths:
   pretrained_tokenizer: "pretrained/Kronos-Tokenizer-base"
   pretrained_predictor: "pretrained/Kronos-base"
-  exp_name: "vn50_daily"
+  exp_name: "tokenizer_v2"
   base_path: "finetune_csv/finetuned"
   base_save_path: ""
-  finetuned_tokenizer: "finetune_csv/finetuned/vn50_daily/tokenizer/best_model"
+  finetuned_tokenizer: "finetune_csv/finetuned/tokenizer_v2/tokenizer/best_model"
   tokenizer_save_name: "tokenizer"
   basemodel_save_name: "basemodel"
 
