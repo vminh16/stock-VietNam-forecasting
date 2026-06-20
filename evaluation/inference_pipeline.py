@@ -165,27 +165,37 @@ def predict_batch_mean(predictor, df_list, x_timestamp_list, y_timestamp_list, p
 
 def get_evaluation_indices(dataset, limit=-1, seed=42):
     """
-    Lấy danh sách các chỉ mục để đánh giá (Stratified sampling theo mã cổ phiếu).
+    Lấy danh sách các chỉ mục để đánh giá.
+    Nếu limit > 0: Thực hiện Date-Aligned Sampling để tránh hiện tượng suy biến danh mục (portfolio degeneracy).
+    Nếu limit <= 0: Lấy toàn bộ các chỉ mục.
     """
-    symbol_to_indices = {}
+    # Gom nhóm chỉ mục theo ngày t_date (lookback end date)
+    date_to_indices = {}
     for idx in range(len(dataset)):
         symbol, start_idx = dataset.global_index_map[idx]
-        if symbol not in symbol_to_indices:
-            symbol_to_indices[symbol] = []
-        symbol_to_indices[symbol].append(idx)
+        df = dataset.stock_data[symbol]
+        date = df.loc[start_idx + dataset.lookback_window - 1, 'timestamps']
+        date_str = date.strftime('%Y-%m-%d') if hasattr(date, 'strftime') else str(date)
+        if date_str not in date_to_indices:
+            date_to_indices[date_str] = []
+        date_to_indices[date_str].append(idx)
         
     sampled_indices = []
     if limit > 0:
         rng = random.Random(seed)
-        num_stocks = len(symbol_to_indices)
-        samples_per_stock = max(1, limit // num_stocks)
-        for symbol, indices in symbol_to_indices.items():
-            if len(indices) <= samples_per_stock:
-                sampled_indices.extend(indices)
-            else:
-                sampled_indices.extend(rng.sample(indices, samples_per_stock))
+        all_dates = list(date_to_indices.keys())
+        rng.shuffle(all_dates)
+        
+        # Chọn các ngày ngẫu nhiên cho đến khi thu thập đủ số lượng mẫu khoảng ~limit
+        collected_count = 0
+        for date_str in all_dates:
+            indices = date_to_indices[date_str]
+            sampled_indices.extend(indices)
+            collected_count += len(indices)
+            if collected_count >= limit:
+                break
     else:
-        for symbol, indices in symbol_to_indices.items():
+        for indices in date_to_indices.values():
             sampled_indices.extend(indices)
             
     # Sắp xếp thời gian tăng dần của lookback end date

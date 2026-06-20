@@ -53,7 +53,7 @@ optimization:
 model_paths:
   pretrained_tokenizer: "pretrained/Kronos-Tokenizer-base"
   pretrained_predictor: "pretrained/Kronos-base"
-  exp_name: "tokenizer_v2"
+  exp_name: "basemodel_v2"
   base_path: "finetune_csv/finetuned"
   base_save_path: ""
   finetuned_tokenizer: "finetune_csv/finetuned/tokenizer_v2/tokenizer/best_model"

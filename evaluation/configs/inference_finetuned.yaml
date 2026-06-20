@@ -1,0 +1,30 @@
+data:
+  data_path: "data_cleaned"
+  lookback_window: 126
+  predict_window: 5
+  max_context: 512
+  clip: 5.0
+  train_end_date: "2023-01-01"
+  val_end_date: "2024-01-01"
+
+inference:
+  # Trọng số fine-tuned v2 (sạch rò rỉ dữ liệu)
+  tokenizer_path: "finetune_csv/finetuned/tokenizer_v2/tokenizer/best_model"
+  predictor_path: "finetune_csv/finetuned/basemodel_v2/basemodel/best_model"
+  
+  # LoRA đã được gộp offline vào best_model
+  use_lora: false
+  adapter_path: ""
+  
+  # Cấu hình sinh dự báo (stochastic path generation)
+  sample_count: 20
+  temperature: 1.0
+  top_p: 0.99
+  top_k: 0
+  
+  # Cấu hình đánh giá
+  eval_batch_size: 16
+  eval_samples_limit: 500 # Giới hạn 500 cửa sổ ngẫu nhiên để đánh giá oos
+  
+  # Lưu kết quả tinh chỉnh
+  output_dir: "reports/finetuned_model_evaluation"

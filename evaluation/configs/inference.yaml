@@ -27,4 +27,4 @@ inference:
   eval_samples_limit: 500 # Giới hạn số cửa sổ đánh giá mỗi tập
   
   # Lưu kết quả
-  output_dir: "reports/inference_baseline"
+  output_dir: "reports/baseline_model_evaluation"
