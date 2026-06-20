@@ -1,14 +1,24 @@
 import os
-import pandas as pd
-import numpy as np
-import json
-import plotly.graph_objects as go
-import plotly.utils
-from flask import Flask, render_template, request, jsonify
-from flask_cors import CORS
 import sys
 import warnings
 import datetime
+import json
+import glob
+import pandas as pd
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
+from typing import Optional, List, Dict, Any
+
+# Disable warnings
 warnings.filterwarnings('ignore')
 
 # Add project root directory to path
@@ -16,20 +26,42 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     from model import Kronos, KronosTokenizer, KronosPredictor
+    from model.kronos import calc_time_stamps, sample_from_logits
     MODEL_AVAILABLE = True
 except ImportError:
     MODEL_AVAILABLE = False
-    print("Warning: Kronos model cannot be imported, will use simulated data for demonstration")
+    print("Warning: Kronos model cannot be imported, will use simulated data for fallback demonstration")
 
-app = Flask(__name__)
-CORS(app)
+# Initialize FastAPI Application
+app = FastAPI(title="Kronos Financial Prediction Web UI", version="1.0")
 
-# Global variables to store models
-tokenizer = None
-model = None
+# Setup CORS Middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Setup Static Files and Templates paths
+current_dir = os.path.dirname(os.path.abspath(__file__))
+static_dir = os.path.join(current_dir, "static")
+templates_dir = os.path.join(current_dir, "templates")
+
+# Ensure static directories exist
+os.makedirs(os.path.join(static_dir, "css"), exist_ok=True)
+os.makedirs(os.path.join(static_dir, "js"), exist_ok=True)
+
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
+templates = Jinja2Templates(directory=templates_dir)
+
+# Global model pointers
+tokenizer_model = None
+predictor_model = None
 predictor = None
+device = "cpu"
 
-# Available model configurations
 AVAILABLE_MODELS = {
     'kronos-mini': {
         'name': 'Kronos-mini',
@@ -37,7 +69,7 @@ AVAILABLE_MODELS = {
         'tokenizer_id': 'NeoQuasar/Kronos-Tokenizer-2k',
         'context_length': 2048,
         'params': '4.1M',
-        'description': 'Lightweight model, suitable for fast prediction'
+        'description': 'Mô hình siêu nhẹ, phù hợp cho phản hồi nhanh'
     },
     'kronos-small': {
         'name': 'Kronos-small',
@@ -45,7 +77,7 @@ AVAILABLE_MODELS = {
         'tokenizer_id': 'NeoQuasar/Kronos-Tokenizer-base',
         'context_length': 512,
         'params': '24.7M',
-        'description': 'Small model, balanced performance and speed'
+        'description': 'Mô hình nhỏ, cân bằng hiệu năng và tốc độ'
     },
     'kronos-base': {
         'name': 'Kronos-base',
@@ -53,656 +85,511 @@ AVAILABLE_MODELS = {
         'tokenizer_id': 'NeoQuasar/Kronos-Tokenizer-base',
         'context_length': 512,
         'params': '102.3M',
-        'description': 'Base model, provides better prediction quality'
+        'description': 'Mô hình chuẩn, chất lượng dự báo tối ưu'
     }
 }
 
+class LoadModelRequest(BaseModel):
+    model_key: str
+    device: str
+
+class PredictRequest(BaseModel):
+    file_path: str
+    lookback: int = 126
+    pred_len: int = 5
+    temperature: float = 1.0
+    top_p: float = 0.9
+    sample_count: int = 50
+    start_date: Optional[str] = None
+
+class RankRequest(BaseModel):
+    lookback: int = 126
+    pred_len: int = 5
+    temperature: float = 1.0
+    top_p: float = 0.9
+
+# Custom inference function to return all stochastic paths
+def auto_regressive_inference_paths(tokenizer, model, x, x_stamp, y_stamp, max_context, pred_len, clip=5.0, T=1.0, top_k=0, top_p=0.90, sample_count=50):
+    with torch.no_grad():
+        x = torch.clip(x, -clip, clip)
+        curr_device = x.device
+        
+        # Repeat input for multiple sample paths
+        x = x.unsqueeze(1).repeat(1, sample_count, 1, 1).reshape(-1, x.size(1), x.size(2)).to(curr_device)
+        x_stamp = x_stamp.unsqueeze(1).repeat(1, sample_count, 1, 1).reshape(-1, x_stamp.size(1), x_stamp.size(2)).to(curr_device)
+        y_stamp = y_stamp.unsqueeze(1).repeat(1, sample_count, 1, 1).reshape(-1, y_stamp.size(1), y_stamp.size(2)).to(curr_device)
+
+        x_token = tokenizer.encode(x, half=True)
+        
+        initial_seq_len = x.size(1)
+        batch_size = x_token[0].size(0)
+        total_seq_len = initial_seq_len + pred_len
+        full_stamp = torch.cat([x_stamp, y_stamp], dim=1)
+
+        generated_pre = x_token[0].new_empty(batch_size, pred_len)
+        generated_post = x_token[1].new_empty(batch_size, pred_len)
+
+        pre_buffer = x_token[0].new_zeros(batch_size, max_context)
+        post_buffer = x_token[1].new_zeros(batch_size, max_context)
+        buffer_len = min(initial_seq_len, max_context)
+        if buffer_len > 0:
+            start_idx = max(0, initial_seq_len - max_context)
+            pre_buffer[:, :buffer_len] = x_token[0][:, start_idx:start_idx + buffer_len]
+            post_buffer[:, :buffer_len] = x_token[1][:, start_idx:start_idx + buffer_len]
+
+        for i in range(pred_len):
+            current_seq_len = initial_seq_len + i
+            window_len = min(current_seq_len, max_context)
+
+            if current_seq_len <= max_context:
+                input_tokens = [
+                    pre_buffer[:, :window_len],
+                    post_buffer[:, :window_len]
+                ]
+            else:
+                input_tokens = [pre_buffer, post_buffer]
+
+            context_end = current_seq_len
+            context_start = max(0, context_end - max_context)
+            current_stamp = full_stamp[:, context_start:context_end, :].contiguous()
+
+            s1_logits, context = model.decode_s1(input_tokens[0], input_tokens[1], current_stamp)
+            s1_logits = s1_logits[:, -1, :]
+            sample_pre = sample_from_logits(s1_logits, temperature=T, top_k=top_k, top_p=top_p, sample_logits=True)
+
+            s2_logits = model.decode_s2(context, sample_pre)
+            s2_logits = s2_logits[:, -1, :]
+            sample_post = sample_from_logits(s2_logits, temperature=T, top_k=top_k, top_p=top_p, sample_logits=True)
+
+            generated_pre[:, i] = sample_pre.squeeze(-1)
+            generated_post[:, i] = sample_post.squeeze(-1)
+
+            if current_seq_len < max_context:
+                pre_buffer[:, current_seq_len] = sample_pre.squeeze(-1)
+                post_buffer[:, current_seq_len] = sample_post.squeeze(-1)
+            else:
+                pre_buffer.copy_(torch.roll(pre_buffer, shifts=-1, dims=1))
+                post_buffer.copy_(torch.roll(post_buffer, shifts=-1, dims=1))
+                pre_buffer[:, -1] = sample_pre.squeeze(-1)
+                post_buffer[:, -1] = sample_post.squeeze(-1)
+
+        full_pre = torch.cat([x_token[0], generated_pre], dim=1)
+        full_post = torch.cat([x_token[1], generated_post], dim=1)
+
+        context_start = max(0, total_seq_len - max_context)
+        input_tokens = [
+            full_pre[:, context_start:total_seq_len].contiguous(),
+            full_post[:, context_start:total_seq_len].contiguous()
+        ]
+        z = tokenizer.decode(input_tokens, half=True)
+        z = z.reshape(-1, sample_count, z.size(1), z.size(2))
+        return z.cpu().numpy() # Shape: (1, sample_count, total_seq_len, features)
+
+# Helper functions for calculations
 def load_data_files():
-    """Scan data directory and return available data files"""
     data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
     data_files = []
     
     if os.path.exists(data_dir):
-        for file in os.listdir(data_dir):
-            if file.endswith(('.csv', '.feather')):
-                file_path = os.path.join(data_dir, file)
-                file_size = os.path.getsize(file_path)
-                data_files.append({
-                    'name': file,
-                    'path': file_path,
-                    'size': f"{file_size / 1024:.1f} KB" if file_size < 1024*1024 else f"{file_size / (1024*1024):.1f} MB"
-                })
-    
+        files = glob.glob(os.path.join(data_dir, "*.csv")) + glob.glob(os.path.join(data_dir, "*.feather"))
+        for fpath in files:
+            file_size = os.path.getsize(fpath)
+            data_files.append({
+                'name': os.path.basename(fpath),
+                'path': fpath,
+                'size': f"{file_size / 1024:.1f} KB" if file_size < 1024*1024 else f"{file_size / (1024*1024):.1f} MB"
+            })
     return data_files
 
-def load_data_file(file_path):
-    """Load data file"""
+def load_data_file(file_path: str):
+    if not os.path.exists(file_path):
+        return None, "File không tồn tại"
+        
     try:
         if file_path.endswith('.csv'):
             df = pd.read_csv(file_path)
         elif file_path.endswith('.feather'):
             df = pd.read_feather(file_path)
         else:
-            return None, "Unsupported file format"
-        
-        # Check required columns
+            return None, "Định dạng file không hỗ trợ"
+            
         required_cols = ['open', 'high', 'low', 'close']
         if not all(col in df.columns for col in required_cols):
-            return None, f"Missing required columns: {required_cols}"
-        
-        # Process timestamp column
+            return None, f"Thiếu các cột bắt buộc: {required_cols}"
+            
         if 'timestamps' in df.columns:
             df['timestamps'] = pd.to_datetime(df['timestamps'])
         elif 'timestamp' in df.columns:
             df['timestamps'] = pd.to_datetime(df['timestamp'])
         elif 'date' in df.columns:
-            # If column name is 'date', rename it to 'timestamps'
             df['timestamps'] = pd.to_datetime(df['date'])
         else:
-            # If no timestamp column exists, create one
-            df['timestamps'] = pd.date_range(start='2024-01-01', periods=len(df), freq='1H')
+            df['timestamps'] = pd.date_range(start='2024-01-01', periods=len(df), freq='D')
+            
+        df = df.sort_values('timestamps').reset_index(drop=True)
         
-        # Ensure numeric columns are numeric type
-        for col in ['open', 'high', 'low', 'close']:
+        for col in required_cols:
             df[col] = pd.to_numeric(df[col], errors='coerce')
+            
+        if 'volume' not in df.columns:
+            df['volume'] = 0.0
+            
+        # Amount calculation guard
+        if 'amount' not in df.columns or df['amount'].isnull().all():
+            df['amount'] = df['volume'] * (df['open'] + df['high'] + df['low'] + df['close']) / 4.0
+            
+        df['volume'] = pd.to_numeric(df['volume'], errors='coerce')
+        df['amount'] = pd.to_numeric(df['amount'], errors='coerce')
         
-        # Process volume column (optional)
-        if 'volume' in df.columns:
-            df['volume'] = pd.to_numeric(df['volume'], errors='coerce')
-        
-        # Process amount column (optional, but not used for prediction)
-        if 'amount' in df.columns:
-            df['amount'] = pd.to_numeric(df['amount'], errors='coerce')
-        
-        # Remove rows containing NaN values
-        df = df.dropna()
-        
+        df = df.dropna().reset_index(drop=True)
         return df, None
-        
     except Exception as e:
-        return None, f"Failed to load file: {str(e)}"
+        return None, f"Lỗi khi tải file: {str(e)}"
 
-def save_prediction_results(file_path, prediction_type, prediction_results, actual_data, input_data, prediction_params):
-    """Save prediction results to file"""
-    try:
-        # Create prediction results directory
-        results_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'prediction_results')
-        os.makedirs(results_dir, exist_ok=True)
-        
-        # Generate filename
-        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f'prediction_{timestamp}.json'
-        filepath = os.path.join(results_dir, filename)
-        
-        # Prepare data for saving
-        save_data = {
-            'timestamp': datetime.datetime.now().isoformat(),
-            'file_path': file_path,
-            'prediction_type': prediction_type,
-            'prediction_params': prediction_params,
-            'input_data_summary': {
-                'rows': len(input_data),
-                'columns': list(input_data.columns),
-                'price_range': {
-                    'open': {'min': float(input_data['open'].min()), 'max': float(input_data['open'].max())},
-                    'high': {'min': float(input_data['high'].min()), 'max': float(input_data['high'].max())},
-                    'low': {'min': float(input_data['low'].min()), 'max': float(input_data['low'].max())},
-                    'close': {'min': float(input_data['close'].min()), 'max': float(input_data['close'].max())}
-                },
-                'last_values': {
-                    'open': float(input_data['open'].iloc[-1]),
-                    'high': float(input_data['high'].iloc[-1]),
-                    'low': float(input_data['low'].iloc[-1]),
-                    'close': float(input_data['close'].iloc[-1])
-                }
-            },
-            'prediction_results': prediction_results,
-            'actual_data': actual_data,
-            'analysis': {}
-        }
-        
-        # If actual data exists, perform comparison analysis
-        if actual_data and len(actual_data) > 0:
-            # Calculate continuity analysis
-            if len(prediction_results) > 0 and len(actual_data) > 0:
-                last_pred = prediction_results[0]  # First prediction point
-            first_actual = actual_data[0]      # First actual point
-                
-            save_data['analysis']['continuity'] = {
-                    'last_prediction': {
-                        'open': last_pred['open'],
-                        'high': last_pred['high'],
-                        'low': last_pred['low'],
-                        'close': last_pred['close']
-                    },
-                    'first_actual': {
-                        'open': first_actual['open'],
-                        'high': first_actual['high'],
-                        'low': first_actual['low'],
-                        'close': first_actual['close']
-                    },
-                    'gaps': {
-                        'open_gap': abs(last_pred['open'] - first_actual['open']),
-                        'high_gap': abs(last_pred['high'] - first_actual['high']),
-                        'low_gap': abs(last_pred['low'] - first_actual['low']),
-                        'close_gap': abs(last_pred['close'] - first_actual['close'])
-                    },
-                    'gap_percentages': {
-                        'open_gap_pct': (abs(last_pred['open'] - first_actual['open']) / first_actual['open']) * 100,
-                        'high_gap_pct': (abs(last_pred['high'] - first_actual['high']) / first_actual['high']) * 100,
-                        'low_gap_pct': (abs(last_pred['low'] - first_actual['low']) / first_actual['low']) * 100,
-                        'close_gap_pct': (abs(last_pred['close'] - first_actual['close']) / first_actual['close']) * 100
-                    }
-                }
-        
-        # Save to file
-        with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(save_data, f, indent=2, ensure_ascii=False)
-        
-        print(f"Prediction results saved to: {filepath}")
-        return filepath
-        
-    except Exception as e:
-        print(f"Failed to save prediction results: {e}")
-        return None
+# Endpoints
+@app.get("/", response_class=HTMLResponse)
+async def get_index(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
-def create_prediction_chart(df, pred_df, lookback, pred_len, actual_df=None, historical_start_idx=0):
-    """Create prediction chart"""
-    # Use specified historical data start position, not always from the beginning of df
-    if historical_start_idx + lookback + pred_len <= len(df):
-        # Display lookback historical points + pred_len prediction points starting from specified position
-        historical_df = df.iloc[historical_start_idx:historical_start_idx+lookback]
-        prediction_range = range(historical_start_idx+lookback, historical_start_idx+lookback+pred_len)
-    else:
-        # If data is insufficient, adjust to maximum available range
-        available_lookback = min(lookback, len(df) - historical_start_idx)
-        available_pred_len = min(pred_len, max(0, len(df) - historical_start_idx - available_lookback))
-        historical_df = df.iloc[historical_start_idx:historical_start_idx+available_lookback]
-        prediction_range = range(historical_start_idx+available_lookback, historical_start_idx+available_lookback+available_pred_len)
-    
-    # Create chart
-    fig = go.Figure()
-    
-    # Add historical data (candlestick chart)
-    fig.add_trace(go.Candlestick(
-        x=historical_df['timestamps'] if 'timestamps' in historical_df.columns else historical_df.index,
-        open=historical_df['open'],
-        high=historical_df['high'],
-        low=historical_df['low'],
-        close=historical_df['close'],
-        name='Historical Data (400 data points)',
-        increasing_line_color='#26A69A',
-        decreasing_line_color='#EF5350'
-    ))
-    
-    # Add prediction data (candlestick chart)
-    if pred_df is not None and len(pred_df) > 0:
-        # Calculate prediction data timestamps - ensure continuity with historical data
-        if 'timestamps' in df.columns and len(historical_df) > 0:
-            # Start from the last timestamp of historical data, create prediction timestamps with the same time interval
-            last_timestamp = historical_df['timestamps'].iloc[-1]
-            time_diff = df['timestamps'].iloc[1] - df['timestamps'].iloc[0] if len(df) > 1 else pd.Timedelta(hours=1)
-            
-            pred_timestamps = pd.date_range(
-                start=last_timestamp + time_diff,
-                periods=len(pred_df),
-                freq=time_diff
-            )
-        else:
-            # If no timestamps, use index
-            pred_timestamps = range(len(historical_df), len(historical_df) + len(pred_df))
-        
-        fig.add_trace(go.Candlestick(
-            x=pred_timestamps,
-            open=pred_df['open'],
-            high=pred_df['high'],
-            low=pred_df['low'],
-            close=pred_df['close'],
-            name='Prediction Data (120 data points)',
-            increasing_line_color='#66BB6A',
-            decreasing_line_color='#FF7043'
-        ))
-    
-    # Add actual data for comparison (if exists)
-    if actual_df is not None and len(actual_df) > 0:
-        # Actual data should be in the same time period as prediction data
-        if 'timestamps' in df.columns:
-            # Actual data should use the same timestamps as prediction data to ensure time alignment
-            if 'pred_timestamps' in locals():
-                actual_timestamps = pred_timestamps
-            else:
-                # If no prediction timestamps, calculate from the last timestamp of historical data
-                if len(historical_df) > 0:
-                    last_timestamp = historical_df['timestamps'].iloc[-1]
-                    time_diff = df['timestamps'].iloc[1] - df['timestamps'].iloc[0] if len(df) > 1 else pd.Timedelta(hours=1)
-                    actual_timestamps = pd.date_range(
-                        start=last_timestamp + time_diff,
-                        periods=len(actual_df),
-                        freq=time_diff
-                    )
-                else:
-                    actual_timestamps = range(len(historical_df), len(historical_df) + len(actual_df))
-        else:
-            actual_timestamps = range(len(historical_df), len(historical_df) + len(actual_df))
-        
-        fig.add_trace(go.Candlestick(
-            x=actual_timestamps,
-            open=actual_df['open'],
-            high=actual_df['high'],
-            low=actual_df['low'],
-            close=actual_df['close'],
-            name='Actual Data (120 data points)',
-            increasing_line_color='#FF9800',
-            decreasing_line_color='#F44336'
-        ))
-    
-    # Update layout
-    fig.update_layout(
-        title='Kronos Financial Prediction Results - 400 Historical Points + 120 Prediction Points vs 120 Actual Points',
-        xaxis_title='Time',
-        yaxis_title='Price',
-        template='plotly_white',
-        height=600,
-        showlegend=True
-    )
-    
-    # Ensure x-axis time continuity
-    if 'timestamps' in historical_df.columns:
-        # Get all timestamps and sort them
-        all_timestamps = []
-        if len(historical_df) > 0:
-            all_timestamps.extend(historical_df['timestamps'])
-        if 'pred_timestamps' in locals():
-            all_timestamps.extend(pred_timestamps)
-        if 'actual_timestamps' in locals():
-            all_timestamps.extend(actual_timestamps)
-        
-        if all_timestamps:
-            all_timestamps = sorted(all_timestamps)
-            fig.update_xaxes(
-                range=[all_timestamps[0], all_timestamps[-1]],
-                rangeslider_visible=False,
-                type='date'
-            )
-    
-    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+@app.get("/api/available-models")
+async def get_models():
+    return JSONResponse(content={'models': AVAILABLE_MODELS, 'model_available': MODEL_AVAILABLE})
 
-@app.route('/')
-def index():
-    """Home page"""
-    return render_template('index.html')
-
-@app.route('/api/data-files')
-def get_data_files():
-    """Get available data file list"""
-    data_files = load_data_files()
-    return jsonify(data_files)
-
-@app.route('/api/load-data', methods=['POST'])
-def load_data():
-    """Load data file"""
-    try:
-        data = request.get_json()
-        file_path = data.get('file_path')
-        
-        if not file_path:
-            return jsonify({'error': 'File path cannot be empty'}), 400
-        
-        df, error = load_data_file(file_path)
-        if error:
-            return jsonify({'error': error}), 400
-        
-        # Detect data time frequency
-        def detect_timeframe(df):
-            if len(df) < 2:
-                return "Unknown"
-            
-            time_diffs = []
-            for i in range(1, min(10, len(df))):  # Check first 10 time differences
-                diff = df['timestamps'].iloc[i] - df['timestamps'].iloc[i-1]
-                time_diffs.append(diff)
-            
-            if not time_diffs:
-                return "Unknown"
-            
-            # Calculate average time difference
-            avg_diff = sum(time_diffs, pd.Timedelta(0)) / len(time_diffs)
-            
-            # Convert to readable format
-            if avg_diff < pd.Timedelta(minutes=1):
-                return f"{avg_diff.total_seconds():.0f} seconds"
-            elif avg_diff < pd.Timedelta(hours=1):
-                return f"{avg_diff.total_seconds() / 60:.0f} minutes"
-            elif avg_diff < pd.Timedelta(days=1):
-                return f"{avg_diff.total_seconds() / 3600:.0f} hours"
-            else:
-                return f"{avg_diff.days} days"
-        
-        # Return data information
-        data_info = {
-            'rows': len(df),
-            'columns': list(df.columns),
-            'start_date': df['timestamps'].min().isoformat() if 'timestamps' in df.columns else 'N/A',
-            'end_date': df['timestamps'].max().isoformat() if 'timestamps' in df.columns else 'N/A',
-            'price_range': {
-                'min': float(df[['open', 'high', 'low', 'close']].min().min()),
-                'max': float(df[['open', 'high', 'low', 'close']].max().max())
-            },
-            'prediction_columns': ['open', 'high', 'low', 'close'] + (['volume'] if 'volume' in df.columns else []),
-            'timeframe': detect_timeframe(df)
-        }
-        
-        return jsonify({
-            'success': True,
-            'data_info': data_info,
-            'message': f'Successfully loaded data, total {len(df)} rows'
+@app.get("/api/model-status")
+async def get_status():
+    global predictor_model, device
+    if MODEL_AVAILABLE and predictor_model is not None:
+        return JSONResponse(content={
+            'available': True,
+            'loaded': True,
+            'current_model': {
+                'name': predictor_model.__class__.__name__,
+                'device': str(device)
+            }
         })
-        
-    except Exception as e:
-        return jsonify({'error': f'Failed to load data: {str(e)}'}), 500
+    return JSONResponse(content={
+        'available': MODEL_AVAILABLE,
+        'loaded': False,
+        'message': 'Mô hình chưa được nạp'
+    })
 
-@app.route('/api/predict', methods=['POST'])
-def predict():
-    """Perform prediction"""
+@app.post("/api/load-model")
+async def load_model_endpoint(req: LoadModelRequest):
+    global tokenizer_model, predictor_model, predictor, device
+    
+    if not MODEL_AVAILABLE:
+        raise HTTPException(status_code=400, detail="Mô hình Kronos không có sẵn")
+        
+    if req.model_key not in AVAILABLE_MODELS:
+        raise HTTPException(status_code=400, detail="Mã mô hình không được hỗ trợ")
+        
+    model_config = AVAILABLE_MODELS[req.model_key]
+    device = req.device
+    
     try:
-        data = request.get_json()
-        file_path = data.get('file_path')
-        lookback = int(data.get('lookback', 400))
-        pred_len = int(data.get('pred_len', 120))
+        # Load weights
+        tokenizer_model = KronosTokenizer.from_pretrained(model_config['tokenizer_id'])
+        predictor_model = Kronos.from_pretrained(model_config['model_id'])
         
-        # Get prediction quality parameters
-        temperature = float(data.get('temperature', 1.0))
-        top_p = float(data.get('top_p', 0.9))
-        sample_count = int(data.get('sample_count', 1))
+        tokenizer_model = tokenizer_model.to(device)
+        predictor_model = predictor_model.to(device)
         
-        if not file_path:
-            return jsonify({'error': 'File path cannot be empty'}), 400
+        predictor = KronosPredictor(predictor_model, tokenizer_model, device=device, max_context=model_config['context_length'])
         
-        # Load data
-        df, error = load_data_file(file_path)
-        if error:
-            return jsonify({'error': error}), 400
+        return JSONResponse(content={
+            'success': True,
+            'message': f"Nạp thành công {model_config['name']} trên {device}",
+            'model_info': {
+                'name': model_config['name'],
+                'params': model_config['params'],
+                'context_length': model_config['context_length']
+            }
+        })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi khi nạp mô hình: {str(e)}")
+
+@app.get("/api/data-files")
+async def get_files():
+    return JSONResponse(content=load_data_files())
+
+@app.post("/api/load-data")
+async def get_file_metadata(req: Dict[str, str]):
+    file_path = req.get('file_path')
+    if not file_path:
+        raise HTTPException(status_code=400, detail="Thiếu đường dẫn file")
         
-        if len(df) < lookback:
-            return jsonify({'error': f'Insufficient data length, need at least {lookback} rows'}), 400
+    df, err = load_data_file(file_path)
+    if err:
+        raise HTTPException(status_code=400, detail=err)
         
-        # Perform prediction
-        if MODEL_AVAILABLE and predictor is not None:
-            try:
-                # Use real Kronos model
-                # Only use necessary columns: OHLCV, excluding amount
-                required_cols = ['open', 'high', 'low', 'close']
-                if 'volume' in df.columns:
-                    required_cols.append('volume')
-                
-                # Process time period selection
-                start_date = data.get('start_date')
-                
-                if start_date:
-                    # Custom time period - fix logic: use data within selected window
-                    start_dt = pd.to_datetime(start_date)
-                    
-                    # Find data after start time
-                    mask = df['timestamps'] >= start_dt
-                    time_range_df = df[mask]
-                    
-                    # Ensure sufficient data: lookback + pred_len
-                    if len(time_range_df) < lookback + pred_len:
-                        return jsonify({'error': f'Insufficient data from start time {start_dt.strftime("%Y-%m-%d %H:%M")}, need at least {lookback + pred_len} data points, currently only {len(time_range_df)} available'}), 400
-                    
-                    # Use first lookback data points within selected window for prediction
-                    x_df = time_range_df.iloc[:lookback][required_cols]
-                    x_timestamp = time_range_df.iloc[:lookback]['timestamps']
-                    
-                    # Use last pred_len data points within selected window as actual values
-                    y_timestamp = time_range_df.iloc[lookback:lookback+pred_len]['timestamps']
-                    
-                    # Calculate actual time period length
-                    start_timestamp = time_range_df['timestamps'].iloc[0]
-                    end_timestamp = time_range_df['timestamps'].iloc[lookback+pred_len-1]
-                    time_span = end_timestamp - start_timestamp
-                    
-                    prediction_type = f"Kronos model prediction (within selected window: first {lookback} data points for prediction, last {pred_len} data points for comparison, time span: {time_span})"
-                else:
-                    # Use latest data
-                    x_df = df.iloc[:lookback][required_cols]
-                    x_timestamp = df.iloc[:lookback]['timestamps']
-                    y_timestamp = df.iloc[lookback:lookback+pred_len]['timestamps']
-                    prediction_type = "Kronos model prediction (latest data)"
-                
-                # Ensure timestamps are Series format, not DatetimeIndex, to avoid .dt attribute error in Kronos model
-                if isinstance(x_timestamp, pd.DatetimeIndex):
-                    x_timestamp = pd.Series(x_timestamp, name='timestamps')
-                if isinstance(y_timestamp, pd.DatetimeIndex):
-                    y_timestamp = pd.Series(y_timestamp, name='timestamps')
-                
-                pred_df = predictor.predict(
-                    df=x_df,
-                    x_timestamp=x_timestamp,
-                    y_timestamp=y_timestamp,
-                    pred_len=pred_len,
-                    T=temperature,
-                    top_p=top_p,
-                    sample_count=sample_count
-                )
-                
-            except Exception as e:
-                return jsonify({'error': f'Kronos model prediction failed: {str(e)}'}), 500
-        else:
-            return jsonify({'error': 'Kronos model not loaded, please load model first'}), 400
+    return JSONResponse(content={
+        'success': True,
+        'data_info': {
+            'rows': len(df),
+            'start_date': df['timestamps'].min().isoformat(),
+            'end_date': df['timestamps'].max().isoformat()
+        }
+    })
+
+@app.post("/api/predict")
+async def run_predict(req: PredictRequest):
+    global predictor, tokenizer_model, predictor_model, device
+    
+    if not predictor:
+        raise HTTPException(status_code=400, detail="Mô hình chưa được nạp. Hãy nạp mô hình trước.")
         
-        # Prepare actual data for comparison (if exists)
-        actual_data = []
-        actual_df = None
+    df, err = load_data_file(req.file_path)
+    if err:
+        raise HTTPException(status_code=400, detail=err)
         
-        if start_date:  # Custom time period
-            # Fix logic: use data within selected window
-            # Prediction uses first 400 data points within selected window
-            # Actual data should be last 120 data points within selected window
-            start_dt = pd.to_datetime(start_date)
-            
-            # Find data starting from start_date
+    if len(df) < req.lookback:
+        raise HTTPException(status_code=400, detail=f"Dữ liệu lịch sử không đủ, cần tối thiểu {req.lookback} nến.")
+        
+    try:
+        # Determine slice based on start_date
+        if req.start_date:
+            start_dt = pd.to_datetime(req.start_date)
             mask = df['timestamps'] >= start_dt
             time_range_df = df[mask]
             
-            if len(time_range_df) >= lookback + pred_len:
-                # Get last 120 data points within selected window as actual values
-                actual_df = time_range_df.iloc[lookback:lookback+pred_len]
+            if len(time_range_df) < req.lookback + req.pred_len:
+                raise HTTPException(status_code=400, detail=f"Không đủ {req.lookback + req.pred_len} nến tính từ ngày {req.start_date}")
                 
-                for i, (_, row) in enumerate(actual_df.iterrows()):
-                    actual_data.append({
-                        'timestamp': row['timestamps'].isoformat(),
-                        'open': float(row['open']),
-                        'high': float(row['high']),
-                        'low': float(row['low']),
-                        'close': float(row['close']),
-                        'volume': float(row['volume']) if 'volume' in row else 0,
-                        'amount': float(row['amount']) if 'amount' in row else 0
-                    })
-        else:  # Latest data
-            # Prediction uses first 400 data points
-            # Actual data should be 120 data points after first 400 data points
-            if len(df) >= lookback + pred_len:
-                actual_df = df.iloc[lookback:lookback+pred_len]
-                for i, (_, row) in enumerate(actual_df.iterrows()):
-                    actual_data.append({
-                        'timestamp': row['timestamps'].isoformat(),
-                        'open': float(row['open']),
-                        'high': float(row['high']),
-                        'low': float(row['low']),
-                        'close': float(row['close']),
-                        'volume': float(row['volume']) if 'volume' in row else 0,
-                        'amount': float(row['amount']) if 'amount' in row else 0
-                    })
-        
-        # Create chart - pass historical data start position
-        if start_date:
-            # Custom time period: find starting position of historical data in original df
-            start_dt = pd.to_datetime(start_date)
-            mask = df['timestamps'] >= start_dt
-            historical_start_idx = df[mask].index[0] if len(df[mask]) > 0 else 0
+            x_df = time_range_df.iloc[:req.lookback]
+            actual_df = time_range_df.iloc[req.lookback:req.lookback+req.pred_len]
+            has_comparison = True
         else:
-            # Latest data: start from beginning
-            historical_start_idx = 0
+            x_df = df.iloc[-req.lookback:]
+            actual_df = pd.DataFrame()
+            has_comparison = False
+
+        price_cols = ['open', 'high', 'low', 'close']
+        features = price_cols + ['volume', 'amount']
         
-        chart_json = create_prediction_chart(df, pred_df, lookback, pred_len, actual_df, historical_start_idx)
+        # Prepare arrays for inference
+        x_raw = x_df[features].values.astype(np.float64)
+        x_mean = np.mean(x_raw, axis=0)
+        x_std = np.std(x_raw, axis=0)
+        x_std = np.where(x_std < 1e-6, 1.0, x_std)
         
-        # Prepare prediction result data - fix timestamp calculation logic
-        if 'timestamps' in df.columns:
-            if start_date:
-                # Custom time period: use selected window data to calculate timestamps
-                start_dt = pd.to_datetime(start_date)
-                mask = df['timestamps'] >= start_dt
-                time_range_df = df[mask]
-                
-                if len(time_range_df) >= lookback:
-                    # Calculate prediction timestamps starting from last time point of selected window
-                    last_timestamp = time_range_df['timestamps'].iloc[lookback-1]
-                    time_diff = df['timestamps'].iloc[1] - df['timestamps'].iloc[0]
-                    future_timestamps = pd.date_range(
-                        start=last_timestamp + time_diff,
-                        periods=pred_len,
-                        freq=time_diff
-                    )
-                else:
-                    future_timestamps = []
-            else:
-                # Latest data: calculate from last time point of entire data file
-                last_timestamp = df['timestamps'].iloc[-1]
-                time_diff = df['timestamps'].iloc[1] - df['timestamps'].iloc[0]
-                future_timestamps = pd.date_range(
-                    start=last_timestamp + time_diff,
-                    periods=pred_len,
-                    freq=time_diff
-                )
+        x_norm = (x_raw - x_mean) / (x_std + 1e-5)
+        x_norm = np.clip(x_norm, -predictor.clip, predictor.clip)
+        
+        x_tensor = torch.from_numpy(x_norm[np.newaxis, ...].astype(np.float32)).to(device)
+        
+        # Generate timestamps
+        x_timestamps = x_df['timestamps']
+        if has_comparison:
+            y_timestamps = actual_df['timestamps']
         else:
-            future_timestamps = range(len(df), len(df) + pred_len)
+            time_diff = df['timestamps'].iloc[1] - df['timestamps'].iloc[0] if len(df) > 1 else pd.Timedelta(days=1)
+            y_timestamps = pd.date_range(start=x_timestamps.iloc[-1] + time_diff, periods=req.pred_len, freq=time_diff)
+            
+        x_stamp_df = calc_time_stamps(pd.Series(x_timestamps))
+        y_stamp_df = calc_time_stamps(pd.Series(y_timestamps))
         
-        prediction_results = []
-        for i, (_, row) in enumerate(pred_df.iterrows()):
-            prediction_results.append({
-                'timestamp': future_timestamps[i].isoformat() if i < len(future_timestamps) else f"T{i}",
+        x_stamp_tensor = torch.from_numpy(x_stamp_df.values[np.newaxis, ...].astype(np.float32)).to(device)
+        y_stamp_tensor = torch.from_numpy(y_stamp_df.values[np.newaxis, ...].astype(np.float32)).to(device)
+        
+        # 1. Run Stochastic Inference to get ALL paths
+        paths_norm = auto_regressive_inference_paths(
+            tokenizer_model, predictor_model, x_tensor, x_stamp_tensor, y_stamp_tensor,
+            max_context=predictor.max_context, pred_len=req.pred_len, clip=predictor.clip,
+            T=req.temperature, top_p=req.top_p, sample_count=req.sample_count
+        )
+        # paths_norm shape: (1, sample_count, total_seq_len, features)
+        paths_norm = paths_norm.squeeze(0) # (sample_count, total_seq_len, features)
+        
+        # Extract only predicted portion
+        pred_paths_norm = paths_norm[:, -req.pred_len:, :]
+        
+        # Denormalize all paths
+        pred_paths_raw = pred_paths_norm * (x_std + 1e-5) + x_mean # (sample_count, pred_len, features)
+        
+        # 2. Calculate Mean Prediction Path
+        mean_pred_raw = np.mean(pred_paths_raw, axis=0) # (pred_len, features)
+        
+        # 3. Calculate Risk Metrics on Close Price (Index 3) on last day
+        close_samples = pred_paths_raw[:, -1, 3]
+        volatility = float(np.std(close_samples) / np.mean(close_samples))
+        var_5pct = float(np.percentile(close_samples, 5))
+        var_95pct = float(np.percentile(close_samples, 95))
+        confidence_width = float(var_95pct - var_5pct)
+        
+        # 4. Calculate Trend
+        current_close = float(x_df.iloc[-1]['close'])
+        pred_close_5d = float(mean_pred_raw[-1, 3])
+        predicted_return = (pred_close_5d - current_close) / current_close
+        
+        trend_class = "SIDEWAY"
+        if predicted_return > 0.03:
+            trend_class = "UP"
+        elif predicted_return < -0.03:
+            trend_class = "DOWN"
+            
+        # 5. XAI Token Frequency Analysis
+        # Fetch S1 tokens (coarse trend tokens) for historical window + mean prediction
+        full_df_raw = np.concatenate([x_raw, mean_pred_raw], axis=0)
+        full_norm = (full_df_raw - x_mean) / (x_std + 1e-5)
+        full_norm = np.clip(full_norm, -predictor.clip, predictor.clip)
+        full_tensor = torch.from_numpy(full_norm[np.newaxis, ...].astype(np.float32)).to(device)
+        
+        with torch.no_grad():
+            z_indices = tokenizer_model.encode(full_tensor, half=True)
+            # z_indices is a list of two tensors: [s1, s2]
+            s1_tokens = z_indices[0].squeeze(0).cpu().numpy()
+            
+        # Count frequency of last 15 tokens
+        last_s1 = s1_tokens[-15:].tolist()
+        unique, counts = np.unique(last_s1, return_counts=True)
+        xai_data = [{'token': int(t), 'frequency': int(c)} for t, c in zip(unique, counts)]
+        xai_data = sorted(xai_data, key=lambda val: val['frequency'], reverse=True)
+        
+        # 6. Format Response
+        # Reconstruct total display series for Plotly
+        # History (126 nến) + Prediction (5 nến)
+        raw_candles = []
+        for idx, row in x_df.iterrows():
+            raw_candles.append({
+                'timestamp': row['timestamps'].isoformat(),
                 'open': float(row['open']),
                 'high': float(row['high']),
                 'low': float(row['low']),
                 'close': float(row['close']),
-                'volume': float(row['volume']) if 'volume' in row else 0,
-                'amount': float(row['amount']) if 'amount' in row else 0
+                'volume': float(row['volume']),
+                'amount': float(row['amount'])
             })
+            
+        prediction_results = []
+        for i in range(req.pred_len):
+            prediction_results.append({
+                'timestamp': y_timestamps[i].isoformat(),
+                'open': float(mean_pred_raw[i, 0]),
+                'high': float(mean_pred_raw[i, 1]),
+                'low': float(mean_pred_raw[i, 2]),
+                'close': float(mean_pred_raw[i, 3]),
+                'volume': float(mean_pred_raw[i, 4]),
+                'amount': float(mean_pred_raw[i, 5])
+            })
+            
+        # Append predictions to global display list for status line hover
+        total_candles = raw_candles + prediction_results
         
-        # Save prediction results to file
-        try:
-            save_prediction_results(
-                file_path=file_path,
-                prediction_type=prediction_type,
-                prediction_results=prediction_results,
-                actual_data=actual_data,
-                input_data=x_df,
-                prediction_params={
-                    'lookback': lookback,
-                    'pred_len': pred_len,
-                    'temperature': temperature,
-                    'top_p': top_p,
-                    'sample_count': sample_count,
-                    'start_date': start_date if start_date else 'latest'
-                }
-            )
-        except Exception as e:
-            print(f"Failed to save prediction results: {e}")
-        
-        return jsonify({
+        # Format stochastic paths for client
+        stochastic_paths = []
+        for p_idx in range(req.sample_count):
+            path_candles = []
+            for i in range(req.pred_len):
+                path_candles.append(pred_paths_raw[p_idx, i].tolist())
+            stochastic_paths.append(path_candles)
+            
+        actual_data = []
+        if has_comparison:
+            for idx, row in actual_df.iterrows():
+                actual_data.append({
+                    'timestamp': row['timestamps'].isoformat(),
+                    'open': float(row['open']),
+                    'high': float(row['high']),
+                    'low': float(row['low']),
+                    'close': float(row['close']),
+                    'volume': float(row['volume']),
+                    'amount': float(row['amount'])
+                })
+                
+        return JSONResponse(content={
             'success': True,
-            'prediction_type': prediction_type,
-            'chart': chart_json,
+            'trend': {
+                'trend_class': trend_class,
+                'predicted_return': float(predicted_return)
+            },
+            'risk_metrics': {
+                'volatility': volatility,
+                'var_5pct': var_5pct,
+                'confidence_width': confidence_width
+            },
+            'raw_candles': total_candles,
             'prediction_results': prediction_results,
             'actual_data': actual_data,
-            'has_comparison': len(actual_data) > 0,
-            'message': f'Prediction completed, generated {pred_len} prediction points' + (f', including {len(actual_data)} actual data points for comparison' if len(actual_data) > 0 else '')
+            'stochastic_paths': stochastic_paths,
+            'has_comparison': has_comparison,
+            'xai_data': xai_data
         })
-        
     except Exception as e:
-        return jsonify({'error': f'Prediction failed: {str(e)}'}), 500
+        raise HTTPException(status_code=500, detail=f"Lỗi trong quá trình dự báo: {str(e)}")
 
-@app.route('/api/load-model', methods=['POST'])
-def load_model():
-    """Load Kronos model"""
-    global tokenizer, model, predictor
+@app.post("/api/rank-stocks")
+async def rank_stocks(req: RankRequest):
+    global predictor, tokenizer_model, predictor_model, device
     
-    try:
-        if not MODEL_AVAILABLE:
-            return jsonify({'error': 'Kronos model library not available'}), 400
+    if not predictor:
+        raise HTTPException(status_code=400, detail="Mô hình chưa được nạp. Hãy nạp mô hình trước.")
         
-        data = request.get_json()
-        model_key = data.get('model_key', 'kronos-small')
-        device = data.get('device', 'cpu')
+    data_files = load_data_files()
+    if not data_files:
+        return JSONResponse(content={'success': True, 'rankings': []})
         
-        if model_key not in AVAILABLE_MODELS:
-            return jsonify({'error': f'Unsupported model: {model_key}'}), 400
-        
-        model_config = AVAILABLE_MODELS[model_key]
-        
-        # Load tokenizer and model
-        tokenizer = KronosTokenizer.from_pretrained(model_config['tokenizer_id'])
-        model = Kronos.from_pretrained(model_config['model_id'])
-        
-        # Create predictor
-        predictor = KronosPredictor(model, tokenizer, device=device, max_context=model_config['context_length'])
-        
-        return jsonify({
-            'success': True,
-            'message': f'Model loaded successfully: {model_config["name"]} ({model_config["params"]}) on {device}',
-            'model_info': {
-                'name': model_config['name'],
-                'params': model_config['params'],
-                'context_length': model_config['context_length'],
-                'description': model_config['description']
-            }
-        })
-        
-    except Exception as e:
-        return jsonify({'error': f'Model loading failed: {str(e)}'}), 500
-
-@app.route('/api/available-models')
-def get_available_models():
-    """Get available model list"""
-    return jsonify({
-        'models': AVAILABLE_MODELS,
-        'model_available': MODEL_AVAILABLE
-    })
-
-@app.route('/api/model-status')
-def get_model_status():
-    """Get model status"""
-    if MODEL_AVAILABLE:
-        if predictor is not None:
-            return jsonify({
-                'available': True,
-                'loaded': True,
-                'message': 'Kronos model loaded and available',
-                'current_model': {
-                    'name': predictor.model.__class__.__name__,
-                    'device': str(next(predictor.model.parameters()).device)
-                }
-            })
-        else:
-            return jsonify({
-                'available': True,
-                'loaded': False,
-                'message': 'Kronos model available but not loaded'
-            })
-    else:
-        return jsonify({
-            'available': False,
-            'loaded': False,
-            'message': 'Kronos model library not available, please install related dependencies'
-        })
-
-if __name__ == '__main__':
-    print("Starting Kronos Web UI...")
-    print(f"Model availability: {MODEL_AVAILABLE}")
-    if MODEL_AVAILABLE:
-        print("Tip: You can load Kronos model through /api/load-model endpoint")
-    else:
-        print("Tip: Will use simulated data for demonstration")
+    rankings = []
+    price_cols = ['open', 'high', 'low', 'close']
+    features = price_cols + ['volume', 'amount']
     
-    app.run(debug=True, host='0.0.0.0', port=7070)
+    for f in data_files:
+        symbol = f['name'].replace('.csv', '').replace('.feather', '')
+        df, err = load_data_file(f['path'])
+        if err or len(df) < req.lookback:
+            continue
+            
+        try:
+            x_df = df.iloc[-req.lookback:]
+            
+            # Sub-sample setup
+            x_raw = x_df[features].values.astype(np.float64)
+            x_mean = np.mean(x_raw, axis=0)
+            x_std = np.std(x_raw, axis=0)
+            x_std = np.where(x_std < 1e-6, 1.0, x_std)
+            
+            x_norm = (x_raw - x_mean) / (x_std + 1e-5)
+            x_norm = np.clip(x_norm, -predictor.clip, predictor.clip)
+            
+            x_tensor = torch.from_numpy(x_norm[np.newaxis, ...].astype(np.float32)).to(device)
+            
+            # Setup stamps
+            time_diff = df['timestamps'].iloc[1] - df['timestamps'].iloc[0] if len(df) > 1 else pd.Timedelta(days=1)
+            x_timestamps = x_df['timestamps']
+            y_timestamps = pd.date_range(start=x_timestamps.iloc[-1] + time_diff, periods=req.pred_len, freq=time_diff)
+            
+            x_stamp_df = calc_time_stamps(pd.Series(x_timestamps))
+            y_stamp_df = calc_time_stamps(pd.Series(y_timestamps))
+            
+            x_stamp_tensor = torch.from_numpy(x_stamp_df.values[np.newaxis, ...].astype(np.float32)).to(device)
+            y_stamp_tensor = torch.from_numpy(y_stamp_df.values[np.newaxis, ...].astype(np.float32)).to(device)
+            
+            # Use small sample count = 5 for faster ranking calculation
+            paths_norm = auto_regressive_inference_paths(
+                tokenizer_model, predictor_model, x_tensor, x_stamp_tensor, y_stamp_tensor,
+                max_context=predictor.max_context, pred_len=req.pred_len, clip=predictor.clip,
+                T=req.temperature, top_p=req.top_p, sample_count=5
+            )
+            paths_norm = paths_norm.squeeze(0)
+            pred_paths_norm = paths_norm[:, -req.pred_len:, :]
+            pred_paths_raw = pred_paths_norm * (x_std + 1e-5) + x_mean
+            
+            mean_pred_raw = np.mean(pred_paths_raw, axis=0)
+            
+            current_close = float(x_df.iloc[-1]['close'])
+            pred_close_5d = float(mean_pred_raw[-1, 3])
+            predicted_return = (pred_close_5d - current_close) / current_close
+            
+            rankings.append({
+                'symbol': symbol,
+                'file_path': f['path'],
+                'predicted_return': float(predicted_return),
+                'current_close': current_close,
+                'pred_close_5d': pred_close_5d
+            })
+        except Exception as e:
+            # Skip corrupted stocks silently
+            continue
+            
+    # Sort rankings by predicted return descending
+    rankings = sorted(rankings, key=lambda val: val['predicted_return'], reverse=True)
+    return JSONResponse(content={'success': True, 'rankings': rankings})
