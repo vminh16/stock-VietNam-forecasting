@@ -26,10 +26,10 @@ def load_tokenizer(model_path, device):
     return tokenizer
 
 
-def collect_windows(data_path, lookback=126, num_samples_per_stock=100, seed=42):
+def collect_windows(data_path, data_type='val', lookback=126, num_samples_per_stock=100, seed=42):
     set_seed(seed)
     csv_files = glob.glob(os.path.join(data_path, "*.csv"))
-    print(f"Found {len(csv_files)} CSV files in {data_path}")
+    print(f"Found {len(csv_files)} CSV files in {data_path} for data_type: {data_type}")
     
     all_windows = []
     feature_cols = ['open', 'high', 'low', 'close', 'volume', 'amount']
@@ -37,7 +37,16 @@ def collect_windows(data_path, lookback=126, num_samples_per_stock=100, seed=42)
     for csv_file in csv_files:
         df = pd.read_csv(csv_file)
         # Sắp xếp theo timestamps để đảm bảo thứ tự thời gian
+        df['timestamps'] = pd.to_datetime(df['timestamps'])
         df = df.sort_values('timestamps').reset_index(drop=True)
+        
+        # Phân tách tập dữ liệu OOS tránh rò rỉ (leakage) khi benchmark
+        if data_type == 'train':
+            df = df[df['timestamps'] < pd.to_datetime('2023-01-01')].reset_index(drop=True)
+        elif data_type == 'val':
+            df = df[(df['timestamps'] >= pd.to_datetime('2023-01-01')) & (df['timestamps'] < pd.to_datetime('2024-01-01'))].reset_index(drop=True)
+        elif data_type == 'test':
+            df = df[df['timestamps'] >= pd.to_datetime('2024-01-01')].reset_index(drop=True)
         
         # Bổ sung amount nếu thiếu
         if 'amount' not in df.columns or df['amount'].isnull().all():
@@ -96,7 +105,10 @@ def benchmark_tokenizer_model(tokenizer, windows, device):
         x_mean = np.mean(window, axis=0)
         x_std = np.std(window, axis=0)
         x_std = np.where(x_std < 1e-6, 1.0, x_std)
-        x_norm = (window - x_mean) / x_std
+        x_norm = (window - x_mean) / (x_std + 1e-5)
+        
+        # FIX Bug #1B: Clip Z-score cục bộ trong [-5.0, 5.0] để khớp cấu trúc dữ liệu train
+        x_norm = np.clip(x_norm, -5.0, 5.0)
         
         # Chuyển thành Tensor và chạy forward qua tokenizer
         x_norm_tensor = torch.tensor(x_norm, dtype=torch.float32).unsqueeze(0).to(device)
@@ -106,7 +118,7 @@ def benchmark_tokenizer_model(tokenizer, windows, device):
             reconstructed_norm = z.squeeze(0).cpu().numpy()
             
         # Khôi phục về giá trị raw ban đầu (denormalize)
-        reconstructed_raw = reconstructed_norm * x_std + x_mean
+        reconstructed_raw = reconstructed_norm * (x_std + 1e-5) + x_mean
         reconstructed_windows.append(reconstructed_raw)
         
     reconstructed_windows = np.array(reconstructed_windows)
@@ -123,7 +135,8 @@ def main():
     print(f"Using device: {device}")
     
     data_path = "data_cleaned"
-    windows = collect_windows(data_path, lookback=126, num_samples_per_stock=100, seed=42)
+    # Mặc định benchmark trên tập OOS Validation (năm 2023)
+    windows = collect_windows(data_path, data_type='val', lookback=126, num_samples_per_stock=100, seed=42)
     
     models = {
         "pretrained": "pretrained/Kronos-Tokenizer-base",
@@ -174,8 +187,8 @@ def main():
         print(df_mae.to_string())
         print("="*50)
         
-        # Lưu kết quả ra thư mục artifact
-        artifact_dir = r"C:\Users\USER\.gemini\antigravity-ide\brain\8cb5b525-8ecb-45ba-93b5-74a8d6af3420"
+        # Lưu kết quả ra thư mục tương đối của dự án (reports/tokenizer_benchmarks/)
+        artifact_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "reports", "tokenizer_benchmarks"))
         os.makedirs(artifact_dir, exist_ok=True)
         
         df_mape.to_csv(os.path.join(artifact_dir, "tokenizer_benchmark_mape.csv"))

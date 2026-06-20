@@ -18,13 +18,13 @@ inference:
   
   # Cấu hình sinh dự báo
   sample_count: 20   # Số lượng stochastic paths sinh song song để lấy kỳ vọng giảm phương sai
-  temperature: 1.0
-  top_p: 0.99
+  temperature: 0.6
+  top_p: 0.9
   top_k: 0
   
   # Cấu hình đánh giá
   eval_batch_size: 16
-  eval_samples_limit: 500 # Giới hạn số cửa sổ đánh giá mỗi tập
+  eval_samples_limit: 2500 # Giới hạn số cửa sổ đánh giá mỗi tập (50 dates * 50 stocks)
   
   # Lưu kết quả
   output_dir: "reports/baseline_model_evaluation"

@@ -166,7 +166,7 @@ def predict_batch_mean(predictor, df_list, x_timestamp_list, y_timestamp_list, p
 def get_evaluation_indices(dataset, limit=-1, seed=42):
     """
     Lấy danh sách các chỉ mục để đánh giá.
-    Nếu limit > 0: Thực hiện Date-Aligned Sampling để tránh hiện tượng suy biến danh mục (portfolio degeneracy).
+    Nếu limit > 0: Thực hiện Date-Aligned & Non-overlapping Sampling (các ngày cách nhau ít nhất 5 ngày giao dịch).
     Nếu limit <= 0: Lấy toàn bộ các chỉ mục.
     """
     # Gom nhóm chỉ mục theo ngày t_date (lookback end date)
@@ -182,18 +182,19 @@ def get_evaluation_indices(dataset, limit=-1, seed=42):
         
     sampled_indices = []
     if limit > 0:
-        rng = random.Random(seed)
-        all_dates = list(date_to_indices.keys())
-        rng.shuffle(all_dates)
+        # Gom nhóm toàn bộ ngày giao dịch tăng dần
+        all_dates = sorted(list(date_to_indices.keys()))
+        n_dates_needed = max(1, limit // 50)  # Giả định trung bình 50 stocks/date
         
-        # Chọn các ngày ngẫu nhiên cho đến khi thu thập đủ số lượng mẫu khoảng ~limit
-        collected_count = 0
-        for date_str in all_dates:
-            indices = date_to_indices[date_str]
-            sampled_indices.extend(indices)
-            collected_count += len(indices)
-            if collected_count >= limit:
-                break
+        # Đảm bảo khoảng cách tối thiểu giữa các ngày là 5 ngày giao dịch (non-overlapping)
+        step = max(5, len(all_dates) // n_dates_needed)
+        rng = random.Random(seed)
+        start_idx = rng.randint(0, max(1, step - 1))
+        sampled_dates = all_dates[start_idx::step][:n_dates_needed]
+        
+        # Thu thập toàn bộ các chỉ mục của các ngày đã chọn
+        for date_str in sampled_dates:
+            sampled_indices.extend(date_to_indices[date_str])
     else:
         for indices in date_to_indices.values():
             sampled_indices.extend(indices)
@@ -265,6 +266,8 @@ def evaluate_dataset(dataset, predictor, config, device, limit=500):
             
             actual_ret = (meta['actual_close_t5'] - meta['actual_close_t']) / meta['actual_close_t']
             pred_ret = (pred_close_t5 - meta['actual_close_t']) / meta['actual_close_t']
+            # FIX Bug #9: Giới hạn pred_ret tránh nhiễu ngoại lai quá lớn (outlier clipping)
+            pred_ret = np.clip(pred_ret, -0.5, 0.5)
             
             results_records.append({
                 'symbol': meta['symbol'],
@@ -297,46 +300,90 @@ def evaluate_dataset(dataset, predictor, config, device, limit=500):
     grouped = df_eval.groupby('t_date')
     dates_sorted = sorted(df_eval['t_date'].unique())
     
-    # Vị thế Long/Short của chiến lược ở từng ngày dự báo để tính toán Backtest
+    # Vị thế Long/Short ở từng ngày để tính toán Backtest
     strategy_returns_long = []
     strategy_returns_ls = []
     benchmark_returns = []
     
+    # Chiến lược Magnitude-Weighted
+    strategy_returns_long_mag = []
+    strategy_returns_ls_mag = []
+    
     prev_long_portfolio = set()
     prev_short_portfolio = set()
+    prev_long_portfolio_mag = set()
+    prev_short_portfolio_mag = set()
     
-    for t in dates_sorted:
+    # Lọc các ngày rebalance không chồng lấp (Non-overlapping)
+    # Mode final: Mỗi 5 ngày mới rebalance (dates_sorted[::5]) để tránh lạm phát do tự tương quan
+    # Mode dev: Các ngày đã được Date-Aligned & Non-overlapping Sampling cách xa nhau sẵn, giữ nguyên
+    if limit <= 0:
+        rebalance_dates = dates_sorted[::5]
+    else:
+        rebalance_dates = dates_sorted
+        
+    # Danh sách thu thập chỉ số từng ngày để chạy paired t-test và logging
+    per_date_da_list = []
+    per_date_ic_list = []
+    per_date_long_symbols = []
+    actual_rebalance_dates = []
+    
+    MIN_STOCKS_PER_DATE = 45  # Đảm bảo đủ số mã so sánh chuẩn
+    
+    for t in rebalance_dates:
         group = grouped.get_group(t)
         
-        # RankIC (Spearman correlation)
+        # B3b: Lọc các ngày thiếu mã cổ phiếu để tránh lệch so sánh
+        if len(group) < MIN_STOCKS_PER_DATE:
+            continue
+            
+        actual_rebalance_dates.append(t)
+            
+        # 1. Tính DA cho riêng ngày (sử dụng cho paired t-test)
+        actual_sign_t = np.where(group['actual_return_5d'] > 0, 1, -1)
+        pred_sign_t = np.where(group['pred_return_5d'] > 0, 1, -1)
+        correct_dir_t = (actual_sign_t == pred_sign_t)
+        da_t = np.mean(correct_dir_t) * 100
+        per_date_da_list.append(da_t)
+        
+        # 2. RankIC (Spearman correlation) cho riêng ngày
+        ic = group['pred_return_5d'].corr(group['actual_return_5d'], method='spearman')
+        if np.isnan(ic):
+            ic = 0.0
+        per_date_ic_list.append(ic)
+        
+        # Thống kê IC chung
         if len(group) >= 3:
-            ic = group['pred_return_5d'].corr(group['actual_return_5d'], method='spearman')
-            if not np.isnan(ic):
-                rank_ics.append(ic)
-                
-        # Xếp hạng danh mục Top/Bottom 20%
+            rank_ics.append(ic)
+            
         # Top 10 stocks (Long), Bottom 10 stocks (Short)
         long_stocks = group.nlargest(10, 'pred_return_5d')
         short_stocks = group.nsmallest(10, 'pred_return_5d')
+        
+        per_date_long_symbols.append(long_stocks['symbol'].tolist())
+        
+        # B6: Logging Diagnostic cho mỗi ngày
+        t_str = t.strftime('%Y-%m-%d') if hasattr(t, 'strftime') else str(t)
+        print(f"Date {t_str}: Long={long_stocks['symbol'].tolist()[:5]}..., "
+              f"Top-1 Pred={long_stocks['pred_return_5d'].iloc[0]:.4f}, "
+              f"Actual={long_stocks['actual_return_5d'].iloc[0]:.4f}")
         
         # Hit Rate @ Top-20%
         if len(long_stocks) > 0:
             hit_rate = np.mean(long_stocks['actual_return_5d'] > 0) * 100
             hit_rates.append(hit_rate)
             
-        # --- Backtest Portfolio Math (5-day Holding period) ---
+        # --- Backtest Portfolio Math ---
+        # 3a. Equal-Weighted Portfolio
         actual_ret_long_5d = np.mean(long_stocks['actual_return_5d'])
         actual_ret_short_5d = np.mean(short_stocks['actual_return_5d'])
         actual_ret_bench_5d = np.mean(group['actual_return_5d'])
         
-        # Log-returns
-        # convert simple returns to log returns
         log_ret_long = np.log(1.0 + actual_ret_long_5d)
         log_ret_short = np.log(1.0 + actual_ret_short_5d)
         log_ret_bench = np.log(1.0 + actual_ret_bench_5d)
         
-        # Phí giao dịch (Transaction Costs): 0.15% per trade
-        # Turnover
+        # Phí giao dịch Equal-Weight
         curr_long_portfolio = set(long_stocks['symbol'])
         curr_short_portfolio = set(short_stocks['symbol'])
         
@@ -360,6 +407,47 @@ def evaluate_dataset(dataset, predictor, config, device, limit=500):
         prev_long_portfolio = curr_long_portfolio
         prev_short_portfolio = curr_short_portfolio
         
+        # 3b. Magnitude-Weighted Portfolio
+        # Long: Chỉ dùng mã có pred_return_5d > 0. Nếu không có, fallback về equal-weight
+        long_positive = long_stocks[long_stocks['pred_return_5d'] > 0]
+        if len(long_positive) == 0:
+            ret_long_mag = actual_ret_long_5d
+            curr_long_portfolio_mag = set(long_stocks['symbol'])
+            turnover_long_mag = 1.0 if len(prev_long_portfolio_mag) == 0 else 1.0 - (len(curr_long_portfolio_mag.intersection(prev_long_portfolio_mag)) / 10.0)
+        else:
+            weights_long = long_positive['pred_return_5d'] / long_positive['pred_return_5d'].sum()
+            ret_long_mag = np.sum(weights_long * long_positive['actual_return_5d'])
+            curr_long_portfolio_mag = set(long_positive['symbol'])
+            turnover_long_mag = 1.0 if len(prev_long_portfolio_mag) == 0 else 1.0 - (len(curr_long_portfolio_mag.intersection(prev_long_portfolio_mag)) / len(curr_long_portfolio_mag))
+            
+        # Short: Chỉ dùng mã có pred_return_5d < 0. Nếu không có, fallback về equal-weight
+        short_negative = short_stocks[short_stocks['pred_return_5d'] < 0]
+        if len(short_negative) == 0:
+            ret_short_mag = actual_ret_short_5d
+            curr_short_portfolio_mag = set(short_stocks['symbol'])
+            turnover_short_mag = 1.0 if len(prev_short_portfolio_mag) == 0 else 1.0 - (len(curr_short_portfolio_mag.intersection(prev_short_portfolio_mag)) / 10.0)
+        else:
+            mags = -short_negative['pred_return_5d']
+            weights_short = mags / mags.sum()
+            ret_short_mag = np.sum(weights_short * short_negative['actual_return_5d'])
+            curr_short_portfolio_mag = set(short_negative['symbol'])
+            turnover_short_mag = 1.0 if len(prev_short_portfolio_mag) == 0 else 1.0 - (len(curr_short_portfolio_mag.intersection(prev_short_portfolio_mag)) / len(curr_short_portfolio_mag))
+            
+        log_ret_long_mag = np.log(1.0 + ret_long_mag)
+        log_ret_short_mag = np.log(1.0 + ret_short_mag)
+        
+        fee_long_mag = turnover_long_mag * 0.15 / 100
+        fee_short_mag = turnover_short_mag * 0.15 / 100
+        
+        log_ret_long_mag_net = log_ret_long_mag - fee_long_mag
+        log_ret_ls_mag_net = log_ret_long_mag - log_ret_short_mag - (fee_long_mag + fee_short_mag)
+        
+        strategy_returns_long_mag.append(log_ret_long_mag_net)
+        strategy_returns_ls_mag.append(log_ret_ls_mag_net)
+        
+        prev_long_portfolio_mag = curr_long_portfolio_mag
+        prev_short_portfolio_mag = curr_short_portfolio_mag
+        
     avg_rank_ic = np.mean(rank_ics) if len(rank_ics) > 0 else 0.0
     avg_hit_rate = np.mean(hit_rates) if len(hit_rates) > 0 else 0.0
     
@@ -367,6 +455,9 @@ def evaluate_dataset(dataset, predictor, config, device, limit=500):
     cum_returns_long = np.cumsum(strategy_returns_long)
     cum_returns_ls = np.cumsum(strategy_returns_ls)
     cum_returns_bench = np.cumsum(benchmark_returns)
+    
+    cum_returns_long_mag = np.cumsum(strategy_returns_long_mag)
+    cum_returns_ls_mag = np.cumsum(strategy_returns_ls_mag)
     
     # Tính Annualized Sharpe (5-day periods -> annualizing factor = 252 / 5 = 50.4)
     ann_factor = 50.4
@@ -380,6 +471,8 @@ def evaluate_dataset(dataset, predictor, config, device, limit=500):
         return (mean_ret - r_f_period) / std_ret * np.sqrt(ann_factor)
         
     def calc_max_drawdown(cum_returns):
+        if len(cum_returns) == 0:
+            return 0.0
         equity = np.exp(cum_returns)
         cum_max = np.maximum.accumulate(equity)
         drawdown = (cum_max - equity) / cum_max
@@ -389,19 +482,28 @@ def evaluate_dataset(dataset, predictor, config, device, limit=500):
     sharpe_ls = calc_sharpe(strategy_returns_ls)
     sharpe_bench = calc_sharpe(benchmark_returns)
     
+    sharpe_long_mag = calc_sharpe(strategy_returns_long_mag)
+    sharpe_ls_mag = calc_sharpe(strategy_returns_ls_mag)
+    
     mdd_long = calc_max_drawdown(cum_returns_long)
     mdd_ls = calc_max_drawdown(cum_returns_ls)
     mdd_bench = calc_max_drawdown(cum_returns_bench)
     
-    ann_return_long = np.mean(strategy_returns_long) * ann_factor * 100
-    ann_return_ls = np.mean(strategy_returns_ls) * ann_factor * 100
-    ann_return_bench = np.mean(benchmark_returns) * ann_factor * 100
+    mdd_long_mag = calc_max_drawdown(cum_returns_long_mag)
+    mdd_ls_mag = calc_max_drawdown(cum_returns_ls_mag)
+    
+    ann_return_long = np.mean(strategy_returns_long) * ann_factor * 100 if len(strategy_returns_long) > 0 else 0.0
+    ann_return_ls = np.mean(strategy_returns_ls) * ann_factor * 100 if len(strategy_returns_ls) > 0 else 0.0
+    ann_return_bench = np.mean(benchmark_returns) * ann_factor * 100 if len(benchmark_returns) > 0 else 0.0
+    
+    ann_return_long_mag = np.mean(strategy_returns_long_mag) * ann_factor * 100 if len(strategy_returns_long_mag) > 0 else 0.0
+    ann_return_ls_mag = np.mean(strategy_returns_ls_mag) * ann_factor * 100 if len(strategy_returns_ls_mag) > 0 else 0.0
     
     calmar_long = ann_return_long / mdd_long if mdd_long > 1e-4 else 0.0
     calmar_ls = ann_return_ls / mdd_ls if mdd_ls > 1e-4 else 0.0
     
-    win_rate_long = np.mean(np.array(strategy_returns_long) > 0) * 100
-    win_rate_ls = np.mean(np.array(strategy_returns_ls) > 0) * 100
+    win_rate_long = np.mean(np.array(strategy_returns_long) > 0) * 100 if len(strategy_returns_long) > 0 else 0.0
+    win_rate_ls = np.mean(np.array(strategy_returns_ls) > 0) * 100 if len(strategy_returns_ls) > 0 else 0.0
     
     metrics = {
         'da': da,
@@ -420,14 +522,27 @@ def evaluate_dataset(dataset, predictor, config, device, limit=500):
         'calmar_long': calmar_long,
         'calmar_ls': calmar_ls,
         'win_rate_long': win_rate_long,
-        'win_rate_ls': win_rate_ls
+        'win_rate_ls': win_rate_ls,
+        
+        # Magnitude Weighted Metrics
+        'ann_return_long_mag': ann_return_long_mag,
+        'ann_return_ls_mag': ann_return_ls_mag,
+        'sharpe_long_mag': sharpe_long_mag,
+        'sharpe_ls_mag': sharpe_ls_mag,
+        'mdd_long_mag': mdd_long_mag,
+        'mdd_ls_mag': mdd_ls_mag
     }
     
     history = {
-        'dates': [d.strftime('%Y-%m-%d') for d in dates_sorted],
+        'dates': [d.strftime('%Y-%m-%d') if hasattr(d, 'strftime') else str(d) for d in actual_rebalance_dates],
         'cum_returns_long': cum_returns_long.tolist(),
         'cum_returns_ls': cum_returns_ls.tolist(),
-        'cum_returns_bench': cum_returns_bench.tolist()
+        'cum_returns_bench': cum_returns_bench.tolist(),
+        'cum_returns_long_mag': cum_returns_long_mag.tolist(),
+        'cum_returns_ls_mag': cum_returns_ls_mag.tolist(),
+        'per_date_da': per_date_da_list,
+        'per_date_ic': per_date_ic_list,
+        'per_date_long_symbols': per_date_long_symbols
     }
     
     return metrics, history
@@ -504,7 +619,7 @@ def main():
     )
     
     # Set limit based on mode
-    limit = 500 if args.mode == 'dev' else -1
+    limit = config['inference'].get('eval_samples_limit', 2500) if args.mode == 'dev' else -1
     
     print("\n" + "="*50)
     print("RUNNING EVALUATION ON VALIDATION SET (OOS 2023)")
@@ -530,21 +645,65 @@ def main():
     output_dir = config['inference']['output_dir']
     os.makedirs(output_dir, exist_ok=True)
     
-    # Export metrics CSV
+    # B6: Lưu per_date_metrics.csv của đợt chạy hiện tại
+    per_date_df = pd.DataFrame({
+        'date': test_hist['dates'],
+        'da': test_hist['per_date_da'],
+        'rank_ic': test_hist['per_date_ic'],
+        'long_symbols': [",".join(syms) for syms in test_hist['per_date_long_symbols']]
+    })
+    per_date_path = os.path.join(output_dir, 'per_date_metrics.csv')
+    per_date_df.to_csv(per_date_path, index=False)
+    print(f"[*] Exported per-date diagnostics to: {per_date_path}")
+    
+    # B5 & B6: Thực hiện Paired T-test và tính overlap ratio nếu tìm thấy Baseline
+    if "finetuned" in output_dir:
+        baseline_path = os.path.join("reports/baseline_model_evaluation", "per_date_metrics.csv")
+        if os.path.exists(baseline_path):
+            baseline_df = pd.read_csv(baseline_path)
+            merged = pd.merge(baseline_df, per_date_df, on='date', suffixes=('_base', '_ft'))
+            if len(merged) >= 2:
+                from scipy.stats import ttest_rel
+                t_da, p_da = ttest_rel(merged['da_ft'], merged['da_base'])
+                t_ic, p_ic = ttest_rel(merged['rank_ic_ft'], merged['rank_ic_base'], nan_policy='omit')
+                
+                # Tính trung bình trùng lặp top-10 long
+                overlaps = []
+                for _, row in merged.iterrows():
+                    base_syms = set(row['long_symbols_base'].split(","))
+                    ft_syms = set(row['long_symbols_ft'].split(","))
+                    overlap = len(base_syms.intersection(ft_syms)) / len(base_syms)
+                    overlaps.append(overlap)
+                avg_overlap = np.mean(overlaps)
+                
+                print("\n" + "="*60)
+                print("COMPARATIVE STATISTICAL SIGNIFICANCE (VS BASELINE)")
+                print("="*60)
+                print(f"Average Top-10 Long Overlap Ratio: {avg_overlap * 100:.1f}%")
+                print(f"Paired t-test for per-date DA:      t = {t_da:.4f}, p = {p_da:.4f}")
+                print(f"Paired t-test for per-date RankIC:  t = {t_ic:.4f}, p = {p_ic:.4f}")
+                print("="*60)
+            else:
+                print("[*] Too few overlapping dates to run comparative tests.")
+                
+    # Xuất metrics CSV tùy biến theo tên mô hình
+    metrics_file_name = 'finetuned_metrics.csv' if 'finetuned' in output_dir else 'baseline_metrics.csv'
+    metrics_csv_path = os.path.join(output_dir, metrics_file_name)
     metrics_df = pd.DataFrame([val_metrics, test_metrics], index=['Validation', 'Test']).T
     metrics_df.index.name = 'Metric'
-    metrics_csv_path = os.path.join(output_dir, 'baseline_metrics.csv')
     metrics_df.to_csv(metrics_csv_path)
-    print(f"[*] Exported baseline metrics report to: {metrics_csv_path}")
+    print(f"[*] Exported metrics report to: {metrics_csv_path}")
     
     # Plot Backtest Cumulative returns
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(14, 7))
     
     # Val Plot
     plt.subplot(1, 2, 1)
     dates_val = [datetime.strptime(d, '%Y-%m-%d') for d in val_hist['dates']]
-    plt.plot(dates_val, val_hist['cum_returns_long'], label='Long-Only (Top 20%)', color='darkblue')
-    plt.plot(dates_val, val_hist['cum_returns_ls'], label='Long-Short (Market-Neutral)', color='crimson')
+    plt.plot(dates_val, val_hist['cum_returns_long'], label='Long (EW)', color='darkblue')
+    plt.plot(dates_val, val_hist['cum_returns_long_mag'], label='Long (Mag-W)', color='teal', linestyle='-.')
+    plt.plot(dates_val, val_hist['cum_returns_ls'], label='Long-Short (EW)', color='crimson')
+    plt.plot(dates_val, val_hist['cum_returns_ls_mag'], label='Long-Short (Mag-W)', color='purple', linestyle='-.')
     plt.plot(dates_val, val_hist['cum_returns_bench'], label='Benchmark (VN50 EW)', color='gray', linestyle='--')
     plt.title('Validation Period (OOS 2023) Backtest')
     plt.xlabel('Date')
@@ -556,8 +715,10 @@ def main():
     # Test Plot
     plt.subplot(1, 2, 2)
     dates_test = [datetime.strptime(d, '%Y-%m-%d') for d in test_hist['dates']]
-    plt.plot(dates_test, test_hist['cum_returns_long'], label='Long-Only (Top 20%)', color='darkblue')
-    plt.plot(dates_test, test_hist['cum_returns_ls'], label='Long-Short (Market-Neutral)', color='crimson')
+    plt.plot(dates_test, test_hist['cum_returns_long'], label='Long (EW)', color='darkblue')
+    plt.plot(dates_test, test_hist['cum_returns_long_mag'], label='Long (Mag-W)', color='teal', linestyle='-.')
+    plt.plot(dates_test, test_hist['cum_returns_ls'], label='Long-Short (EW)', color='crimson')
+    plt.plot(dates_test, test_hist['cum_returns_ls_mag'], label='Long-Short (Mag-W)', color='purple', linestyle='-.')
     plt.plot(dates_test, test_hist['cum_returns_bench'], label='Benchmark (VN50 EW)', color='gray', linestyle='--')
     plt.title('Test Period (OOS 2024+) Backtest')
     plt.xlabel('Date')
@@ -567,7 +728,8 @@ def main():
     plt.xticks(rotation=30)
     
     plt.tight_layout()
-    plot_path = os.path.join(output_dir, 'backtest_performance.png')
+    plot_file_name = 'finetuned_backtest_performance.png' if 'finetuned' in output_dir else 'backtest_performance.png'
+    plot_path = os.path.join(output_dir, plot_file_name)
     plt.savefig(plot_path, dpi=150)
     plt.close()
     print(f"[*] Exported backtest performance plot to: {plot_path}")
