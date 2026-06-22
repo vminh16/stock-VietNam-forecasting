@@ -1,0 +1,10 @@
+lookback: 126
+pred_len: 5
+temperature: 1.0
+top_p: 0.9
+sample_count: 50
+tokenizer_path: "finetune_csv/finetuned/tokenizer_v2/tokenizer/best_model"
+predictor_path: "finetune_csv/finetuned/basemodel_v2/basemodel/best_model"
+device: "cuda"
+max_context: 512
+clip: 5.0

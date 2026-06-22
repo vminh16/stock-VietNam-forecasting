@@ -216,6 +216,11 @@ def evaluate_dataset(dataset, predictor, config, device, limit=500):
     sampled_indices = get_evaluation_indices(dataset, limit=limit, seed=42)
     print(f"[*] Evaluated windows count: {len(sampled_indices)}")
     
+    if device.type == 'cuda':
+        allocated = torch.cuda.memory_allocated(device) / (1024 ** 2)
+        reserved = torch.cuda.memory_reserved(device) / (1024 ** 2)
+        print(f"[*] GPU Memory Info: Allocated VRAM: {allocated:.2f} MiB | Reserved VRAM: {reserved:.2f} MiB")
+    
     results_records = []
     eval_batch_size = config['inference']['eval_batch_size']
     
@@ -562,6 +567,33 @@ def main():
         
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"[*] Using device: {device} | Evaluation Mode: {args.mode.upper()}")
+    
+    if device.type == 'cuda':
+        # Đọc thông số GPU
+        prop = torch.cuda.get_device_properties(device)
+        total_vram_mb = prop.total_memory / (1024 ** 2)
+        eval_batch_size = config['inference'].get('eval_batch_size', 8)
+        sample_count = config['inference'].get('sample_count', 10)
+        effective_batch_size = eval_batch_size * sample_count
+        
+        if total_vram_mb <= 4100 and effective_batch_size >= 160:
+            print("\n" + "!"*80)
+            print("⚠️  CẢNH BÁO: NGUY CƠ TRÀN BỘ NHỚ VRAM (OOM) HOẶC GIẢM TỐC ĐỘ NGHIÊM TRỌNG TRÊN WINDOWS")
+            print("!"*80)
+            print(f" - GPU của bạn có dung lượng VRAM thấp: {total_vram_mb:.1f} MB (<= 4GB)")
+            print(f" - Cấu hình hiện tại: eval_batch_size = {eval_batch_size} | sample_count = {sample_count}")
+            print(f" - Kích thước batch hiệu dụng (eval_batch_size * sample_count): {effective_batch_size} (>= 160)")
+            print(" - ĐẶC BIỆT LƯU Ý TRÊN WINDOWS:")
+            print("   Trình điều khiển WDDM của Windows sẽ tự động chuyển bộ nhớ VRAM thừa sang RAM hệ thống.")
+            print("   Điều này KHÔNG gây ra lỗi Crash CUDA OOM ngay lập tức mà sẽ làm giảm tốc độ suy luận")
+            print("   đi cực kỳ nghiêm trọng (từ 50x đến 100x), làm tiến trình bị treo hoặc chạy rất chậm.")
+            print(" - KHUYẾN NGHỊ:")
+            print("   Hãy chỉnh sửa file cấu hình tương ứng:")
+            print(f"   Đường dẫn file: {args.config}")
+            print("   Và giảm cấu hình xuống:")
+            print("     1. 'eval_batch_size' xuống 4 hoặc 8 (hiện tại: {})".format(eval_batch_size))
+            print("     2. 'sample_count' xuống 10 hoặc 12 (hiện tại: {})".format(sample_count))
+            print("!"*80 + "\n")
     
     # Fix random seed for reproducibility
     seed = config['data'].get('seed', 42)

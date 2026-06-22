@@ -47,3 +47,20 @@ Chúng tôi đã chạy tập kiểm định tokenizer mới trên tập **Valid
 Đã tăng giới hạn mẫu đánh giá `eval_samples_limit` lên **2500** trong cả hai tệp cấu hình duy nhất:
 1. [evaluation/configs/inference.yaml](file:///c:/Users/USER/Desktop/Stock-VN-forecashing/evaluation/configs/inference.yaml) (Dành cho mô hình Baseline)
 2. [evaluation/configs/inference_finetuned.yaml](file:///c:/Users/USER/Desktop/Stock-VN-forecashing/evaluation/configs/inference_finetuned.yaml) (Dành cho mô hình Fine-tuned)
+
+---
+
+## 4. Cơ chế Cảnh báo và Giám sát bộ nhớ VRAM (Tránh Treo/OOM do Windows WDDM Paging)
+
+Nhằm tối ưu hóa quá trình chạy thực nghiệm trên các thiết bị có phần cứng giới hạn (như GPU RTX 2050 Mobile 4GB trên Windows), chúng tôi đã tích hợp cơ chế cảnh báo chủ động trực tiếp vào [inference_pipeline.py](file:///c:/Users/USER/Desktop/Stock-VN-forecashing/evaluation/inference_pipeline.py):
+
+*   **Tính toán kích thước batch hiệu dụng (Effective Batch Size):**
+    $$\text{effective\_batch\_size} = \text{eval\_batch\_size} \times \text{sample\_count}$$
+    Với cấu hình mặc định (`eval_batch_size = 8`, `sample_count = 20`), kích thước batch hiệu dụng là **160** đường đi mẫu được dựng đồng thời trên GPU.
+*   **Cảnh báo Paging ẩn trên Windows (WDDM):**
+    Trên hệ điều hành Windows, khi dung lượng VRAM thực tế khả dụng vượt ngưỡng vật lý (GPU $\le 4\text{GB}$), Windows WDDM sẽ tự động hoán chuyển (paging) bộ nhớ thừa sang RAM hệ thống. PyTorch sẽ không báo lỗi `CUDA Out of Memory` mà chương trình sẽ chạy rất chậm (giảm hiệu suất từ 50x đến 100x).
+*   **Hộp cảnh báo chi tiết (Console Warning Box):**
+    Khi phát hiện tổng VRAM của GPU $\le 4.1\text{GB}$ (4100 MiB) và kích thước batch hiệu dụng $\ge 160$, hệ thống sẽ hiển thị một hộp cảnh báo nổi bật trên console, khuyến nghị người dùng điều chỉnh giảm `eval_batch_size` (xuống 4 hoặc 8) hoặc `sample_count` (xuống 10 hoặc 12) trước khi chạy suy luận thực tế.
+*   **Log trạng thái bộ nhớ động:**
+    Ở đầu hàm `evaluate_dataset`, hệ thống tự động in dung lượng VRAM thực tế đang được phân bổ (`Allocated VRAM`) và được giữ lại bởi PyTorch (`Reserved VRAM`) để người dùng dễ dàng theo dõi trực quan.
+

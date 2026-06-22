@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kronos VN — Hệ thống Dự báo & Phân tích Chứng khoán AI</title>
+    <!-- CSS Tĩnh -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- TradingView Lightweight Charts CDN -->
+    <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+    <div class="app-layout">
+        
+        <!-- SIDEBAR NAVIGATION MENU (LEFT) -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand">
+                    <div class="brand-logo-icon">
+                        <i data-lucide="activity" class="text-primary" stroke-width="2.5"></i>
+                    </div>
+                    <div class="brand-text">
+                        <h2>Kronos VN</h2>
+                        <span class="brand-sub">AI Trading Assistant</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEARCH BAR IN SIDEBAR -->
+            <div class="sidebar-search">
+                <div class="search-input-wrapper">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="sidebar-search-input" placeholder="Tìm mã cổ phiếu..." autocomplete="off">
+                </div>
+            </div>
+
+            <!-- NAVIGATION MENU -->
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-tab="overview">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Tổng quan</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="screener">
+                    <i data-lucide="filter"></i>
+                    <span>Sàng lọc cổ phiếu</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="watchlist">
+                    <i data-lucide="star"></i>
+                    <span>Danh mục theo dõi</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="details" id="nav-details-btn">
+                    <i data-lucide="line-chart"></i>
+                    <span>Phân tích chi tiết</span>
+                </a>
+                
+                <div class="nav-divider"></div>
+                
+                <a href="#" class="nav-item" data-tab="backtest">
+                    <i data-lucide="brain"></i>
+                    <span>Hiệu suất mô hình</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="logs">
+                    <i data-lucide="clipboard-list"></i>
+                    <span>Nhật ký dự báo</span>
+                </a>
+                
+                <div class="nav-divider"></div>
+                
+                <a href="#" class="nav-item" data-tab="settings">
+                    <i data-lucide="settings"></i>
+                    <span>Cài đặt</span>
+                </a>
+            </nav>
+
+            <!-- MODEL CONFIG CARD AT SIDEBAR BOTTOM -->
+            <div class="sidebar-footer-card">
+                <div class="sidebar-footer-title">MÔ HÌNH DỰ BÁO</div>
+                <div class="sidebar-footer-model">Kronos-VN v1.0</div>
+                <div class="sidebar-footer-date">Cập nhật 19/06/2026</div>
+                <div class="sidebar-footer-metric">
+                    <span>DA (OOS)</span>
+                    <span class="metric-val text-up">54.3%</span>
+                </div>
+                <div class="sidebar-footer-progress">
+                    <div class="progress-bar-fill" style="width: 54.3%"></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN AREA (RIGHT) -->
+        <main class="main-content">
+            
+            <!-- HEADER (TOP BAR) -->
+            <header class="main-header">
+                <div class="header-tab-title">
+                    <h1 id="current-tab-title">Tổng quan thị trường</h1>
+                </div>
+                
+                <div class="header-actions">
+                    <span class="market-status-tag">
+                        <span class="market-status-dot"></span>
+                        HOSE đóng cửa · Mở lúc 09:00 T2
+                    </span>
+                    <span id="cache-info-tag" style="display: none; align-items: center; gap: 6px; background-color: rgba(56, 139, 253, 0.1); border: 1px solid rgba(56, 139, 253, 0.3); color: var(--primary); font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 4px;">
+                        <i data-lucide="database" style="width: 12px; height: 12px; flex-shrink: 0;"></i>
+                        <span id="cache-info-text">Dự báo từ cache: --</span>
+                    </span>
+                    <button id="theme-toggle-btn" class="btn-icon" title="Đổi chế độ Sáng/Tối">
+                        <i data-lucide="sun" id="theme-icon"></i>
+                    </button>
+                    <div class="connection-status">
+                        <span id="status-dot" class="status-dot"></span>
+                        <span id="status-text">Đang kiểm tra kết nối...</span>
+                    </div>
+                    <div class="user-profile-badge">ND</div>
+                </div>
+            </header>
+
+            <!-- ================= TAB CONTENT 1: OVERVIEW ================= -->
+            <div id="tab-overview" class="tab-content active">
+                
+                <!-- INFERENCE WARNING BANNER -->
+                <div id="inference-warning-banner" class="card warning-banner mb-6" style="display: none; padding: 16px; border: 1px solid #d29922; background-color: rgba(210, 153, 34, 0.1); border-radius: 8px; justify-content: space-between; align-items: center; gap: 16px;">
+                    <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                        <i data-lucide="alert-triangle" class="text-warning" style="width: 24px; height: 24px; flex-shrink: 0;"></i>
+                        <div>
+                            <h4 class="font-bold text-foreground" style="margin: 0 0 4px 0; font-size: 14px;">Chưa có dữ liệu dự báo rổ VN50</h4>
+                            <p class="text-secondary text-xs" style="margin: 0; font-size: 12px;">Mô hình chưa chạy dự báo hoặc dữ liệu cache đã lỗi thời. Hãy nạp mô hình trong tab Cài đặt và bấm chạy dự báo để hiển thị phân tích, ranking và XAI thực tế.</p>
+                        </div>
+                    </div>
+                    <div style="flex-shrink: 0;">
+                        <button id="banner-predict-all-btn" class="btn btn-primary btn-sm" style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 12px;">
+                            🚀 Chạy Dự báo Toàn bộ Rổ
+                        </button>
+                    </div>
+                </div>
+
+                <!-- METRIC TILES -->
+                <div class="metrics-grid mb-6">
+                    <button class="tile-btn active" id="tile-up" data-filter="up">
+                        <div class="tile-header">
+                            <span class="tile-label">TĂNG</span>
+                            <span class="tile-icon bg-up-soft text-up"><i data-lucide="arrow-up"></i></span>
+                        </div>
+                        <div class="tile-value text-up" id="counts-up">--</div>
+                        <div class="tile-sub" id="avg-up">Cổ phiếu · TB --</div>
+                    </button>
+                    <button class="tile-btn" id="tile-down" data-filter="down">
+                        <div class="tile-header">
+                            <span class="tile-label">GIẢM</span>
+                            <span class="tile-icon bg-down-soft text-down"><i data-lucide="arrow-down"></i></span>
+                        </div>
+                        <div class="tile-value text-down" id="counts-down">--</div>
+                        <div class="tile-sub" id="avg-down">Cổ phiếu · TB --</div>
+                    </button>
+                    <button class="tile-btn" id="tile-sideway" data-filter="sideway">
+                        <div class="tile-header">
+                            <span class="tile-label">ĐI NGANG</span>
+                            <span class="tile-icon bg-secondary text-warning"><i data-lucide="arrow-right"></i></span>
+                        </div>
+                        <div class="tile-value text-warning" id="counts-side">--</div>
+                        <div class="tile-sub" id="avg-side">Cổ phiếu · ±--%</div>
+                    </button>
+                    <div class="tile-card">
+                        <div class="tile-header">
+                            <span class="tile-label">ĐỘ CHÍNH XÁC HƯỚNG</span>
+                            <span class="tile-icon bg-primary/10 text-primary"><i data-lucide="star"></i></span>
+                        </div>
+                        <div class="tile-value text-primary">54.3%</div>
+                        <div class="tile-sub">DA (OOS) · 7 ngày gần nhất</div>
+                    </div>
+                </div>
+
+                <!-- HERO SECTION: TOP 1 RECOMMENDED STOCK -->
+                <section class="hero-section mb-6">
+                    <div class="card hero-card">
+                        <div class="hero-info">
+                            <div>
+                                <div class="hero-header-line">
+                                    <span class="hero-badge">🔥 KHUYẾN NGHỊ TOP 1</span>
+                                    <h2 id="hero-stock-symbol">--</h2>
+                                    <span id="hero-stock-exchange" class="exchange-tag">--</span>
+                                </div>
+                                <p id="hero-stock-name" class="hero-name-sub">Đang tìm kiếm mã tốt nhất...</p>
+                            </div>
+                            
+                            <div class="hero-price-line">
+                                <span id="hero-stock-price" class="price">--</span>
+                                <span id="hero-stock-change" class="price-change">--</span>
+                            </div>
+                            
+                            <div class="hero-stats-grid">
+                                <div class="stat-box">
+                                    <span class="stat-lbl">Mục tiêu 5D</span>
+                                    <span id="hero-target-price" class="stat-val price">--</span>
+                                </div>
+                                <div class="stat-box">
+                                    <span class="stat-lbl">Lợi nhuận 5D</span>
+                                    <span id="hero-target-return" class="stat-val price">--</span>
+                                </div>
+                                <div class="stat-box">
+                                    <span class="stat-lbl">Độ rủi ro</span>
+                                    <span id="hero-volatility" class="stat-val price">--</span>
+                                </div>
+                            </div>
+                            
+                            <div class="hero-trend-row">
+                                <div class="trend-badge-container">
+                                    <span>Xu hướng:</span>
+                                    <span id="hero-trend-indicator" class="trend-badge-lbl">--</span>
+                                </div>
+                                <div class="confidence-dots-container">
+                                    <span>Tin cậy:</span>
+                                    <span id="hero-confidence-dots" class="confidence-dots">
+                                        <span class="dot"></span>
+                                        <span class="dot"></span>
+                                        <span class="dot"></span>
+                                        <span class="dot"></span>
+                                        <span class="dot"></span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Area Chart for Top 1 Stock -->
+                        <div class="hero-chart-container">
+                            <div id="hero-recommendation-chart" class="hero-chart-div">
+                                <div class="chart-placeholder">Đang tải biểu đồ top 1...</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- FILTER BAR (SECTOR TABS) -->
+                <div class="filter-section mb-3">
+                    <div class="sector-tabs-container" id="sector-tabs">
+                        <!-- Nạp động bằng JS -->
+                    </div>
+                    <div class="filter-sort-label" style="display: flex; align-items: center; gap: 12px;">
+                        <span>Sắp xếp: <span class="text-foreground">Xu hướng AI tốt nhất</span></span>
+                        <button id="table-density-btn" class="btn btn-outline btn-xs" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; white-space: nowrap;">
+                            <i data-lucide="stretch-horizontal"></i>
+                            <span id="density-btn-text">Giãn rộng bảng</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STOCK TABLE -->
+                <div class="table-container card">
+                    <table class="stock-table" id="market-table">
+                        <thead>
+                            <tr>
+                                <th class="w-10 text-center">#</th>
+                                <th class="text-left">Mã</th>
+                                <th class="text-left">Sàn</th>
+                                <th class="text-right">Giá (₫)</th>
+                                <th class="text-right">±% hôm nay</th>
+                                <th class="text-center">Tin cậy AI</th>
+                                <th class="text-left">Xu hướng AI</th>
+                                <th class="w-[140px] text-left">Rủi ro</th>
+                                <th class="text-right">Dự báo 5 ngày</th>
+                                <th class="text-center">Biểu đồ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="overview-table-body">
+                            <!-- Nạp động bằng JS -->
+                            <tr>
+                                <td colspan="10" class="text-center py-8 text-secondary">Đang quét rổ cổ phiếu VN50...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-footer mt-3">
+                    <span id="overview-table-count">Đang hiển thị -- / -- cổ phiếu</span>
+                    <button id="overview-load-more" class="btn btn-outline btn-xs">Xem thêm 25 mã</button>
+                </div>
+            </div>
+
+            <!-- ================= TAB CONTENT 2: SCREENER ================= -->
+            <div id="tab-screener" class="tab-content">
+                <div class="screener-filters card mb-4">
+                    <div class="filter-grid">
+                        <div class="filter-field">
+                            <label>Ngành</label>
+                            <select id="screener-sector-select" class="form-select">
+                                <option>Tất cả</option>
+                            </select>
+                        </div>
+                        <div class="filter-field">
+                            <label>Xu hướng AI</label>
+                            <div class="btn-group" id="screener-trend-group">
+                                <button class="btn btn-outline active" data-trend="all">Tất cả</button>
+                                <button class="btn btn-outline" data-trend="up">Tăng</button>
+                                <button class="btn btn-outline" data-trend="down">Giảm</button>
+                                <button class="btn btn-outline" data-trend="sideway">Đi ngang</button>
+                            </div>
+                        </div>
+                        <div class="filter-field">
+                            <label id="screener-conf-lbl">Tin cậy tối thiểu: 0/5</label>
+                            <input type="range" id="screener-conf-slider" min="0" max="5" value="0" class="form-range">
+                        </div>
+                        <div class="filter-field">
+                            <label id="screener-risk-lbl">Rủi ro tối đa: 100/100</label>
+                            <input type="range" id="screener-risk-slider" min="0" max="100" value="100" class="form-range">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-results-lbl mb-2">
+                    Tìm thấy <span class="font-mono text-foreground" id="screener-match-count">0</span> mã phù hợp
+                </div>
+
+                <div class="table-container card">
+                    <table class="stock-table" id="screener-table">
+                        <thead>
+                            <tr>
+                                <th class="text-left">Mã</th>
+                                <th class="text-left">Ngành</th>
+                                <th class="text-right">Giá</th>
+                                <th class="text-right">±% hôm nay</th>
+                                <th class="text-right">Dự báo 5N</th>
+                                <th class="text-left">Xu hướng</th>
+                                <th class="text-center">Tin cậy</th>
+                                <th class="w-[140px] text-left">Rủi ro</th>
+                            </tr>
+                        </thead>
+                        <tbody id="screener-table-body">
+                            <!-- Nạp động bằng JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ================= TAB CONTENT 3: WATCHLIST ================= -->
+            <div id="tab-watchlist" class="tab-content">
+                <div class="watchlist-layout">
+                    <!-- Left: Watchlist Grid -->
+                    <div class="watchlist-grid-column">
+                        <div class="watchlist-cards-grid" id="watchlist-grid">
+                            <!-- Cards nạp động -->
+                            <!-- Form add new stock in grid -->
+                            <form id="watchlist-add-form" class="watchlist-add-card">
+                                <i data-lucide="plus" class="text-secondary mb-1"></i>
+                                <input type="text" id="watchlist-add-input" placeholder="VD: CTG" maxlength="3">
+                                <button type="submit" class="btn btn-link btn-xs">+ Thêm mã mới</button>
+                                <span class="text-muted text-[10px]" id="watchlist-total-database">-- mã trong CSDL</span>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Right: Analysis sidebar -->
+                    <aside class="watchlist-sidebar">
+                        <div class="watchlist-panel card">
+                            <h3 class="panel-title">PHÂN BỔ XU HƯỚNG AI</h3>
+                            <div class="chart-pie-container">
+                                <!-- Draw SVG bar segments instead of complex pie chart -->
+                                <div class="watchlist-trend-bars" id="watchlist-trend-bars">
+                                    <!-- Nạp động bằng JS -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="watchlist-panel card">
+                            <h3 class="panel-title">PHÂN BỔ RỦI RO</h3>
+                            <div class="watchlist-risk-bars" id="watchlist-risk-bars">
+                                <!-- Nạp động bằng JS -->
+                            </div>
+                        </div>
+
+                        <div class="watchlist-panel card">
+                            <h3 class="panel-title">CẢNH BÁO ĐANG HOẠT ĐỘNG</h3>
+                            <div class="watchlist-alerts-list" id="watchlist-alerts-list">
+                                <!-- Nạp động bằng JS -->
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+
+            <!-- ================= TAB CONTENT 4: DETAILS ================= -->
+            <div id="tab-details" class="tab-content">
+                
+                <!-- Breadcrumbs back -->
+                <div class="breadcrumbs mb-3">
+                    <a href="#" class="btn-back-overview" id="back-to-overview-link">
+                        <i data-lucide="arrow-left" class="h-3 w-3"></i> Tổng quan
+                    </a>
+                    <span>›</span>
+                    <span class="text-foreground" id="details-breadcrumb-symbol">---</span>
+                </div>
+
+                <!-- Stock Header Card -->
+                <div class="stock-details-header card mb-4">
+                    <div class="details-header-main">
+                        <div class="header-logo-section">
+                            <div class="logo-box" id="details-stock-logo-letters">--</div>
+                            <div>
+                                <div class="symbol-line">
+                                    <h2 id="details-stock-symbol">---</h2>
+                                    <span class="exchange-tag" id="details-stock-exchange">--</span>
+                                    <div id="details-ceiling-floor-badge-container"></div>
+                                </div>
+                                <p id="details-stock-name" class="text-secondary text-sm">--</p>
+                            </div>
+                        </div>
+                        <div class="header-price-section">
+                            <div class="price-line">
+                                <span id="details-stock-price" class="price">--</span>
+                                <span class="price-currency text-secondary text-lg ml-1">₫</span>
+                            </div>
+                            <div id="details-stock-change" class="change-line">--</div>
+                        </div>
+                    </div>
+
+                    <div class="details-header-footer">
+                        <div class="reference-prices font-mono">
+                            TC: <span class="text-foreground" id="details-ref-price">--</span> · 
+                            Trần: <span class="text-ceiling" id="details-ceil-price">--</span> · 
+                            Sàn: <span class="text-floor" id="details-floor-price">--</span> · 
+                            <span class="text-muted text-[11px]">Cập nhật 14:31:25</span>
+                        </div>
+                        <div class="details-header-meta">
+                            <div class="trend-badge-wrapper" id="details-trend-badge-container">
+                                <!-- Trend badge nạp động -->
+                            </div>
+                            <div class="confidence-wrapper">
+                                <div class="confidence-dots" id="details-confidence-dots"></div>
+                                <span class="text-secondary text-xs">Tin cậy <span class="text-foreground" id="details-confidence-text">--</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Chart + Risk Panel row -->
+                <div class="chart-and-risk-layout mb-6">
+                    
+                    <!-- Left: TradingView Chart -->
+                    <div class="chart-card-wrapper card">
+                        <div class="chart-header-actions mb-3">
+                            <div class="btn-group" id="chart-timeframe-group">
+                                <button class="btn btn-outline btn-xs">1T</button>
+                                <button class="btn btn-outline btn-xs">1Tháng</button>
+                                <button class="btn btn-outline btn-xs active">3Tháng</button>
+                                <button class="btn btn-outline btn-xs">6Tháng</button>
+                                <button class="btn btn-outline btn-xs">1Năm</button>
+                            </div>
+                            <span class="text-secondary text-[11px]">Nến 1D · Vùng xanh nhạt bên phải là dự báo AI</span>
+                        </div>
+
+                        <!-- TradingView Info Line -->
+                        <div class="tradingview-info-wrapper">
+                            <div class="tv-info-ohlc-row">
+                                <span class="tv-symbol-name" id="details-chart-symbol">--</span>
+                                <span class="tv-timeframe-tag">1D</span>
+                                <div class="tv-ohlc-item">O:<span id="details-tv-open">--</span></div>
+                                <div class="tv-ohlc-item">H:<span id="details-tv-high">--</span></div>
+                                <div class="tv-ohlc-item">L:<span id="details-tv-low">--</span></div>
+                                <div class="tv-ohlc-item">C:<span id="details-tv-close">--</span></div>
+                                <span id="details-tv-change" class="tv-change-val font-semibold">--</span>
+                            </div>
+                            <!-- Vol & Amt placed nicely on a sub-row below OHLC -->
+                            <div class="tv-info-vol-row mt-1 text-secondary text-xs">
+                                <div class="tv-ohlc-item">Vol: <span id="details-tv-volume" class="text-foreground font-semibold">--</span></div>
+                                <div class="tv-ohlc-item ml-4">Amt: <span id="details-tv-amount" class="text-foreground font-semibold">--</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Chart Div -->
+                        <div class="chart-wrapper mt-3">
+                            <div id="details-forecast-chart" class="chart-div">
+                                <div class="chart-placeholder">Vui lòng chọn một cổ phiếu...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Risk Panel -->
+                    <aside class="details-risk-panel card">
+                        <div class="panel-section-title">PHÂN TÍCH RỦI RO</div>
+                        
+                        <div class="risk-gauge-score-box mb-4">
+                            <div id="details-risk-gauge-container">
+                                <!-- Risk gauge bar nạp động -->
+                            </div>
+                            <div class="risk-score-lbl mt-1 text-secondary text-[11px]">
+                                Điểm: <span class="font-mono text-foreground" id="details-risk-score">--/100</span>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <!-- Forecast Target -->
+                        <div class="forecast-target-section mb-4">
+                            <div class="lbl-section text-secondary text-xs uppercase">DỰ BÁO PHIÊN 5</div>
+                            <div class="price-val font-mono text-lg font-bold text-foreground mt-1" id="details-f5-close">-- ₫</div>
+                            <div class="change-pct font-mono text-xs text-up" id="details-f5-pct">-- so với hôm nay</div>
+
+                            <!-- Probability gradient slider visual representation -->
+                            <div class="confidence-gradient-wrapper mt-3">
+                                <span class="text-secondary text-[11px]">Khoảng tin cậy 90%:</span>
+                                <div class="probability-gradient-track mt-1">
+                                    <div class="probability-gradient-fill"></div>
+                                    <div class="probability-gradient-pointer" id="details-gradient-pointer" style="left: 50%"></div>
+                                </div>
+                                <div class="probability-gradient-labels font-mono text-[10px] mt-1">
+                                    <span class="text-down" id="details-gradient-low">--</span>
+                                    <span class="text-up" id="details-gradient-high">--</span>
+                                </div>
+                                <div class="gradient-width-summary font-mono text-secondary text-[11px] mt-2" id="details-gradient-spread">
+                                    Độ rộng: -- ₫ (--%)
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <!-- Probability bars -->
+                        <div class="probability-breakdown mb-4">
+                            <div class="lbl-section text-secondary text-xs uppercase">PHÂN BỔ XÁC SUẤT (PHIÊN 5)</div>
+                            <div class="prob-bar-item mt-2">
+                                <div class="prob-bar-label text-xs">
+                                    <span class="text-secondary">Tăng > 3%</span>
+                                    <span class="font-semibold" id="details-prob-up-val">--%</span>
+                                </div>
+                                <div class="prob-bar-track"><div class="prob-bar-fill bg-up" id="details-prob-up-bar" style="width: 0%"></div></div>
+                            </div>
+                            <div class="prob-bar-item mt-2">
+                                <div class="prob-bar-label text-xs">
+                                    <span class="text-secondary">Đi ngang</span>
+                                    <span class="font-semibold" id="details-prob-side-val">--%</span>
+                                </div>
+                                <div class="prob-bar-track"><div class="prob-bar-fill bg-warning" id="details-prob-side-bar" style="width: 0%"></div></div>
+                            </div>
+                            <div class="prob-bar-item mt-2">
+                                <div class="prob-bar-label text-xs">
+                                    <span class="text-secondary">Giảm > 3%</span>
+                                    <span class="font-semibold" id="details-prob-down-val">--%</span>
+                                </div>
+                                <div class="prob-bar-track"><div class="prob-bar-fill bg-down" id="details-prob-down-bar" style="width: 0%"></div></div>
+                            </div>
+                            <div class="text-muted text-[10px] mt-2">Từ 100 mẫu stochastic</div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <!-- Warning / Info notes -->
+                        <div class="info-notes mb-4">
+                            <div class="note-row text-[11px] text-secondary">
+                                <i data-lucide="alert-triangle" class="text-warning"></i>
+                                <span>Nến phiên 5 kém tin cậy hơn (tích lũy sai số).</span>
+                            </div>
+                            <div class="note-row text-[11px] text-secondary mt-1">
+                                <i data-lucide="info" class="text-primary"></i>
+                                <span id="details-t2-date">Quy tắc T+2: mua hôm nay nhận hàng ngày 23/06.</span>
+                            </div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <button class="btn btn-outline btn-sm w-full mb-2" id="pdf-report-btn">
+                                <i data-lucide="download"></i> Tải báo cáo PDF
+                            </button>
+                            <button class="btn btn-primary btn-sm w-full" id="set-price-alert-btn">
+                                <i data-lucide="bell"></i> Đặt cảnh báo giá
+                            </button>
+                        </div>
+                    </aside>
+                </div>
+
+                <!-- Sub-tabs (Phân tích, Lịch sử, XAI) -->
+                <div class="details-tabs-card card mb-6">
+                    <div class="sub-tabs-header">
+                        <button class="sub-tab active" data-subtab="forecast">Phân tích</button>
+                        <button class="sub-tab" data-subtab="history">Lịch sử</button>
+                        <button class="sub-tab" data-subtab="xai">XAI — Giải thích mô hình</button>
+                    </div>
+
+                    <div class="sub-tab-content active" id="subtab-forecast">
+                        <h3 class="font-semibold text-sm mb-3">Dự báo chi tiết 5 phiên tới</h3>
+                        <div class="table-container no-border">
+                            <table class="stock-table font-mono" id="details-forecast-table">
+                                <thead>
+                                    <tr>
+                                        <th class="text-left font-sans text-xs">Phiên</th>
+                                        <th class="text-right">Mở cửa</th>
+                                        <th class="text-right">Cao</th>
+                                        <th class="text-right">Thấp</th>
+                                        <th class="text-right">Đóng (TB)</th>
+                                        <th class="text-right">KLGD (triệu)</th>
+                                        <th class="text-right">±%</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="details-forecast-table-body">
+                                    <!-- Nạp động -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="text-muted text-[11px] italic mt-3">
+                            * Độ chính xác giảm dần theo thời gian do tích lũy sai số (auto-regressive). Hàng càng đậm = càng xa, độ tin cậy thấp hơn.
+                        </p>
+                    </div>
+
+                    <div class="sub-tab-content" id="subtab-history">
+                        <h3 class="font-semibold text-sm mb-3">Lịch sử 20 phiên gần nhất</h3>
+                        <div class="table-container no-border">
+                            <table class="stock-table font-mono" id="details-history-table">
+                                <thead>
+                                    <tr>
+                                        <th class="text-left font-sans text-xs">Ngày</th>
+                                        <th class="text-right">Mở</th>
+                                        <th class="text-right">Cao</th>
+                                        <th class="text-right">Thấp</th>
+                                        <th class="text-right">Đóng</th>
+                                        <th class="text-right">±%</th>
+                                        <th class="text-right">KLGD</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="details-history-table-body">
+                                    <!-- Nạp động -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="sub-tab-content" id="subtab-xai">
+                        <div class="xai-panel-wrapper">
+                            <div>
+                                <h3 class="text-base font-semibold" id="xai-header-title">Tại sao mô hình dự báo TĂNG?</h3>
+                                <p class="text-xs text-secondary mt-0.5">Phân tích Token S1 — Kronos Tokenizer</p>
+                            </div>
+
+                            <div class="xai-block mt-4">
+                                <div class="lbl-block text-secondary text-xs font-semibold uppercase mb-2">PATTERN PHỔ BIẾN TRƯỚC TĂNG GIÁ</div>
+                                <div class="xai-patterns-container card bg-secondary/40 p-4" id="details-xai-patterns">
+                                    <!-- Dynamic XAI bars -->
+                                </div>
+                            </div>
+
+                            <div class="xai-block mt-4">
+                                <div class="lbl-block text-secondary text-xs font-semibold uppercase mb-2">10 PHIÊN GẦN NHẤT — PATTERN ĐÃ XẢY RA</div>
+                                <div class="xai-timeline-grid" id="details-xai-timeline">
+                                    <!-- 10 blocks showing pattern occurrence -->
+                                </div>
+                                <p class="text-secondary text-xs mt-2">
+                                    Các mẫu hình này xuất hiện trong chuỗi nến gần nhất và tương quan với pha tăng trong dữ liệu huấn luyện.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Disclaimer -->
+                <footer class="app-disclaimer text-muted text-xs leading-relaxed italic card p-4 mb-6">
+                    <p>Khuyến cáo miễn trừ trách nhiệm: Kết quả dự báo dựa trên mô hình học máy Kronos Foundation Model và chỉ mang tính chất tham khảo. Không phải lời khuyên đầu tư tài chính. Hoạt động đầu tư chứng khoán tiềm ẩn rủi ro thua lỗ cao. Người dùng tự chịu trách nhiệm hoàn toàn đối với các quyết định giao dịch của mình.</p>
+                </footer>
+            </div>
+
+            <!-- ================= TAB CONTENT 5: BACKTEST ================= -->
+            <div id="tab-backtest" class="tab-content">
+                <!-- KPI Tiles -->
+                <div class="kpi-backtest-grid mb-6">
+                    <div class="kpi-card border-up bg-card">
+                        <span class="kpi-label">ĐỘ CHÍNH XÁC HƯỚNG</span>
+                        <div class="kpi-value text-up" id="kpi-da-val">--%</div>
+                        <div class="kpi-sub" id="kpi-da-sub">DA (Test) · target >52%</div>
+                        <div class="kpi-status text-up mt-1" id="kpi-da-status">--</div>
+                    </div>
+                    <div class="kpi-card border-primary bg-card">
+                        <span class="kpi-label" id="kpi-rankic-lbl">HỆ SỐ TƯƠNG QUAN (RANK IC)</span>
+                        <div class="kpi-value text-primary" id="kpi-rankic-val">--</div>
+                        <div class="kpi-sub" id="kpi-rankic-sub">Tương quan thứ hạng dự báo</div>
+                    </div>
+                    <div class="kpi-card border-primary bg-card">
+                        <span class="kpi-label" id="kpi-return-lbl">LỢI NHUẬN LONG HÓA</span>
+                        <div class="kpi-value text-primary" id="kpi-return-val">--%</div>
+                        <div class="kpi-sub" id="kpi-return-sub">Lợi nhuận hàng năm chiến lược Long</div>
+                    </div>
+                    <div class="kpi-card border-warning bg-card">
+                        <span class="kpi-label" id="kpi-winrate-lbl">TỶ LỆ THẮNG CHIẾN LƯỢC</span>
+                        <div class="kpi-value text-warning" id="kpi-winrate-val">--%</div>
+                        <div class="kpi-sub" id="kpi-winrate-sub">Tỷ lệ thắng (Win Rate) lệnh mua</div>
+                        <div class="kpi-status text-warning mt-1" id="kpi-winrate-status">--</div>
+                    </div>
+                </div>
+
+                <!-- Fold comparison chart -->
+                <section class="backtest-section card mb-6">
+                    <div class="section-header mb-4">
+                        <h2 class="text-base font-semibold">So sánh với baseline</h2>
+                        <p class="text-secondary text-xs">DA theo từng fold walk-forward</p>
+                    </div>
+                    <div class="backtest-chart-wrapper" style="height: 280px; position: relative;">
+                        <!-- Render lightweight chart here -->
+                        <div id="backtest-fold-chart" style="width: 100%; height: 100%;"></div>
+                    </div>
+                </section>
+
+                <!-- Backtest results table by stock -->
+                <section class="backtest-section card mb-6">
+                    <div class="section-header mb-4">
+                        <h2 class="text-base font-semibold">Kết quả theo từng cổ phiếu</h2>
+                        <p class="text-secondary text-xs">Top 20 mã đang được theo dõi</p>
+                    </div>
+                    <div class="table-container">
+                        <table class="stock-table" id="backtest-stock-table">
+                            <thead>
+                                <tr>
+                                    <th class="px-3 py-2 text-left">Mã</th>
+                                    <th class="px-3 py-2 text-left w-1/3">DA (%)</th>
+                                    <th class="px-3 py-2 text-right">MAE</th>
+                                    <th class="px-3 py-2 text-right">RMSE</th>
+                                    <th class="px-3 py-2 text-right">Coverage</th>
+                                    <th class="px-3 py-2 text-left">Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="backtest-table-body" class="font-mono">
+                                <!-- Nạp động -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Daily logs for last 7 sessions -->
+                <section class="backtest-section card mb-6">
+                    <div class="section-header mb-4">
+                        <h2 class="text-base font-semibold">Nhật ký dự báo (7 ngày gần nhất)</h2>
+                        <p class="text-secondary text-xs">Mỗi thẻ = một ngày giao dịch</p>
+                    </div>
+                    <div class="daily-log-grid" id="backtest-daily-cards">
+                        <!-- Nạp động -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- ================= TAB CONTENT 6: AUDIT LOGS ================= -->
+            <div id="tab-logs" class="tab-content">
+                <div class="section-header mb-4">
+                    <p class="text-secondary text-sm">Mô hình ghi lại dự báo hàng ngày và so sánh với kết quả thực tế để minh bạch hiệu suất.</p>
+                </div>
+                
+                <div class="table-container card mb-6">
+                    <table class="stock-table" id="logs-table">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-3 text-left">Ngày</th>
+                                <th class="px-4 py-3 text-left">Dự báo</th>
+                                <th class="px-4 py-3 text-left">Thực tế</th>
+                                <th class="px-4 py-3 text-right">DA ngày</th>
+                                <th class="px-4 py-3 text-right">Số mã đúng</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-table-body">
+                            <!-- Nạp động -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ================= TAB CONTENT 7: SETTINGS ================= -->
+            <div id="tab-settings" class="tab-content">
+                <div class="settings-sections-wrapper mb-6">
+                    
+                    <!-- Form 1: Giao diện -->
+                    <div class="settings-card card mb-4">
+                        <div class="settings-card-title">GIAO DIỆN & CẤU HÌNH</div>
+                        <div class="settings-rows-list">
+                            <div class="settings-row">
+                                <div class="row-info">
+                                    <div class="row-label">Chủ đề (Theme)</div>
+                                    <div class="row-hint">Chọn giao diện hiển thị cho biểu đồ</div>
+                                </div>
+                                <select id="settings-theme-select" class="form-select w-40">
+                                    <option value="dark">Tối (Dark)</option>
+                                    <option value="light">Sáng (Light)</option>
+                                </select>
+                            </div>
+                            <div class="settings-row">
+                                <div class="row-info">
+                                    <div class="row-label">Ngôn ngữ (Language)</div>
+                                    <div class="row-hint">Vietnamese / English</div>
+                                </div>
+                                <div class="row-val font-mono">Tiếng Việt</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form 2: Mô hình -->
+                    <div class="settings-card card mb-4">
+                        <div class="settings-card-title">CẤU HÌNH MÔ HÌNH KRONOS AI</div>
+                        <div class="settings-rows-list">
+                            <div class="settings-row">
+                                <div class="row-info">
+                                    <div class="row-label">Chọn mô hình Kronos</div>
+                                    <div class="row-hint">Trọng số tải từ Hugging Face</div>
+                                </div>
+                                <select id="model-select" class="form-select w-60">
+                                    <!-- Nạp động -->
+                                </select>
+                            </div>
+                            <div class="settings-row">
+                                <div class="row-info">
+                                    <div class="row-label">Thiết bị suy luận (Device)</div>
+                                    <div class="row-hint">Chọn GPU CUDA nếu có để tăng tốc</div>
+                                </div>
+                                <select id="device-select" class="form-select w-40">
+                                    <option value="cpu">CPU</option>
+                                    <option value="cuda:0">CUDA GPU</option>
+                                </select>
+                            </div>
+                            <div class="settings-row no-border py-2 justify-end gap-2" style="display: flex; gap: 8px;">
+                                <button id="settings-predict-all-btn" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px; padding: 8px 16px;">
+                                    🚀 Chạy Dự báo Toàn bộ Rổ
+                                </button>
+                                <button id="load-model-btn" class="btn btn-outline w-40">Nạp mô hình</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form 3: Tham số Predictor -->
+                    <div class="settings-card card mb-4">
+                        <div class="settings-card-title">THAM SỐ DỰ BÁO (PREDICTOR PARAMETERS)</div>
+                        <div class="settings-rows-list">
+                            <div class="settings-row">
+                                <div class="row-info">
+                                    <div class="row-label">Mã cổ phiếu chọn nhanh</div>
+                                    <div class="row-hint">Nạp nhanh dữ liệu lịch sử</div>
+                                </div>
+                                <select id="stock-select" class="form-select w-40">
+                                    <!-- Nạp động -->
+                                </select>
+                            </div>
+                            <div class="settings-row">
+                                <div class="row-info">
+                                    <div class="row-label">Ngày bắt đầu dự báo</div>
+                                    <div class="row-hint">Mặc định lấy ngày cuối cùng trong CSV</div>
+                                    <div style="font-size: 11px; color: var(--warning); margin-top: 6px; line-height: 1.4; max-width: 500px;">
+                                        💡 <strong>Chú ý:</strong> Ngày bắt đầu dự báo chỉ áp dụng khi chạy dự báo đơn lẻ (bấm "Chạy Dự báo Cổ phiếu" hoặc tìm kiếm mã). Dự báo toàn bộ rổ cổ phiếu (bảng rankings và top khuyến nghị) sẽ luôn tự động lấy lùi 7 ngày cuối cùng trong cơ sở dữ liệu để đồng bộ rankings.
+                                    </div>
+                                </div>
+                                <input type="date" id="start-date-input" class="form-input w-40">
+                            </div>
+                            <div class="settings-row">
+                                <div class="row-info">
+                                    <div class="row-label">Nhiệt độ lấy mẫu (Temperature)</div>
+                                    <div class="row-hint">Độ hỗn loạn stochastic của các đường</div>
+                                </div>
+                                <div class="slider-wrapper w-60">
+                                    <input type="range" id="temp-input" min="0.1" max="2.0" step="0.1" value="1.0" class="form-range">
+                                    <span id="temp-val" class="slider-value font-mono">1.0</span>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="row-info">
+                                    <div class="row-label">Giới hạn xác suất (Top-P)</div>
+                                    <div class="row-hint">Ngưỡng lọc xác suất nhân logits</div>
+                                </div>
+                                <div class="slider-wrapper w-60">
+                                    <input type="range" id="topp-input" min="0.5" max="1.0" step="0.05" value="0.90" class="form-range">
+                                    <span id="topp-val" class="slider-value font-mono">0.90</span>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="row-info">
+                                    <div class="row-label">Số đường Stochastic (Paths)</div>
+                                    <div class="row-hint">Độ phủ fan-chart của dự báo</div>
+                                </div>
+                                <div class="slider-wrapper w-60">
+                                    <input type="range" id="samples-input" min="5" max="100" step="5" value="50" class="form-range">
+                                    <span id="samples-val" class="slider-value font-mono">50</span>
+                                </div>
+                            </div>
+                            <div class="settings-row no-border py-2 justify-end">
+                                <button id="predict-btn" class="btn btn-primary w-60">
+                                    🎯 Chạy Dự báo Cổ phiếu
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GLOBAL SCREEN LOADING OVERLAY -->
+            <div id="loading-overlay" class="loading-overlay">
+                <div class="spinner"></div>
+                <div id="loading-text" class="loading-text">Đang phân tích dự báo...</div>
+            </div>
+
+            <!-- Toast Container -->
+            <div id="toast-container" class="toast-container"></div>
+            
+        </main>
+        
+    </div>
+
+    <!-- JS Tĩnh -->
+    <script src="/static/js/main.js?v=4"></script>
+</body>
+</html>
