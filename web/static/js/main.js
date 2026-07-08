@@ -1484,6 +1484,9 @@ async function runPredictForDetails(symbol, updateDetailsUI = true) {
 function renderDetailsUI(data) {
     // 1. Update Breadcrumbs and header
     detailsBreadcrumbSymbol.textContent = `${data.symbol} — ${data.name}`;
+    if (currentTab === 'details') {
+        currentTabTitle.textContent = `Chi tiết & Dự báo AI — ${data.symbol}`;
+    }
     detailsStockLogoLetters.textContent = data.symbol.slice(0, 2);
     detailsStockSymbol.textContent = data.symbol;
     detailsStockExchange.textContent = data.exchange;

@@ -1,0 +1,4 @@
+interface:
+  display_name: "VN Finance Frontend Taste"
+  short_description: "Finance dashboard adapter for taste-skill"
+  default_prompt: "Use this before designing or editing the Stock-VN-Forecasting web UI."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "VN Stock Market Radar"
+  short_description: "Project context harness for Kronos VN stock forecasting"
+  default_prompt: "Use this before changing Stock-VN-Forecasting model, evaluation, data, or app code."

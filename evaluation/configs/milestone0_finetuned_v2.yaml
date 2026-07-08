@@ -1,0 +1,21 @@
+data:
+  data_path: "data_cleaned"
+  lookback_window: 126
+  predict_window: 5
+  max_context: 512
+  clip: 5.0
+  train_end_date: "2023-01-01"
+  val_end_date: "2024-01-01"
+
+inference:
+  tokenizer_path: "finetune_csv/finetuned/tokenizer_v2/tokenizer/best_model"
+  predictor_path: "finetune_csv/finetuned/basemodel_v2/basemodel/best_model"
+  use_lora: false
+  adapter_path: ""
+  sample_count: 20
+  temperature: 0.7
+  top_p: 0.9
+  top_k: 0
+  eval_batch_size: 4
+  eval_samples_limit: 2500
+  output_dir: "reports/milestone_0_baseline_freeze/finetuned_v2"

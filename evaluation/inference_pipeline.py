@@ -19,6 +19,28 @@ from finetune_base_model import CustomKlineDataset
 from model.kronos import KronosPredictor
 
 
+def format_low_vram_warning(total_vram_mb, eval_batch_size, sample_count, config_path):
+    effective_batch_size = eval_batch_size * sample_count
+    return "\n".join([
+        "",
+        "!" * 80,
+        "CANH BAO: NGUY CO TRAN VRAM (OOM) HOAC GIAM TOC DO NGHIEM TRONG TREN WINDOWS",
+        "!" * 80,
+        f" - GPU VRAM thap: {total_vram_mb:.1f} MB (<= 4GB)",
+        f" - Cau hinh hien tai: eval_batch_size = {eval_batch_size} | sample_count = {sample_count}",
+        f" - Kich thuoc batch hieu dung (eval_batch_size * sample_count): {effective_batch_size} (>= 160)",
+        " - LUU Y TREN WINDOWS:",
+        "   Windows WDDM co the paging VRAM thua sang RAM he thong.",
+        "   PyTorch co the khong crash CUDA OOM ngay, nhung inference se rat cham.",
+        " - KHUYEN NGHI:",
+        f"   Chinh file cau hinh: {config_path}",
+        f"     1. Giam eval_batch_size xuong 4 hoac 8 (hien tai: {eval_batch_size})",
+        f"     2. Neu van qua cham, giam sample_count xuong 10 hoac 12 (hien tai: {sample_count})",
+        "!" * 80,
+        "",
+    ])
+
+
 def generate_raw(tokenizer, model, x, x_stamp, y_stamp, pred_len, max_context, clip, T, top_k, top_p, sample_count, device):
     """
     Dự báo autoregressive sinh ra toàn bộ các đường đi mẫu ngẫu nhiên (sample paths).
@@ -577,23 +599,7 @@ def main():
         effective_batch_size = eval_batch_size * sample_count
         
         if total_vram_mb <= 4100 and effective_batch_size >= 160:
-            print("\n" + "!"*80)
-            print("⚠️  CẢNH BÁO: NGUY CƠ TRÀN BỘ NHỚ VRAM (OOM) HOẶC GIẢM TỐC ĐỘ NGHIÊM TRỌNG TRÊN WINDOWS")
-            print("!"*80)
-            print(f" - GPU của bạn có dung lượng VRAM thấp: {total_vram_mb:.1f} MB (<= 4GB)")
-            print(f" - Cấu hình hiện tại: eval_batch_size = {eval_batch_size} | sample_count = {sample_count}")
-            print(f" - Kích thước batch hiệu dụng (eval_batch_size * sample_count): {effective_batch_size} (>= 160)")
-            print(" - ĐẶC BIỆT LƯU Ý TRÊN WINDOWS:")
-            print("   Trình điều khiển WDDM của Windows sẽ tự động chuyển bộ nhớ VRAM thừa sang RAM hệ thống.")
-            print("   Điều này KHÔNG gây ra lỗi Crash CUDA OOM ngay lập tức mà sẽ làm giảm tốc độ suy luận")
-            print("   đi cực kỳ nghiêm trọng (từ 50x đến 100x), làm tiến trình bị treo hoặc chạy rất chậm.")
-            print(" - KHUYẾN NGHỊ:")
-            print("   Hãy chỉnh sửa file cấu hình tương ứng:")
-            print(f"   Đường dẫn file: {args.config}")
-            print("   Và giảm cấu hình xuống:")
-            print("     1. 'eval_batch_size' xuống 4 hoặc 8 (hiện tại: {})".format(eval_batch_size))
-            print("     2. 'sample_count' xuống 10 hoặc 12 (hiện tại: {})".format(sample_count))
-            print("!"*80 + "\n")
+            print(format_low_vram_warning(total_vram_mb, eval_batch_size, sample_count, args.config))
     
     # Fix random seed for reproducibility
     seed = config['data'].get('seed', 42)

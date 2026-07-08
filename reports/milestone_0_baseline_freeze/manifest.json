@@ -1,0 +1,83 @@
+{
+  "freeze_id": "milestone_0_baseline_freeze",
+  "generated_at_utc": "2026-07-08T03:35:54+00:00",
+  "mode": "dev_sampled",
+  "configs": {
+    "zero_shot": "evaluation/configs/milestone0_baseline_zero_shot.yaml",
+    "finetuned_v2": "evaluation/configs/milestone0_finetuned_v2.yaml"
+  },
+  "commands": {
+    "zero_shot": "C:\\Users\\USER\\anaconda3\\envs\\stock\\python.exe evaluation/inference_pipeline.py --config evaluation/configs/milestone0_baseline_zero_shot.yaml --mode final",
+    "finetuned_v2": "C:\\Users\\USER\\anaconda3\\envs\\stock\\python.exe evaluation/inference_pipeline.py --config evaluation/configs/milestone0_finetuned_v2.yaml --mode final"
+  },
+  "data": {
+    "path": "data_cleaned",
+    "csv_count": 50,
+    "lookback_window": 126,
+    "predict_window": 5,
+    "max_context": 512,
+    "train_end_date": "2023-01-01",
+    "val_end_date": "2024-01-01"
+  },
+  "models": {
+    "zero_shot": {
+      "tokenizer_path": "pretrained/Kronos-Tokenizer-base",
+      "predictor_path": "pretrained/Kronos-base"
+    },
+    "finetuned_v2": {
+      "tokenizer_path": "finetune_csv/finetuned/tokenizer_v2/tokenizer/best_model",
+      "predictor_path": "finetune_csv/finetuned/basemodel_v2/basemodel/best_model"
+    }
+  },
+  "artifact_dirs": {
+    "root": "reports/milestone_0_baseline_freeze",
+    "zero_shot": "reports/milestone_0_baseline_freeze/zero_shot",
+    "finetuned_v2": "reports/milestone_0_baseline_freeze/finetuned_v2"
+  },
+  "metrics": {
+    "zero_shot": {
+      "Validation": {
+        "DA": 49.375,
+        "MW-DA": 46.57135750200485,
+        "RankIC": 0.0243117261292634,
+        "HitRate": 57.5
+      },
+      "Test": {
+        "DA": 52.76,
+        "MW-DA": 49.37954832766263,
+        "RankIC": 0.0170331792975117,
+        "HitRate": 53.4
+      }
+    },
+    "finetuned_v2": {
+      "Validation": {
+        "DA": 51.91666666666666,
+        "MW-DA": 50.74716961915418,
+        "RankIC": 0.0500579474966525,
+        "HitRate": 58.125
+      },
+      "Test": {
+        "DA": 51.2,
+        "MW-DA": 50.12726855521641,
+        "RankIC": 0.0332892882277146,
+        "HitRate": 51.0
+      }
+    }
+  },
+  "comparison": {
+    "test": {
+      "zero_shot_da_hard_stop_pass": true,
+      "finetuned_da_hard_stop_pass": false,
+      "fine_tuned_beats_zero_shot_da": false,
+      "fine_tuned_beats_zero_shot_mw_da": true
+    }
+  },
+  "artifact_hashes": {
+    "finetuned_v2/finetuned_backtest_performance.png": "3ece55b292182e3cafd53afe5916c99dc95713049c15700b08d24c46fe08b784",
+    "finetuned_v2/finetuned_metrics.csv": "c3aff68a9a2c5f9b3f4fcfea177955d1696a8ff9bcf7525b80de63baa8b22115",
+    "finetuned_v2/per_date_metrics.csv": "94d796370059e1eefd3a9587ec3494989011a2ac728f47f1e0dc57ca0d757817",
+    "zero_shot/backtest_performance.png": "5e5e735eca793ec3d7057c8c70013f8a6833cc4c7c659816639732d5d3937895",
+    "zero_shot/baseline_metrics.csv": "ee8be78254c38f2597eba3888094b43cf3d8f7040dd935eb5cc072f309cae7d5",
+    "zero_shot/per_date_metrics.csv": "4c658a858fd3b8cafd469bda08c3cd36d3ff54cea27539b931ca7694c6302668"
+  }
+}
