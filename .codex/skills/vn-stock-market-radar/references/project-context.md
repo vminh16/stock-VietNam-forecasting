@@ -2,78 +2,99 @@
 
 ## Product Goal
 
-The app should become a Kronos-powered Vietnam Stock Market Radar. The model is the forecasting engine; the app should help a research user inspect forecast paths, uncertainty, ranking, and risk signals across Vietnamese stocks.
+Build an end-to-end Kronos-powered Vietnam Stock Market Radar for research.
+The application is ranking-oriented, while the model remains forecast-first:
+probabilistic paths produce expected-return, direction, uncertainty, and risk
+features that drive cross-sectional comparison.
 
-The near-term goal is not commercialization. The priority is proving model strength and building an end-to-end app that is technically credible.
+The project does not currently target commercialization or investment advice.
 
-## Current Baseline Shape
+## Source Of Truth
 
-The current app is naive: it loads a dataset, runs or reads evaluation, caches results, and renders the web UI. Treat this as a baseline to freeze before broader changes.
+Read `SPEC.md` before project-level decisions. It distinguishes invariants,
+frozen baselines, research candidates, and deferred work. Do not promote a
+candidate into a fixed rule without evidence and a spec revision.
 
-Milestone 0 freeze target:
+## Baseline Evidence
 
-- Canonical final artifacts should live under `reports/milestone_0_baseline_freeze/`.
-- `reports/milestone_0_baseline_freeze/baseline_freeze_report.md` and `manifest.json` are the first places to check.
-- If the report mode is `dev_sampled`, it is a fallback snapshot from existing sampled artifacts, not the canonical final freeze.
-- Do not treat fine-tuned v2 as a model improvement unless final `DA` and final `MW-DA` beat zero-shot, or a later report explicitly justifies the tradeoff.
+The current dataset contains 50 daily symbol files, approximately 99,851 rows,
+and approximately 56,205 valid pre-2023 train bars. Histories were aligned to a
+common calendar; SSB has a concentrated block of 692 missing/zero rows. The
+50-symbol panel is a baseline, not the target universe.
 
-Known technical context from the repo docs:
+The accepted model reference is the Kronos-base zero-shot final run:
 
-- Kronos is used for time-series tokenization and forecasting.
-- Daily OHLCV-style data is the default operating mode.
-- Lookback is 126 trading days.
-- Prediction window is 5 trading days.
-- Temporal split is required. Random split is invalid for this project.
-- Multi-stock training must preserve stock boundaries.
+- Test DA: `51.6343`
+- Test MW-DA: `49.0046`
+- Test RankIC: `-0.0026`
+- Test HitRate: `49.7500`
 
-## Repo Anchors
+The former fine-tuned v2 artifact has different date coverage and is
+noncanonical. Do not use mixed-coverage deltas to claim improvement. `DA >= 52`
+is an operational floor, not a significance test.
 
-Read these before major changes:
+## Research Direction
 
-- `README.md` and `README_VI.md` for project framing.
-- `SPEC.md` for non-negotiable technical constraints.
-- `GEMINI.md` for project-specific operational rules.
-- `finetune_csv/README.md` for fine-tuning data format and workflow.
-- `reports/walkthrough_finetuning.md` for model training context.
-- `reports/walkthrough_evaluation_fix.md` for evaluation caveats and fixes.
+- Daily data remains invariant.
+- Use point-in-time dynamic universes and ragged histories; never fill
+  pre-listing periods.
+- Evaluate data scale at 50, 150, and 300 symbols on a fixed point-in-time target
+  universe.
+- Keep Kronos-base as the zero-shot reference.
+- Use Kronos-small as the primary adaptation/deployment candidate.
+- Freeze the pretrained tokenizer for initial small-model experiments.
+- Treat Q/V rank 8 as an incumbent, not an optimum. Compare Q/V, QKVO, MLP, and
+  all-linear LoRA at equal trainable-parameter budget.
+- Gate full fine-tuning behind evidence that broad LoRA is underfitting.
+- Treat lookback 126 and horizon 5 as incumbents. Research candidates are
+  `L={40,63,126,252}` and `H={3,5,10,20}`, selected sequentially.
+- Test alignment of the original all-position token CE against forecast-tail
+  masking/weighting before expensive adaptation. This requires a reviewed plan.
 
-## Non-Negotiables
+## Effective Sample Warning
 
-- Do not modify `model/kronos.py` or `model/module.py` unless explicitly requested.
-- Do not add Trend or Risk prediction heads.
-- Do not add losses for app-facing Trend or Risk labels.
-- Derive Trend and Risk from forecast outputs and business logic.
-- Do not present output as investment advice.
-- Do not optimize for many metrics before the small metric contract is stable.
-
-## Model Objective
-
-The app currently feels ranking-oriented because a market radar naturally compares symbols. The model objective should still be forecast-first:
-
-1. Generate credible short-horizon probabilistic paths.
-2. Convert paths into interpretable expected return, trend, and uncertainty features.
-3. Use those features for ranking and risk surfaces.
-
-Ranking is the application layer, not proof that the forecast model is good by itself.
-
-The next product phase after baseline freeze is the Kronos Path Viewer: show actual price, stochastic forecast paths, mean/median forecast, confidence band, and uncertainty language before expanding ranking UX.
+The baseline's 49,727 sliding train windows are highly overlapping. A
+non-overlap planning proxy is only about 377 blocks, but actual effective sample
+size must be estimated from date-level autocorrelation and cross-sectional
+dependence. Never report raw windows as independent observations.
 
 ## Metric Contract
 
-Forecast metrics:
+- Forecast direction: `MW-DA`, `DA`
+- Ranking: `RankIC`, `HitRate@Top10`
+- Probabilistic path: `CRPS`, interval coverage/width
+- Portfolio sanity later: `Sharpe`, `MaxDrawdown`
 
-- `DA`: direction accuracy over the forecast horizon.
-- `MW-DA`: market-wide direction accuracy aggregated across symbols and dates.
+RankIC is the primary product metric because the app is a radar. Model promotion
+is still forecast-gated and requires paired date-block confidence intervals.
 
-Ranking metrics:
+## Current Sequence
 
-- `RankIC`: correlation between predicted rank signal and realized return rank.
-- `HitRate@Top10`: share of top ranked symbols that beat the chosen benchmark or positive-return threshold.
+1. Zero-shot reference: accepted.
+2. Point-in-time data and universe foundation.
+3. Research evaluation harness and small/base diagnostics.
+4. Kronos-small objective and LoRA study.
+5. Path Viewer.
+6. Ranking and risk radar.
+7. Daily operations, cache, and deployment.
 
-Portfolio sanity metrics:
+## Non-Negotiables
 
-- `Sharpe`
-- `MaxDrawdown`
-- `ReturnVsBenchmark`
+- Do not modify Kronos architecture without explicit approval.
+- Do not add Trend or Risk heads.
+- Do not add a new loss family by default.
+- Do not use random splits or current-universe backfills.
+- Do not let windows cross symbol boundaries.
+- Do not run expensive training without pre-registered data, folds, candidates,
+  budget, promotion rule, and acceptance criteria.
+- Do not present output as investment advice.
 
-Only add more metrics when they answer a new decision.
+## Repo Anchors
+
+- `AGENTS.md`
+- `SPEC.md`
+- `GEMINI.md`
+- `finetune_csv/README.md`
+- `reports/milestone_0_baseline_freeze/`
+- `reports/walkthrough_finetuning.md`
+- `reports/walkthrough_evaluation_fix.md`

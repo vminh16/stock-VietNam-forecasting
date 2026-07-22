@@ -26,7 +26,12 @@ If the task touches frontend design, also use `vn-finance-frontend-taste` and th
 - Treat the current repo as a baseline first, not a blank slate.
 - Do not change Kronos architecture, add prediction heads, or add new losses unless explicitly requested.
 - Keep Trend and Risk as business logic over forecast outputs, not as model heads.
-- Preserve daily-data assumptions: lookback 126, prediction window 5, temporal split, no random split.
+- Preserve daily data, point-in-time processing, temporal validation, and no random split.
+- Treat lookback 126 and horizon 5 as incumbents. Use the candidate grid and
+  sequential selection protocol in `SPEC.md` when research changes them.
+- Keep Kronos-base as the zero-shot reference and use Kronos-small as the
+  primary adaptation candidate until evidence changes that decision.
+- Freeze the pretrained tokenizer for initial small-model experiments.
 - For multi-stock data, keep one CSV per symbol or equivalent grouping. Never let training windows cross stock boundaries.
 - Prefer small milestones with clear success criteria and a verification command.
 
@@ -36,7 +41,8 @@ Use a small, stable metric set:
 
 - Forecast quality: `DA`, `MW-DA`
 - Ranking quality: `RankIC`, `HitRate@Top10`
-- Portfolio sanity: `Sharpe`, `MaxDrawdown`, `ReturnVsBenchmark`
+- Probabilistic path quality: `CRPS`, interval coverage/width
+- Portfolio sanity: `Sharpe`, `MaxDrawdown`
 - App operations later: daily success rate, latency, signal stability
 
 Do not expand metric dashboards by default. Add a metric only when it changes a decision.
@@ -45,12 +51,17 @@ Do not expand metric dashboards by default. Add a metric only when it changes a 
 
 Current preferred order:
 
-1. Milestone 4: repo memory, skill harness, design adapter, context preservation.
-2. Milestone 0: freeze and verify baseline.
-3. Milestone 1: Kronos Path Viewer for intuitive forecast paths and uncertainty.
-4. Milestone 2: focused evaluation harness using the metric contract.
-5. Milestone 3: ranking and risk radar over more symbols.
-6. Later: streaming, automation, deployment, and end-to-end app hardening.
+The repo memory, skill harness, and design adapter foundation is complete and
+sits outside the active milestone numbering.
+
+1. Milestone 0: freeze the zero-shot reference; archive mismatched fine-tuned
+   artifacts as noncanonical.
+2. Milestone 1: point-in-time data and dynamic-universe foundation.
+3. Milestone 2: focused research evaluation harness and small/base diagnostics.
+4. Milestone 3: Kronos-small objective-alignment and matched-budget LoRA study.
+5. Milestone 4: Kronos Path Viewer for forecast paths and uncertainty.
+6. Milestone 5: ranking and risk radar.
+7. Milestone 6: daily operations, cache lifecycle, deployment, and hardening.
 
 ## References
 

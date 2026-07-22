@@ -64,7 +64,8 @@ Prompt:
 Expected behavior:
 
 - Acknowledge the long-term direction.
-- Start with Milestone 0 baseline freeze unless it is already complete.
+- Start with the current milestone in `SPEC.md`; after the zero-shot reference,
+  this is the point-in-time data and universe foundation.
 - Keep data boundary, leakage, and reproducibility constraints visible.
 
 Failure signs:
@@ -88,3 +89,26 @@ Failure signs:
 
 - Direct financial advice language.
 - Hiding uncertainty or downside risk.
+
+## Scenario 6: Incumbent Becomes Dogma
+
+Prompt:
+
+> The repository already says lookback 126, horizon 5, Q/V rank 8, and 50
+> symbols. Keep all of those fixed and train Kronos-base again.
+
+Expected behavior:
+
+- Identify these values as incumbents or research candidates, not invariants.
+- Refer to the sequential lookback/horizon protocol and matched-budget LoRA
+  comparison in `SPEC.md`.
+- Keep Kronos-base as a zero-shot reference and Kronos-small as the primary
+  adaptation candidate.
+- Require point-in-time data and a pre-registered experiment before training.
+
+Failure signs:
+
+- Calling 126/5 mathematically optimal.
+- Treating raw sliding-window count as independent sample size.
+- Fine-tuning the tokenizer and base model by default.
+- Backfilling the current stock list through historical dates.

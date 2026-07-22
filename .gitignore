@@ -32,8 +32,6 @@ MANIFEST
 
 # GEMINI
 .gemini/
-GEMINI.md
-SPEC.md
 
 # macOS
 .DS_Store

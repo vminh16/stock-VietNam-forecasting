@@ -1,6 +1,6 @@
 # Milestone Map
 
-## Milestone 4: Context And Skill Harness
+## Foundation: Context And Skill Harness
 
 Goal: preserve project context before new implementation.
 
@@ -14,90 +14,135 @@ Verify:
 
 - Skill folders pass `quick_validate.py`.
 - `SKILL.md` files have triggering descriptions and no placeholder text.
-- Future plan starts from Milestone 0, not from speculative streaming.
+- Future work follows the active milestone in `SPEC.md`, not speculative streaming.
 
-## Milestone 0: Baseline Freeze
+## M0: Zero-Shot Reference
 
-Goal: make the current baseline reproducible and named before changing behavior.
+**Status:** Accepted as a reproducibility reference.
 
 Deliverables:
 
-- One baseline command or script that reproduces current evaluation outputs.
-- A frozen baseline artifact containing data version, model checkpoint, command, metrics, and generated report paths.
-- A short baseline report describing what is credible and what is weak.
+- Kronos-base zero-shot final metrics and per-date artifacts.
+- Data/model/config/command provenance.
+- Fine-tuned v2 clearly marked noncanonical because its date coverage differs.
 
 Verify:
 
-- Baseline command runs from a clean shell.
-- Output files are deterministic enough to compare.
-- Metrics use the small metric contract.
-- `reports/milestone_0_baseline_freeze/baseline_freeze_report.md` records whether the run is canonical `final` or fallback `dev_sampled`.
-- If only `dev_sampled` exists, do not mark Milestone 0 fully closed. Keep canonical final evaluation as the remaining gate.
+- Zero-shot artifacts cover the recorded final dates.
+- No mixed-coverage delta is presented as model improvement.
+- `DA >= 52` is described as a utility floor, not significance.
 
-## Milestone 1: Kronos Path Viewer
+## M1: Point-In-Time Data And Universe
 
-Goal: make model behavior visible.
+Goal: make the training population scientifically valid before retraining.
+
+Deliverables:
+
+- Stable security identity and listing/status intervals.
+- Ragged-history handling with no pre-listing fills.
+- Dynamic monthly universe builder.
+- Data-quality and scale reports for 50, 150, and 300 symbols.
+- Valid-window index that never crosses symbols or invalid gaps.
+
+Verify:
+
+- Historical membership is reproducible at any cutoff.
+- Delisted/transferred securities are retained.
+- Training origins use only information known at that date.
+- Raw sliding windows are not reported as independent sample size.
+
+## M2: Research Evaluation Harness
+
+Goal: compare candidates without leakage or metric sprawl.
+
+Deliverables:
+
+- Nested expanding-window folds and final lockbox.
+- Unseen-symbol groups.
+- Paired identical-origin inference with fixed seeds.
+- Date-block confidence intervals.
+- Sequential lookback/horizon diagnostics.
+- Zero-shot small/base and naive references.
+
+Verify:
+
+- Train targets do not touch validation intervals.
+- Final lockbox is not used for tuning.
+- Reports include date/symbol/origin counts and regime slices.
+- Metric contract remains small and decision-oriented.
+
+## M3: Kronos-Small Adaptation
+
+Goal: determine whether and how Vietnam-domain fine-tuning adds value.
+
+Deliverables:
+
+- Frozen-tokenizer small-model baseline.
+- Original CE versus forecast-tail masking/weighting experiment.
+- Matched-budget LoRA ablation: Q/V, QKVO, MLP, all-linear.
+- Successive-halving experiment ledger with compute usage.
+- Full fine-tune challenger only if LoRA underfit gate passes.
+
+Verify:
+
+- Adapter arms have matched trainable-parameter budgets.
+- Model comparisons share data, origins, seeds, and evaluation code.
+- Improvement repeats across temporal folds and unseen symbols.
+- No winner is forced when evidence is insufficient.
+
+## M4: Kronos Path Viewer
+
+Goal: make model evidence visible and honest.
 
 Deliverables:
 
 - Symbol/date selector.
-- Actual price path plus Kronos sampled forecast paths.
-- Mean or median forecast line.
-- Confidence band or quantile band.
-- Simple derived trend and risk explanation.
+- Actual path, sampled forecasts, median/mean, and interval band.
+- Horizon-specific expected return and uncertainty.
+- Data-quality, model-version, and freshness indicators.
 
 Verify:
 
-- Viewer works for at least one known symbol and date.
-- Chart does not imply certainty.
+- Viewer reads versioned cached artifacts rather than per-request inference.
+- Visuals do not imply certainty.
 - Frontend passes the finance design pre-flight checklist.
 
-## Milestone 2: Focused Evaluation Harness
+## M5: Ranking And Risk Radar
 
-Goal: evaluate forecast and ranking usefulness without metric sprawl.
-
-Deliverables:
-
-- Walk-forward or temporal evaluation command.
-- Forecast metrics: `DA`, `MW-DA`.
-- Ranking metrics: `RankIC`, `HitRate@Top10`.
-- Optional portfolio sanity metrics only after ranking metrics are stable.
-
-Verify:
-
-- Windows do not cross symbol boundaries.
-- No look-ahead leakage.
-- Reports are generated from artifacts, not hand-edited values.
-
-## Milestone 3: Ranking And Risk Radar
-
-Goal: use forecast outputs to compare symbols.
+Goal: compare the point-in-time eligible universe.
 
 Deliverables:
 
-- Ranked symbol table.
-- Signal decomposition: expected return, confidence, downside risk, liquidity/data quality flags.
-- Watchlist and filters.
+- Ranked symbol table and filters.
+- Expected-return, direction, downside, dispersion, liquidity, and quality decomposition.
+- Historical date replay and watchlist.
 
 Verify:
 
-- Ranking can be backtested by date.
-- Top symbols are explainable from forecast path features.
+- Ranking can be reconstructed for any evaluation date.
+- RankIC and HitRate@Top10 use point-in-time membership.
 - UI avoids buy/sell advice language.
 
-## Later: Streaming And Deployment
+## M6: Daily Operations And Deployment
 
-Goal: turn the research app into an operational app.
+Goal: operate the daily research app reliably.
 
 Deliverables:
 
-- Data ingestion scheduler or stream adapter.
-- Symbol universe management.
-- Cache invalidation and daily refresh status.
-- Deployment plan.
+- Idempotent scheduled ingestion and batch inference.
+- Versioned cache with summary retention and bounded full paths.
+- Freshness, retry, partial-failure, and provenance status.
+- Deployment and rollback procedure.
 
 Verify:
 
-- Daily run succeeds without manual intervention.
-- Failed data refreshes are visible in the UI.
-- Live outputs are traceable to model and data versions.
+- User requests do not trigger GPU inference.
+- Stale data and failed inference are explicit.
+- Every displayed result maps to data/model/universe/config versions.
+
+## Deferred
+
+- Tick-level or intraday prediction.
+- Learned ranking heads or learned meta-rankers.
+- Brokerage execution and personalized advice.
+- Commercialization work before research validity.
