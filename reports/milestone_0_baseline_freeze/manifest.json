@@ -1,7 +1,7 @@
 {
   "freeze_id": "milestone_0_baseline_freeze",
-  "generated_at_utc": "2026-07-08T03:35:54+00:00",
-  "mode": "dev_sampled",
+  "generated_at_utc": "2026-07-22T01:59:31+00:00",
+  "mode": "final",
   "configs": {
     "zero_shot": "evaluation/configs/milestone0_baseline_zero_shot.yaml",
     "finetuned_v2": "evaluation/configs/milestone0_finetuned_v2.yaml"
@@ -37,16 +37,16 @@
   "metrics": {
     "zero_shot": {
       "Validation": {
-        "DA": 49.375,
-        "MW-DA": 46.57135750200485,
-        "RankIC": 0.0243117261292634,
-        "HitRate": 57.5
+        "DA": 50.14225941422594,
+        "MW-DA": 47.85014184369663,
+        "RankIC": 0.0250008658415026,
+        "HitRate": 56.875
       },
       "Test": {
-        "DA": 52.76,
-        "MW-DA": 49.37954832766263,
-        "RankIC": 0.0170331792975117,
-        "HitRate": 53.4
+        "DA": 51.63433608226771,
+        "MW-DA": 49.00459923864952,
+        "RankIC": -0.0025998238689771,
+        "HitRate": 49.75
       }
     },
     "finetuned_v2": {
@@ -66,7 +66,7 @@
   },
   "comparison": {
     "test": {
-      "zero_shot_da_hard_stop_pass": true,
+      "zero_shot_da_hard_stop_pass": false,
       "finetuned_da_hard_stop_pass": false,
       "fine_tuned_beats_zero_shot_da": false,
       "fine_tuned_beats_zero_shot_mw_da": true
@@ -74,10 +74,10 @@
   },
   "artifact_hashes": {
     "finetuned_v2/finetuned_backtest_performance.png": "3ece55b292182e3cafd53afe5916c99dc95713049c15700b08d24c46fe08b784",
-    "finetuned_v2/finetuned_metrics.csv": "c3aff68a9a2c5f9b3f4fcfea177955d1696a8ff9bcf7525b80de63baa8b22115",
-    "finetuned_v2/per_date_metrics.csv": "94d796370059e1eefd3a9587ec3494989011a2ac728f47f1e0dc57ca0d757817",
-    "zero_shot/backtest_performance.png": "5e5e735eca793ec3d7057c8c70013f8a6833cc4c7c659816639732d5d3937895",
-    "zero_shot/baseline_metrics.csv": "ee8be78254c38f2597eba3888094b43cf3d8f7040dd935eb5cc072f309cae7d5",
-    "zero_shot/per_date_metrics.csv": "4c658a858fd3b8cafd469bda08c3cd36d3ff54cea27539b931ca7694c6302668"
+    "finetuned_v2/finetuned_metrics.csv": "8415ca323c793ac5ebc2c761c799010058747a9083cbb7eca1b923ba97b426c8",
+    "finetuned_v2/per_date_metrics.csv": "ba30bed9c8dab38e50f6a4410df9af694de43a0c9c63d447973893fac7a1e0a8",
+    "zero_shot/backtest_performance.png": "eb8b8099965fe57d63e7edc7f6b3ee96426486c24e16c595dbcaebf8d5030216",
+    "zero_shot/baseline_metrics.csv": "b6658bee2d9253af232ea4e57df162650bcb2303d554bc6ae34d4cc276df7ca1",
+    "zero_shot/per_date_metrics.csv": "47ab296247575cd3765abe4b7aff3828b72ca030d975e4739b14c9edffd30a1b"
   }
 }
