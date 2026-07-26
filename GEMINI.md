@@ -97,13 +97,17 @@ Compare models on identical dates, symbols, origins, sample counts, and seeds.
 Use paired date-block inference because overlapping horizons and common market
 factors invalidate independent-window tests.
 
+M0 locks the four point metrics and provenance only. Before promoting a new
+model, M2 must add paired date-block confidence intervals plus CRPS and interval
+coverage/width. The current paired t-test output is diagnostic, not canonical.
+
 ## Baseline Status
 
-- Zero-shot Kronos-base final is the accepted reference.
+- M0 is closed with zero-shot Kronos-base final as the accepted reference.
 - The former fine-tuned v2 result has mismatched date coverage and is
   noncanonical.
 - Do not claim fine-tuning improvement from the mixed-coverage report.
-- The next technical phase is data/universe foundation, followed by the research
+- M1 data/universe foundation is active, followed by the research
   evaluation harness and small-model adaptation.
 
 ## Commands

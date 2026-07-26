@@ -1,10 +1,10 @@
 # SPEC - Vietnam Stock Market Radar with Kronos
 
-> **Version:** 2.0
+> **Version:** 2.1
 >
-> **Date:** 2026-07-22
+> **Date:** 2026-07-26
 >
-> **Status:** Research direction approved; implementation requires milestone plans
+> **Status:** M0 zero-shot baseline frozen; M1 data and universe foundation active
 >
 > **Authority:** Source of truth for product, data, model, evaluation, and delivery decisions
 
@@ -130,7 +130,7 @@ The canonical usable reference is the Kronos-base zero-shot final run:
 | DA | 51.6343 |
 | MW-DA | 49.0046 |
 | RankIC | -0.0026 |
-| HitRate | 49.7500 |
+| HitRate@Top10 | 49.7500 |
 
 The former fine-tuned v2 output has different date coverage and is exploratory,
 not a canonical comparison. It MUST NOT be used to claim improvement over the
@@ -498,7 +498,75 @@ Requirements:
 - maintain a stratified unseen-symbol holdout across sector, exchange,
   liquidity, and listing age.
 
-### 8.2 Small Metric Contract
+### 8.2 Locked Metric Definitions
+
+Milestone 0 locks four deterministic point metrics. Their names and definitions
+must not change silently between model runs.
+
+For symbol `i`, forecast origin `t`, and selected horizon `H`, define realized
+and predicted cumulative returns as `r_i,t,H` and `rhat_i,t,H`.
+To preserve the frozen implementation, define
+`direction(x)=+1` when `x>0` and `direction(x)=-1` otherwise. Zero return is
+therefore treated as non-positive; changing this convention creates a new
+metric version.
+
+**Directional Accuracy**
+
+\[
+DA_H=\frac{1}{|\mathcal O_H|}
+\sum_{(i,t)\in\mathcal O_H}
+\mathbf 1[direction(\hat r_{i,t,H})=direction(r_{i,t,H})].
+\]
+
+**Magnitude-Weighted Directional Accuracy**
+
+\[
+MWDA_H=
+\frac{\sum_{(i,t)}|r_{i,t,H}|
+\mathbf 1[direction(\hat r)=direction(r)]}
+{\sum_{(i,t)}|r_{i,t,H}|}.
+\]
+
+**Daily RankIC**
+
+\[
+RankIC_{t,H}=
+\rho_{\text{Spearman},i}(\hat r_{i,t,H},r_{i,t,H}),
+\qquad
+\overline{RankIC}_H=\frac{1}{T}\sum_t RankIC_{t,H}.
+\]
+
+**HitRate@Top10**
+
+\[
+HitRate@Top10_H=
+\frac{1}{10T}\sum_t\sum_{i\in Top10_t}
+\mathbf 1[r_{i,t,H}>0].
+\]
+
+`Top10` always means ten symbols, not top 20 percent. A date is invalid for this
+metric when fewer than ten eligible symbols remain after point-in-time filters.
+Metric implementations must report their horizon, number of valid dates, number
+of symbols, eligible-origin count, and aggregation unit.
+
+### 8.3 Metric Maturity By Phase
+
+The metric set is stable enough to freeze the historical baseline, but the
+statistical harness is not yet complete.
+
+| Level | Metrics and evidence | Purpose | Required by |
+|---|---|---|---|
+| Baseline core | DA, MW-DA, RankIC, HitRate@Top10, artifact hashes, date coverage | Reproduce and name M0 | Complete |
+| Research comparison | Core metrics plus paired date-block confidence intervals, CRPS, interval coverage/width | Select data, horizon, backbone, and adaptation | M2 before model promotion |
+| Product sanity | RankIC, HitRate@Top10, Sharpe, MaxDrawdown with frozen costs and turnover | Validate radar behavior | M5 |
+| Operations | freshness, daily success rate, latency, cache hit rate, signal stability | Operate the app | M6 |
+
+The current paired t-test output in `evaluation/inference_pipeline.py` is
+diagnostic only. It is not canonical evidence because overlapping horizons and
+market-wide dependence violate independent-date assumptions. M2 replaces it
+with paired date-block bootstrap inference.
+
+### 8.4 Small Metric Contract
 
 Metrics are grouped by the decision they support.
 
@@ -516,7 +584,7 @@ direction or calibration degrades beyond a pre-registered non-inferiority bound.
 Portfolio metrics are not model-selection metrics until transaction costs,
 turnover, universe policy, and benchmark are frozen.
 
-### 8.3 Statistical Inference
+### 8.5 Statistical Inference
 
 Overlapping horizons and shared market factors invalidate independent-window
 tests. Aggregate metrics by forecast date and compare models with paired moving
@@ -534,7 +602,7 @@ Report:
 If the interval includes no meaningful improvement, the correct conclusion is
 "insufficient evidence", not "the fine-tuned model wins".
 
-### 8.4 Multiple Comparisons
+### 8.6 Multiple Comparisons
 
 The grid, primary metric, promotion rule, and non-inferiority bound must be
 registered before evaluation. If many candidates are inspected, use a Model
@@ -627,13 +695,41 @@ older model or stale forecast is forbidden.
 
 ---
 
-## 11. Milestone Sequence
+## 11. Long-Term Delivery Plan
+
+The roadmap is dependency-driven, not a promise of calendar dates. A later
+milestone may start only when its predecessor's exit gate is evidenced by
+versioned artifacts. Research failure is a valid exit when it is documented.
+
+### 11.1 Planning Horizons
+
+| Horizon | Milestones | Objective |
+|---|---|---|
+| **Now: scientific foundation** | M0-M2 | Freeze the reference, repair the data population, and make comparisons statistically valid |
+| **Next: model research** | M3 | Determine whether Kronos-small adaptation adds repeatable value |
+| **Then: product validation** | M4-M5 | Expose forecast evidence and turn it into an explainable market radar |
+| **Later: operations** | M6 | Run daily ingestion, inference, caching, monitoring, and deployment reliably |
+
+### 11.2 Status And Dependency Map
+
+| Milestone | Status | Depends on | Exit artifact |
+|---|---|---|---|
+| M0 Baseline Reference | **Complete** | Context harness | `manifest.json` and zero-shot freeze report |
+| M1 Data And Universe Foundation | **Active** | M0 | Point-in-time security master, universe snapshots, data-quality report |
+| M2 Research Evaluation Harness | Planned | M1 | Versioned folds, common-origin evaluation, block-bootstrap report |
+| M3 Small-Model Adaptation | Planned | M2 | Experiment ledger and promoted model or documented no-improvement result |
+| M4 Kronos Path Viewer | Planned | Stable M2 artifact schema | Reproducible cached path visualization |
+| M5 Ranking And Risk Radar | Planned | M3 decision and M4 | Point-in-time ranking replay and metric report |
+| M6 Daily Operations And Deployment | Deferred | M4-M5 | Idempotent daily run, monitoring, cache lifecycle, deployment record |
+
+### 11.3 Milestone Definitions
 
 Each milestone is small, falsifiable, and produces a usable artifact.
 
 ### M0 - Baseline Reference
 
-**Status:** Zero-shot reference accepted; old fine-tuned v2 is noncanonical.
+**Status:** Complete. Zero-shot reference is frozen; old fine-tuned v2 is
+noncanonical.
 
 Success: zero-shot metrics, commands, dates, configs, and artifacts are
 traceable. No claim is made that the baseline is useful.
@@ -687,6 +783,22 @@ is traceable.
 
 Commercialization, brokerage integration, and personalized advice remain
 deferred.
+
+### 11.4 Roadmap Governance
+
+At the end of every milestone:
+
+1. freeze the data, universe, model, config, code revision, command, metrics,
+   and artifact hashes used for its decision;
+2. update the milestone status and decision table in this specification;
+3. record failed hypotheses as evidence rather than deleting them;
+4. verify that no final lockbox was reused for tuning;
+5. create the next milestone implementation plan only after the current exit
+   gate is satisfied.
+
+Changes to metric definitions, universe policy, horizon, or model acceptance
+rules require a SPEC version increment. Regenerating an artifact without a
+semantic change does not.
 
 ---
 

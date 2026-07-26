@@ -33,6 +33,9 @@ The former fine-tuned v2 artifact has different date coverage and is
 noncanonical. Do not use mixed-coverage deltas to claim improvement. `DA >= 52`
 is an operational floor, not a significance test.
 
+M0 is closed with the zero-shot-only canonical manifest. M1 point-in-time data
+and universe work is active.
+
 ## Research Direction
 
 - Daily data remains invariant.
@@ -67,6 +70,8 @@ dependence. Never report raw windows as independent observations.
 
 RankIC is the primary product metric because the app is a radar. Model promotion
 is still forecast-gated and requires paired date-block confidence intervals.
+The current paired t-test is diagnostic only; M2 must add block bootstrap plus
+CRPS and interval coverage/width before any model is promoted.
 
 ## Current Sequence
 

@@ -1,14 +1,13 @@
 {
   "freeze_id": "milestone_0_baseline_freeze",
-  "generated_at_utc": "2026-07-22T01:59:31+00:00",
-  "mode": "final",
+  "generated_at_utc": "2026-07-26T04:47:18+00:00",
+  "mode": "zero_shot_final",
+  "status": "frozen",
   "configs": {
-    "zero_shot": "evaluation/configs/milestone0_baseline_zero_shot.yaml",
-    "finetuned_v2": "evaluation/configs/milestone0_finetuned_v2.yaml"
+    "zero_shot": "evaluation/configs/milestone0_baseline_zero_shot.yaml"
   },
   "commands": {
-    "zero_shot": "C:\\Users\\USER\\anaconda3\\envs\\stock\\python.exe evaluation/inference_pipeline.py --config evaluation/configs/milestone0_baseline_zero_shot.yaml --mode final",
-    "finetuned_v2": "C:\\Users\\USER\\anaconda3\\envs\\stock\\python.exe evaluation/inference_pipeline.py --config evaluation/configs/milestone0_finetuned_v2.yaml --mode final"
+    "zero_shot": "C:\\Users\\USER\\anaconda3\\envs\\stock\\python.exe evaluation/inference_pipeline.py --config evaluation/configs/milestone0_baseline_zero_shot.yaml --mode final"
   },
   "data": {
     "path": "data_cleaned",
@@ -23,16 +22,11 @@
     "zero_shot": {
       "tokenizer_path": "pretrained/Kronos-Tokenizer-base",
       "predictor_path": "pretrained/Kronos-base"
-    },
-    "finetuned_v2": {
-      "tokenizer_path": "finetune_csv/finetuned/tokenizer_v2/tokenizer/best_model",
-      "predictor_path": "finetune_csv/finetuned/basemodel_v2/basemodel/best_model"
     }
   },
   "artifact_dirs": {
     "root": "reports/milestone_0_baseline_freeze",
-    "zero_shot": "reports/milestone_0_baseline_freeze/zero_shot",
-    "finetuned_v2": "reports/milestone_0_baseline_freeze/finetuned_v2"
+    "zero_shot": "reports/milestone_0_baseline_freeze/zero_shot"
   },
   "metrics": {
     "zero_shot": {
@@ -40,44 +34,31 @@
         "DA": 50.14225941422594,
         "MW-DA": 47.85014184369663,
         "RankIC": 0.0250008658415026,
-        "HitRate": 56.875
+        "HitRate@Top10": 56.875
       },
       "Test": {
         "DA": 51.63433608226771,
         "MW-DA": 49.00459923864952,
         "RankIC": -0.0025998238689771,
-        "HitRate": 49.75
+        "HitRate@Top10": 49.75
       }
-    },
-    "finetuned_v2": {
-      "Validation": {
-        "DA": 51.91666666666666,
-        "MW-DA": 50.74716961915418,
-        "RankIC": 0.0500579474966525,
-        "HitRate": 58.125
-      },
-      "Test": {
-        "DA": 51.2,
-        "MW-DA": 50.12726855521641,
-        "RankIC": 0.0332892882277146,
-        "HitRate": 51.0
-      }
+    }
+  },
+  "coverage": {
+    "zero_shot": {
+      "date_count": 120,
+      "first_date": "2024-01-08",
+      "last_date": "2026-06-04"
     }
   },
   "comparison": {
     "test": {
-      "zero_shot_da_hard_stop_pass": false,
-      "finetuned_da_hard_stop_pass": false,
-      "fine_tuned_beats_zero_shot_da": false,
-      "fine_tuned_beats_zero_shot_mw_da": true
+      "zero_shot_da_hard_stop_pass": false
     }
   },
   "artifact_hashes": {
-    "finetuned_v2/finetuned_backtest_performance.png": "3ece55b292182e3cafd53afe5916c99dc95713049c15700b08d24c46fe08b784",
-    "finetuned_v2/finetuned_metrics.csv": "8415ca323c793ac5ebc2c761c799010058747a9083cbb7eca1b923ba97b426c8",
-    "finetuned_v2/per_date_metrics.csv": "ba30bed9c8dab38e50f6a4410df9af694de43a0c9c63d447973893fac7a1e0a8",
     "zero_shot/backtest_performance.png": "eb8b8099965fe57d63e7edc7f6b3ee96426486c24e16c595dbcaebf8d5030216",
-    "zero_shot/baseline_metrics.csv": "b6658bee2d9253af232ea4e57df162650bcb2303d554bc6ae34d4cc276df7ca1",
-    "zero_shot/per_date_metrics.csv": "47ab296247575cd3765abe4b7aff3828b72ca030d975e4739b14c9edffd30a1b"
+    "zero_shot/baseline_metrics.csv": "75dd6900c761fe8d029faeb967cf236806d9f3ebfede2bd46cb751be16cfeb22",
+    "zero_shot/per_date_metrics.csv": "ea8b4a0e4c7e422af7b9754500511d9a25b3a500e6dbef44126f9851d4d53658"
   }
 }

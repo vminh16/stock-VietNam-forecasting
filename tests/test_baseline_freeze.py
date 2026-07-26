@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -38,13 +39,13 @@ def test_load_metric_contract_extracts_only_core_metrics(tmp_path):
             "DA": 49.375,
             "MW-DA": 46.57,
             "RankIC": 0.024,
-            "HitRate": 57.5,
+            "HitRate@Top10": 57.5,
         },
         "Test": {
             "DA": 52.76,
             "MW-DA": 49.38,
             "RankIC": 0.017,
-            "HitRate": 53.4,
+            "HitRate@Top10": 53.4,
         },
     }
 
@@ -142,3 +143,103 @@ inference:
     assert "Fine-tuned v2 does not beat zero-shot on Test DA" in report
     assert "Fine-tuned v2 beats zero-shot on Test MW-DA" in report
     assert "DA hard stop: PASS" in report
+
+
+def test_final_freeze_rejects_mismatched_per_date_coverage(tmp_path):
+    out_dir = tmp_path / "freeze"
+    zero_dir = out_dir / "zero_shot"
+    fine_dir = out_dir / "finetuned_v2"
+    zero_dir.mkdir(parents=True)
+    fine_dir.mkdir(parents=True)
+
+    rows = [
+        {"Metric": "da", "Validation": 50.0, "Test": 51.0},
+        {"Metric": "mw_da", "Validation": 49.0, "Test": 50.0},
+        {"Metric": "rank_ic", "Validation": 0.01, "Test": 0.02},
+        {"Metric": "hit_rate", "Validation": 50.0, "Test": 51.0},
+    ]
+    write_metrics(zero_dir / "baseline_metrics.csv", rows)
+    write_metrics(fine_dir / "finetuned_metrics.csv", rows)
+    (zero_dir / "per_date_metrics.csv").write_text(
+        "date,da,rank_ic,long_symbols\n2024-01-01,50,0.1,AAA\n2024-01-08,52,0.2,BBB\n",
+        encoding="utf-8",
+    )
+    (fine_dir / "per_date_metrics.csv").write_text(
+        "date,da,rank_ic,long_symbols\n2024-01-01,50,0.1,AAA\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="per-date coverage mismatch"):
+        freeze_baseline(zero_dir, fine_dir, out_dir, mode="final")
+
+
+def test_zero_shot_final_freeze_closes_m0_without_finetuned_artifacts(tmp_path):
+    out_dir = tmp_path / "freeze"
+    zero_dir = out_dir / "zero_shot"
+    data_dir = tmp_path / "data_cleaned"
+    zero_dir.mkdir(parents=True)
+    data_dir.mkdir()
+    (data_dir / "AAA.csv").write_text(
+        "timestamps,open,close,high,low,volume,amount\n",
+        encoding="utf-8",
+    )
+
+    write_metrics(
+        zero_dir / "baseline_metrics.csv",
+        [
+            {"Metric": "da", "Validation": 50.0, "Test": 51.6},
+            {"Metric": "mw_da", "Validation": 48.0, "Test": 49.0},
+            {"Metric": "rank_ic", "Validation": 0.01, "Test": -0.002},
+            {"Metric": "hit_rate", "Validation": 55.0, "Test": 49.7},
+        ],
+    )
+    (zero_dir / "per_date_metrics.csv").write_text(
+        "date,da,rank_ic,long_symbols\n2024-01-01,50,0.1,AAA\n",
+        encoding="utf-8",
+    )
+
+    zero_config = tmp_path / "zero.yaml"
+    zero_config.write_text(
+        """
+data:
+  data_path: data_cleaned
+  lookback_window: 126
+  predict_window: 5
+  max_context: 512
+  train_end_date: "2023-01-01"
+  val_end_date: "2024-01-01"
+inference:
+  tokenizer_path: pretrained/Kronos-Tokenizer-base
+  predictor_path: pretrained/Kronos-base
+""".strip(),
+        encoding="utf-8",
+    )
+
+    manifest_path, report_path = freeze_baseline(
+        zero_shot_dir=zero_dir,
+        finetuned_dir=None,
+        out_dir=out_dir,
+        zero_shot_config=zero_config,
+        finetuned_config=None,
+        data_dir=data_dir,
+        mode="zero_shot_final",
+    )
+
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    report = report_path.read_text(encoding="utf-8")
+
+    assert manifest["mode"] == "zero_shot_final"
+    assert manifest["status"] == "frozen"
+    assert set(manifest["metrics"]) == {"zero_shot"}
+    assert "finetuned_v2" not in manifest["models"]
+    assert manifest["coverage"]["zero_shot"] == {
+        "date_count": 1,
+        "first_date": "2024-01-01",
+        "last_date": "2024-01-01",
+    }
+    assert manifest["artifact_hashes"]["zero_shot/baseline_metrics.csv"] == sha256_file(
+        zero_dir / "baseline_metrics.csv"
+    )
+    assert "Milestone 0 status: **CLOSED**" in report
+    assert "Fine-tuned v2 is excluded" in report
+    assert "Milestone 1: Point-In-Time Data And Universe" in report

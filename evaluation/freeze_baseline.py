@@ -16,7 +16,7 @@ METRIC_CONTRACT = {
     "da": "DA",
     "mw_da": "MW-DA",
     "rank_ic": "RankIC",
-    "hit_rate": "HitRate",
+    "hit_rate": "HitRate@Top10",
 }
 
 
@@ -72,12 +72,14 @@ def relative_artifact_path(path, out_dir):
         return path.as_posix()
 
 
-def collect_artifact_hashes(out_dir):
+def collect_artifact_hashes(out_dir, artifact_dirs=None):
     out_dir = Path(out_dir)
     hashes = {}
-    for path in sorted(out_dir.rglob("*")):
-        if path.is_file() and path.name not in {"manifest.json", "baseline_freeze_report.md"}:
-            hashes[relative_artifact_path(path, out_dir)] = sha256_file(path)
+    artifact_dirs = [out_dir] if artifact_dirs is None else [Path(path) for path in artifact_dirs]
+    for artifact_dir in artifact_dirs:
+        for path in sorted(artifact_dir.rglob("*")):
+            if path.is_file() and path.name not in {"manifest.json", "baseline_freeze_report.md"}:
+                hashes[relative_artifact_path(path, out_dir)] = sha256_file(path)
     return hashes
 
 
@@ -86,6 +88,33 @@ def count_data_csvs(data_dir):
     if not data_dir.exists():
         return 0
     return len(list(data_dir.glob("*.csv")))
+
+
+def load_date_coverage(model_dir):
+    path = Path(model_dir) / "per_date_metrics.csv"
+    df = pd.read_csv(path)
+    if "date" not in df.columns:
+        raise ValueError(f"Per-date metrics CSV missing date column: {path}")
+    dates = pd.to_datetime(df["date"]).dropna().sort_values()
+    if dates.empty:
+        return {"date_count": 0, "first_date": None, "last_date": None}
+    return {
+        "date_count": int(dates.nunique()),
+        "first_date": dates.iloc[0].strftime("%Y-%m-%d"),
+        "last_date": dates.iloc[-1].strftime("%Y-%m-%d"),
+    }
+
+
+def validate_final_coverage(zero_shot_dir, finetuned_dir):
+    zero_path = Path(zero_shot_dir) / "per_date_metrics.csv"
+    fine_path = Path(finetuned_dir) / "per_date_metrics.csv"
+    zero_dates = set(pd.read_csv(zero_path)["date"])
+    fine_dates = set(pd.read_csv(fine_path)["date"])
+    if zero_dates != fine_dates:
+        raise ValueError(
+            "Final freeze per-date coverage mismatch: "
+            f"zero-shot={len(zero_dates)}, fine-tuned={len(fine_dates)}"
+        )
 
 
 def build_comparison(zero_metrics, fine_metrics):
@@ -113,7 +142,7 @@ def render_metric_table(zero_metrics, fine_metrics):
         "| Metric | Zero-shot Validation | Fine-tuned Validation | Zero-shot Test | Fine-tuned Test |",
         "|---|---:|---:|---:|---:|",
     ]
-    for metric in ["DA", "MW-DA", "RankIC", "HitRate"]:
+    for metric in ["DA", "MW-DA", "RankIC", "HitRate@Top10"]:
         lines.append(
             f"| {metric} | "
             f"{zero_metrics['Validation'][metric]:.4f} | "
@@ -125,6 +154,67 @@ def render_metric_table(zero_metrics, fine_metrics):
 
 
 def render_report(manifest):
+    if manifest["mode"] == "zero_shot_final":
+        zero_metrics = manifest["metrics"]["zero_shot"]
+        hard_stop = "PASS" if manifest["comparison"]["test"]["zero_shot_da_hard_stop_pass"] else "FAIL"
+        lines = [
+            "| Metric | Validation | Test |",
+            "|---|---:|---:|",
+        ]
+        for metric in ["DA", "MW-DA", "RankIC", "HitRate@Top10"]:
+            lines.append(
+                f"| {metric} | {zero_metrics['Validation'][metric]:.4f} | "
+                f"{zero_metrics['Test'][metric]:.4f} |"
+            )
+        metric_table = "\n".join(lines)
+        return f"""# Milestone 0 Baseline Freeze Report
+
+Freeze id: `{manifest['freeze_id']}`
+Generated at UTC: `{manifest['generated_at_utc']}`
+
+## Evaluation Contract
+
+- Mode: `zero_shot_final`
+- Status: `frozen`
+- Data path: `{manifest['data']['path']}`
+- CSV count: `{manifest['data']['csv_count']}`
+- Lookback window: `{manifest['data']['lookback_window']}`
+- Predict window: `{manifest['data']['predict_window']}`
+- Train end date: `{manifest['data']['train_end_date']}`
+- Validation end date: `{manifest['data']['val_end_date']}`
+- Metrics: `DA`, `MW-DA`, `RankIC`, `HitRate@Top10`
+- Date coverage: `{manifest['coverage']['zero_shot']['date_count']}` dates,
+  `{manifest['coverage']['zero_shot']['first_date']}` to
+  `{manifest['coverage']['zero_shot']['last_date']}`
+
+## Commands
+
+```powershell
+{manifest['commands']['zero_shot']}
+C:\\Users\\USER\\anaconda3\\envs\\stock\\python.exe evaluation/freeze_baseline.py --zero-shot-dir {manifest['artifact_dirs']['zero_shot']} --out-dir {manifest['artifact_dirs']['root']} --mode zero_shot_final
+```
+
+## Metric Snapshot
+
+{metric_table}
+
+## Interpretation
+
+- Zero-shot DA utility floor: {hard_stop} (`Test DA >= 52`)
+- The baseline is a reproducibility anchor, not evidence of model usefulness.
+- Fine-tuned v2 is excluded because its sampled date coverage is not comparable.
+- Future models must use identical point-in-time origins and the M2 statistical protocol.
+- This is a research baseline, not investment advice.
+
+## Baseline Status
+
+Milestone 0 status: **CLOSED**. The canonical baseline is Kronos-base zero-shot only.
+
+## Next Phase
+
+Milestone 1: Point-In-Time Data And Universe.
+"""
+
     zero_metrics = manifest["metrics"]["zero_shot"]
     fine_metrics = manifest["metrics"]["finetuned_v2"]
     comparison = manifest["comparison"]["test"]
@@ -164,7 +254,7 @@ Generated at UTC: `{manifest['generated_at_utc']}`
 - Predict window: `{manifest['data']['predict_window']}`
 - Train end date: `{manifest['data']['train_end_date']}`
 - Validation end date: `{manifest['data']['val_end_date']}`
-- Metrics: `DA`, `MW-DA`, `RankIC`, `HitRate`
+- Metrics: `DA`, `MW-DA`, `RankIC`, `HitRate@Top10`
 
 ## Commands
 
@@ -189,7 +279,7 @@ C:\\Users\\USER\\anaconda3\\envs\\stock\\python.exe evaluation/freeze_baseline.p
 
 ## Next Phase
 
-Milestone 1 should build the Kronos Path Viewer: actual path, stochastic forecast paths, mean/median forecast line, confidence band, and clear uncertainty language.
+Milestone 1 should build the Point-In-Time Data And Universe foundation.
 """
 
 
@@ -203,33 +293,31 @@ def freeze_baseline(
     mode="final",
 ):
     zero_shot_dir = Path(zero_shot_dir)
-    finetuned_dir = Path(finetuned_dir)
+    finetuned_dir = Path(finetuned_dir) if finetuned_dir is not None else None
     out_dir = Path(out_dir)
     zero_shot_config = Path(zero_shot_config)
-    finetuned_config = Path(finetuned_config)
+    finetuned_config = Path(finetuned_config) if finetuned_config is not None else None
     data_dir = Path(data_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    if mode != "zero_shot_final" and finetuned_dir is None:
+        raise ValueError("finetuned_dir is required unless mode is zero_shot_final")
+
+    if mode == "final":
+        validate_final_coverage(zero_shot_dir, finetuned_dir)
+
     zero_metrics_path = find_metrics_file(zero_shot_dir, "baseline_metrics.csv")
-    fine_metrics_path = find_metrics_file(finetuned_dir, "finetuned_metrics.csv")
     zero_metrics = load_metric_contract(zero_metrics_path)
-    fine_metrics = load_metric_contract(fine_metrics_path)
     zero_config = load_yaml(zero_shot_config)
-    fine_config = load_yaml(finetuned_config)
     data_config = zero_config.get("data", {})
 
     manifest = {
         "freeze_id": FREEZE_ID,
         "generated_at_utc": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
         "mode": mode,
-        "configs": {
-            "zero_shot": zero_shot_config.as_posix(),
-            "finetuned_v2": finetuned_config.as_posix(),
-        },
-        "commands": {
-            "zero_shot": evaluation_command(zero_shot_config),
-            "finetuned_v2": evaluation_command(finetuned_config),
-        },
+        "status": "frozen" if mode in {"final", "zero_shot_final"} else "incomplete",
+        "configs": {"zero_shot": zero_shot_config.as_posix()},
+        "commands": {"zero_shot": evaluation_command(zero_shot_config)},
         "data": {
             "path": data_dir.as_posix(),
             "csv_count": count_data_csvs(data_dir),
@@ -243,28 +331,46 @@ def freeze_baseline(
             "zero_shot": {
                 "tokenizer_path": zero_config.get("inference", {}).get("tokenizer_path"),
                 "predictor_path": zero_config.get("inference", {}).get("predictor_path"),
-            },
-            "finetuned_v2": {
-                "tokenizer_path": fine_config.get("inference", {}).get("tokenizer_path"),
-                "predictor_path": fine_config.get("inference", {}).get("predictor_path"),
-            },
+            }
         },
         "artifact_dirs": {
             "root": out_dir.as_posix(),
             "zero_shot": zero_shot_dir.as_posix(),
-            "finetuned_v2": finetuned_dir.as_posix(),
         },
-        "metrics": {
-            "zero_shot": zero_metrics,
-            "finetuned_v2": fine_metrics,
+        "metrics": {"zero_shot": zero_metrics},
+        "coverage": {"zero_shot": load_date_coverage(zero_shot_dir)},
+        "comparison": {
+            "test": {
+                "zero_shot_da_hard_stop_pass": zero_metrics["Test"]["DA"] >= 52.0,
+            }
         },
-        "comparison": build_comparison(zero_metrics, fine_metrics),
     }
-    manifest["artifact_hashes"] = collect_artifact_hashes(out_dir)
+    artifact_dirs = [zero_shot_dir]
+
+    if mode != "zero_shot_final":
+        fine_metrics_path = find_metrics_file(finetuned_dir, "finetuned_metrics.csv")
+        fine_metrics = load_metric_contract(fine_metrics_path)
+        fine_config = load_yaml(finetuned_config)
+        manifest["configs"]["finetuned_v2"] = finetuned_config.as_posix()
+        manifest["commands"]["finetuned_v2"] = evaluation_command(finetuned_config)
+        manifest["models"]["finetuned_v2"] = {
+            "tokenizer_path": fine_config.get("inference", {}).get("tokenizer_path"),
+            "predictor_path": fine_config.get("inference", {}).get("predictor_path"),
+        }
+        manifest["artifact_dirs"]["finetuned_v2"] = finetuned_dir.as_posix()
+        manifest["metrics"]["finetuned_v2"] = fine_metrics
+        manifest["coverage"]["finetuned_v2"] = load_date_coverage(finetuned_dir)
+        manifest["comparison"] = build_comparison(zero_metrics, fine_metrics)
+        artifact_dirs.append(finetuned_dir)
+
+    manifest["artifact_hashes"] = collect_artifact_hashes(out_dir, artifact_dirs)
 
     manifest_path = out_dir / "manifest.json"
     report_path = out_dir / "baseline_freeze_report.md"
-    manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
     report_path.write_text(render_report(manifest), encoding="utf-8")
     return manifest_path, report_path
 
@@ -272,12 +378,16 @@ def freeze_baseline(
 def parse_args():
     parser = argparse.ArgumentParser(description="Freeze Milestone 0 baseline artifacts into a manifest and report.")
     parser.add_argument("--zero-shot-dir", required=True)
-    parser.add_argument("--finetuned-dir", required=True)
+    parser.add_argument("--finetuned-dir")
     parser.add_argument("--out-dir", required=True)
     parser.add_argument("--zero-shot-config", default=str(DEFAULT_ZERO_SHOT_CONFIG))
     parser.add_argument("--finetuned-config", default=str(DEFAULT_FINETUNED_CONFIG))
     parser.add_argument("--data-dir", default=str(DEFAULT_DATA_DIR))
-    parser.add_argument("--mode", default="final")
+    parser.add_argument(
+        "--mode",
+        choices=["final", "zero_shot_final", "incomplete_mixed"],
+        default="final",
+    )
     return parser.parse_args()
 
 

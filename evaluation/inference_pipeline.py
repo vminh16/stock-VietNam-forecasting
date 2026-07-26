@@ -319,7 +319,7 @@ def evaluate_dataset(dataset, predictor, config, device, limit=500):
     abs_actual_ret = np.abs(df_eval['actual_return_5d'])
     mw_da = np.sum(abs_actual_ret * correct_dir) / np.sum(abs_actual_ret) * 100
     
-    # --- 3. RankIC và Hit Rate @ Top-20% ---
+    # --- 3. RankIC and HitRate@Top10 (10/50 = 20% for the frozen baseline) ---
     rank_ics = []
     hit_rates = []
     
@@ -395,7 +395,7 @@ def evaluate_dataset(dataset, predictor, config, device, limit=500):
               f"Top-1 Pred={long_stocks['pred_return_5d'].iloc[0]:.4f}, "
               f"Actual={long_stocks['actual_return_5d'].iloc[0]:.4f}")
         
-        # Hit Rate @ Top-20%
+        # HitRate@Top10
         if len(long_stocks) > 0:
             hit_rate = np.mean(long_stocks['actual_return_5d'] > 0) * 100
             hit_rates.append(hit_rate)
