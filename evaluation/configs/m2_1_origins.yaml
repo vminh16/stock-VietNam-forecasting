@@ -1,0 +1,15 @@
+schema_version: m2_1_origin_registry_v1
+dataset_id: vn150_strict_v2
+dataset_dir: data/curated/vn150_strict_v2
+universe_path: data_pipeline/universe_150.csv
+registry_path: data/evaluation/m2_1/common_origins.csv.gz
+report_dir: reports/milestone_2_research_eval/origin_registry
+lookbacks: [63, 126]
+horizon: 5
+minimum_cross_section: 10
+lockbox_start: 2026-01-01
+folds:
+  - {fold_id: eval_2022, start: 2022-01-01, end: 2022-12-31}
+  - {fold_id: eval_2023, start: 2023-01-01, end: 2023-12-31}
+  - {fold_id: eval_2024, start: 2024-01-01, end: 2024-12-31}
+  - {fold_id: eval_2025, start: 2025-01-01, end: 2025-12-31}
