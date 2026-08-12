@@ -1,5 +1,8 @@
 import hashlib
+import gzip
+import io
 import json
+import os
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -332,3 +335,19 @@ def validate_common_origins(frame, config, manifest=None):
         ]
         if rows["origin_id"].tolist() != expected_ids:
             raise ValueError(f"Origin ID mismatch: {symbol}")
+
+
+def write_registry(frame, path):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f"{path.name}.tmp")
+    output = frame.copy()
+    for column in ("origin_date", "target_start_date", "target_end_date"):
+        output[column] = pd.to_datetime(output[column]).dt.strftime("%Y-%m-%d")
+
+    with temporary.open("wb") as raw:
+        with gzip.GzipFile(filename="", mode="wb", fileobj=raw, mtime=0) as compressed:
+            with io.TextIOWrapper(compressed, encoding="utf-8", newline="") as text:
+                output.to_csv(text, index=False, lineterminator="\n")
+    os.replace(temporary, path)
+    return path

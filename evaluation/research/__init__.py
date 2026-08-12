@@ -5,6 +5,7 @@ from .origins import (
     dataset_fingerprint,
     load_origin_config,
     validate_common_origins,
+    write_registry,
 )
 
 __all__ = [
@@ -14,4 +15,5 @@ __all__ = [
     "dataset_fingerprint",
     "load_origin_config",
     "validate_common_origins",
+    "write_registry",
 ]

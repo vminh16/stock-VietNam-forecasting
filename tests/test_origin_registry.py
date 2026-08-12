@@ -6,8 +6,10 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
+import yaml
 
 from data_pipeline.crawl import sha256_file
+from evaluation.build_origin_registry import build_registry_artifacts
 from evaluation.research.origins import (
     FoldSpec,
     OriginRegistryConfig,
@@ -15,6 +17,7 @@ from evaluation.research.origins import (
     dataset_fingerprint,
     load_origin_config,
     validate_common_origins,
+    write_registry,
 )
 
 
@@ -93,6 +96,40 @@ def registry_fixture(tmp_path):
         "reordered_config": replace(config, universe_path=reversed_universe_path),
         "fold_ends": {"eval_2022": pd.Timestamp("2022-12-31")},
     }
+
+
+@pytest.fixture
+def registry_artifacts(registry_fixture, tmp_path):
+    config = registry_fixture["config"]
+    config_path = tmp_path / "origins.yaml"
+    config_path.write_text(
+        yaml.safe_dump(
+            {
+                "schema_version": config.schema_version,
+                "dataset_id": config.dataset_id,
+                "dataset_dir": str(config.dataset_dir),
+                "universe_path": str(config.universe_path),
+                "registry_path": str(config.registry_path),
+                "report_dir": str(config.report_dir),
+                "lookbacks": list(config.lookbacks),
+                "horizon": config.horizon,
+                "minimum_cross_section": config.minimum_cross_section,
+                "lockbox_start": config.lockbox_start.isoformat(),
+                "folds": [
+                    {
+                        "fold_id": fold.fold_id,
+                        "start": fold.start.isoformat(),
+                        "end": fold.end.isoformat(),
+                    }
+                    for fold in config.folds
+                ],
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    build_registry_artifacts(config_path, command="pytest fixture")
+    return config.report_dir
 
 
 def test_m2_1_config_locks_common_origin_contract():
@@ -188,3 +225,35 @@ def test_origin_ids_and_rows_are_stable_when_input_order_changes(registry_fixtur
     columns = ["origin_id", "security_id", "origin_date", "row_origin"]
 
     pd.testing.assert_frame_equal(first[columns], second[columns])
+
+
+def test_registry_writer_is_byte_reproducible(registry_fixture, tmp_path):
+    frame = build_common_origins(registry_fixture["config"])
+
+    first = write_registry(frame, tmp_path / "first.csv.gz")
+    second = write_registry(frame, tmp_path / "second.csv.gz")
+
+    assert sha256_file(first) == sha256_file(second)
+
+
+def test_manifest_records_provenance_and_lockbox(registry_artifacts):
+    manifest = json.loads((registry_artifacts / "manifest.json").read_text())
+
+    assert manifest["schema_version"] == "m2_1_origin_registry_v1"
+    assert manifest["dataset_id"] == "fixture"
+    assert manifest["lookbacks"] == [63, 126]
+    assert manifest["horizon"] == 5
+    assert manifest["lockbox_start"] == "2026-01-01"
+    assert manifest["lockbox_opened"] is False
+    assert len(manifest["registry_sha256"]) == 64
+    assert manifest["price_adjustment_status"] == "unverified_provider_history"
+    assert manifest["amount_policy"] == "derived_ohlc4_compatibility_proxy"
+    assert manifest["command"] == "pytest fixture"
+
+
+def test_summary_has_fold_and_registered_date_rows(registry_artifacts):
+    summary = pd.read_csv(registry_artifacts / "registry_summary.csv")
+
+    assert set(summary["scope"]) == {"fold", "date"}
+    assert set(summary.loc[summary.scope == "fold", "fold_id"]) == {"eval_2022"}
+    assert summary.loc[summary.scope == "date", "symbol_count"].ge(10).all()
