@@ -33,24 +33,41 @@ The former fine-tuned v2 artifact has different date coverage and is
 noncanonical. Do not use mixed-coverage deltas to claim improvement. `DA >= 52`
 is an operational floor, not a significance test.
 
-M0 is closed with the zero-shot-only canonical manifest. M1 point-in-time data
-and universe work is active.
+M0 is closed with the zero-shot-only canonical manifest. M1 fixed VN150 data
+foundation is complete. M1.1 closes data readiness conditionally at
+`reports/milestone_1_data/vn150_strict_v2/`.
+
+The frozen M1 dataset contains 279,973 raw rows and 278,303 strict valid rows
+from 2018-08-09 through 2026-08-07. It has 1,594 contiguous segments and
+provides 247,999 nominal `63/5` windows or 229,734 nominal `126/5` windows.
+`VCK`, `VPX`, and `TCX` have fewer than 252 valid sessions. The community API
+does not return traded amount, so all curated `amount` values are explicitly
+marked `derived_ohlc4`; do not describe them as provider-reported turnover.
+
+`vn150_strict_v2` centralizes feature/normalization contracts and records price
+units, canonical timestamp semantics, and amount provenance in its manifest.
+The readiness audit found zero duplicate symbol-session keys, non-finite
+features, invalid curated OHLC rows, timestamp violations, or session gaps
+inside segments. It records 19 overnight jumps above 17% for review without
+rewriting prices or splitting segments. Lookback-only clipping affects 0.0667%
+of sampled values at `L=63` and 0.0942% at `L=126`; no sampled window has a
+constant feature. Status is `CONDITIONAL` because KBS corporate-action
+adjustment semantics remain unverified and `amount` is a deterministic proxy.
 
 ## Research Direction
 
 - Daily data remains invariant.
-- Use point-in-time dynamic universes and ragged histories; never fill
-  pre-listing periods.
-- Evaluate data scale at 50, 150, and 300 symbols on a fixed point-in-time target
-  universe.
+- Use the fixed 150-symbol benchmark frozen on 2026-08-09. It is conditional on
+  current membership and cannot support survivorship-free market claims.
+- Keep raw snapshots immutable and split strict sequences at every unavailable
+  exchange session; never impute missing history.
 - Keep Kronos-base as the zero-shot reference.
 - Use Kronos-small as the primary adaptation/deployment candidate.
 - Freeze the pretrained tokenizer for initial small-model experiments.
 - Treat Q/V rank 8 as an incumbent, not an optimum. Compare Q/V, QKVO, MLP, and
   all-linear LoRA at equal trainable-parameter budget.
 - Gate full fine-tuning behind evidence that broad LoRA is underfitting.
-- Treat lookback 126 and horizon 5 as incumbents. Research candidates are
-  `L={40,63,126,252}` and `H={3,5,10,20}`, selected sequentially.
+- Compare `L={63,126}` at fixed `H=5` after the data foundation is frozen.
 - Test alignment of the original all-position token CE against forecast-tail
   masking/weighting before expensive adaptation. This requires a reviewed plan.
 
@@ -76,8 +93,8 @@ CRPS and interval coverage/width before any model is promoted.
 ## Current Sequence
 
 1. Zero-shot reference: accepted.
-2. Point-in-time data and universe foundation.
-3. Research evaluation harness and small/base diagnostics.
+2. Fixed VN150 raw/curated foundation and readiness closure: conditional complete.
+3. M2.1 temporal common-origin registry: next.
 4. Kronos-small objective and LoRA study.
 5. Path Viewer.
 6. Ranking and risk radar.

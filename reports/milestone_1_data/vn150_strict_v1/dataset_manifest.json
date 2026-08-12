@@ -1,0 +1,1557 @@
+{
+  "dataset_id": "vn150_strict_v1",
+  "status": "complete",
+  "generated_at_utc": "2026-08-09T16:15:56.282922+00:00",
+  "policy_version": "strict_v1",
+  "missing_policy": "split_no_imputation",
+  "amount_policy": "provider_or_derived_ohlc4_with_provenance",
+  "raw_manifest_sha256": "5748ce37259f9353b859123ccdf5fb9540cf1741ba8318040bc90e25a4aaf9a2",
+  "raw_snapshot_manifest": {
+    "snapshot_id": "2026-08-09",
+    "status": "complete",
+    "generated_at_utc": "2026-08-09T16:07:33.462954+00:00",
+    "provider": {
+      "name": "VnstockProvider",
+      "version": "4.0.4"
+    },
+    "request": {
+      "start": "2010-01-01",
+      "end": "2026-08-09",
+      "interval": "1D"
+    },
+    "universe": {
+      "path": "data_pipeline/universe_150.csv",
+      "rows": 150,
+      "sha256": "518eb01f4eebe18f5803b156918efad08da4f4512023a99d7c497bee83210a7c"
+    },
+    "calendar_symbols": {
+      "HOSE": "VNINDEX",
+      "HNX": "HNXINDEX",
+      "UPCOM": "UPCOMINDEX"
+    },
+    "failures": {},
+    "artifacts": {
+      "calendars/HNX.csv": {
+        "rows": 1997,
+        "sha256": "716e3f0a571fceb7046b862464b3d4d979b4e91c64b10b453ceab737dfa13c17"
+      },
+      "calendars/HOSE.csv": {
+        "rows": 1997,
+        "sha256": "3d7782803facf97d8f63a05adff22aa48da72d57fbae834000e2a7db04468117"
+      },
+      "calendars/UPCOM.csv": {
+        "rows": 1997,
+        "sha256": "acc5918034025a619cc1fc024d353abaca273b8e4b284105cfa81b3b7de94d52"
+      },
+      "symbols/ABB.csv": {
+        "rows": 1398,
+        "sha256": "5eb1e559769ae248664c2c2a876c207fafb914c7cb472831a005216ff35d663d"
+      },
+      "symbols/ABI.csv": {
+        "rows": 1941,
+        "sha256": "6c177930a2be5b84222dc26191ed19a62d293bb937851fe15a543cbf479f314f"
+      },
+      "symbols/ACB.csv": {
+        "rows": 1992,
+        "sha256": "3ffc3bc8224aaefd0157561e00bb51686b9d085d162fb691fc94c8654c56f66e"
+      },
+      "symbols/ACV.csv": {
+        "rows": 1991,
+        "sha256": "92d366c1dc0186547b5a1c907f120c7bb0eec4d5e9af73af6dd2011062fbfe3c"
+      },
+      "symbols/ANV.csv": {
+        "rows": 1997,
+        "sha256": "c65f9b9d533fe0b9166cf7aa383dfbc05f358288f8f250d66f6d4f316baa27c8"
+      },
+      "symbols/BAF.csv": {
+        "rows": 1165,
+        "sha256": "7a7c666a2d4b7658dd5f9c28113209114a5a60b078aa7fdea3b52976e642d833"
+      },
+      "symbols/BCM.csv": {
+        "rows": 1982,
+        "sha256": "c1b167fb28f50181223a76d773d9ccd555dc300491de6556c95f0f29a7388088"
+      },
+      "symbols/BID.csv": {
+        "rows": 1997,
+        "sha256": "a8da49d0fbe6933e9e6678f08cdc927ce950970765a5dd11246a1caff016e319"
+      },
+      "symbols/BMP.csv": {
+        "rows": 1997,
+        "sha256": "da227e056a56ae2a1f689a3f27970a87424070df519fd5673bc306ef3eeef101"
+      },
+      "symbols/BSI.csv": {
+        "rows": 1991,
+        "sha256": "447cb7a25cac6df86472d78782be9387d55010767a5cadd60864548f751f0f9d"
+      },
+      "symbols/BSR.csv": {
+        "rows": 1989,
+        "sha256": "f4e92a327b82cb3dc3a24d8ae684f83447e15bcfa9d51f8754d1ea865b8df6c6"
+      },
+      "symbols/BVH.csv": {
+        "rows": 1997,
+        "sha256": "a96fec40367482577da279d900921a31702b3bbe642507cd1204b74106b67ce5"
+      },
+      "symbols/BVS.csv": {
+        "rows": 2671,
+        "sha256": "58784c8977b36c664a4ddb2a617dc64eb1915ddd6be29994df90b2013546631b"
+      },
+      "symbols/BWE.csv": {
+        "rows": 1997,
+        "sha256": "cfdb5672e50a9a6ef28a5a531616daf8c6f4312c7f11ad2ac8cc5ee308e68ccf"
+      },
+      "symbols/C4G.csv": {
+        "rows": 1911,
+        "sha256": "69e3f694ff2b87389d4aed94c263799d63e0c8f8e55cfd6ffb9f3be19d37c0c2"
+      },
+      "symbols/CAP.csv": {
+        "rows": 1982,
+        "sha256": "8ea16f3b1f6ab9d2bd781408a7c19743ab4ce3f166c2c15caa58cb9273d9cdb2"
+      },
+      "symbols/CEO.csv": {
+        "rows": 1997,
+        "sha256": "3a00524115997b1685c9c1ee3937d43c35d05e9d311dfceb173f37a85764e9ea"
+      },
+      "symbols/CII.csv": {
+        "rows": 1997,
+        "sha256": "66280325df780f97599d285f3b2319ddcc13fa43c712e0ca59e66a12ad457420"
+      },
+      "symbols/CMG.csv": {
+        "rows": 1997,
+        "sha256": "bed1d3aac03bb45d5f7dad6d731423249181458b681ce5a6f12ae74807d200c3"
+      },
+      "symbols/CTD.csv": {
+        "rows": 1997,
+        "sha256": "96ca422367188dc80fd7ed886e8090df6bde1d78d97930506e38751b0d0bba57"
+      },
+      "symbols/CTG.csv": {
+        "rows": 1997,
+        "sha256": "843197d08a24ee877e5bcd5e05a4591d9bee3ada8721c06dac9331935fbf20b4"
+      },
+      "symbols/CTR.csv": {
+        "rows": 1990,
+        "sha256": "74853ff5f2600126e114e27d15884ffbfb34ec929787a3e41134d6833ab5ba75"
+      },
+      "symbols/CTS.csv": {
+        "rows": 1997,
+        "sha256": "d40f2340e2a21abc770be4acaaa1ec8d9cd66e1f2240554e0fc731406967797a"
+      },
+      "symbols/DBC.csv": {
+        "rows": 1991,
+        "sha256": "deaf11366fc714c1b53914e87887d8d40cf09d1db3c86a7e1927d8b3fe3806be"
+      },
+      "symbols/DCM.csv": {
+        "rows": 1997,
+        "sha256": "cb3bcc583706d2b81cd0a47f2b0a0282530a4c6e83c3c657b082dd62fdca5ef6"
+      },
+      "symbols/DDV.csv": {
+        "rows": 1779,
+        "sha256": "c3b691ddd5500ed5b7e7be017db85b9833d4e7139d5bdf6f06f85edd5963898d"
+      },
+      "symbols/DGW.csv": {
+        "rows": 1997,
+        "sha256": "7f5e24e61db5aba56052127c2af8db7cc4f7a39857d41f7d372d56692dfd7310"
+      },
+      "symbols/DIG.csv": {
+        "rows": 1997,
+        "sha256": "1d88475ceef7eb8f75e17a976e30a40690c69b5afe75657e43d0e0296848f233"
+      },
+      "symbols/DP3.csv": {
+        "rows": 1875,
+        "sha256": "aa11116c8f4144d96e59aa3cabdb4eb1e5f5e3742de20fd55ca825b0ad9d9b46"
+      },
+      "symbols/DPM.csv": {
+        "rows": 1997,
+        "sha256": "4286c5f268228ad83eecc9b27ee48dc8ac0b83a87a796e3ef401694542920771"
+      },
+      "symbols/DSE.csv": {
+        "rows": 526,
+        "sha256": "bbff0c5319cb51406b87aa425ebfa499d3c00672c8276750a901cc1db835f242"
+      },
+      "symbols/DTD.csv": {
+        "rows": 1997,
+        "sha256": "a15fc90807df7c012332b89577be58683aff1253d98b6cfa6514c2ea2320b116"
+      },
+      "symbols/DVM.csv": {
+        "rows": 1012,
+        "sha256": "c261d6f94b9e4baa54a08c97f1191453fa955cc3cb60bbb12d7dc8914cc18447"
+      },
+      "symbols/DXG.csv": {
+        "rows": 1997,
+        "sha256": "450ac65c259451c45af827ab8100796a0260d66a23af3a9ee66a8f89044de210"
+      },
+      "symbols/DXP.csv": {
+        "rows": 1946,
+        "sha256": "13847ef56cadbd25c891558259805bc6f94e4e8d655d30fb2e4c35be10ddb03b"
+      },
+      "symbols/EIB.csv": {
+        "rows": 1997,
+        "sha256": "625720a3d71163dffed51f798fee44ef8d182ac644902e97104b1137c7153205"
+      },
+      "symbols/EVF.csv": {
+        "rows": 1986,
+        "sha256": "8e4cf95587c8ce6486ecd9c68dc336e0bec69548de22360d05911ade635a9fe5"
+      },
+      "symbols/FOX.csv": {
+        "rows": 1926,
+        "sha256": "3cd1fb64ff918d58be3c32a33eb7d19f1f0631a2f4e9d18bd5bd0e074d057f9f"
+      },
+      "symbols/FPT.csv": {
+        "rows": 1997,
+        "sha256": "4ddda91946088f111e9ddd713da1c5dec993301615f1334095f00908023c5109"
+      },
+      "symbols/FRT.csv": {
+        "rows": 1997,
+        "sha256": "ab13c03c2284e900d59554a33887cceb117f6e5c2753715cfb387212d4521b15"
+      },
+      "symbols/FTS.csv": {
+        "rows": 1997,
+        "sha256": "6df63232248e999fc6b28990549e686fbf119ebf26c2d727e881d30f985a481b"
+      },
+      "symbols/GAS.csv": {
+        "rows": 1997,
+        "sha256": "1c8cb207c550ecbc97917b6f1a542603c7dd600d6e8d075ca54df8eb897357ea"
+      },
+      "symbols/GEE.csv": {
+        "rows": 1072,
+        "sha256": "8c8fe7af035ed21004be2417b4a8f733d76eca86c11cfbf40f97b4dfa2cf8bda"
+      },
+      "symbols/GEX.csv": {
+        "rows": 1997,
+        "sha256": "7850a536e43bd585aecc131673618b52a68ad7e7d11a8561dfea16a954df5587"
+      },
+      "symbols/GMD.csv": {
+        "rows": 1997,
+        "sha256": "a02f8b277cbbd5d896d0b0ee665d6bdb3c58168b14bff60163d9118dfcd6861f"
+      },
+      "symbols/GVR.csv": {
+        "rows": 1991,
+        "sha256": "c3bc9bfbab309eacb15a7079be2b3d5e7a63afd47fa4476b1f1b2ec2b662e096"
+      },
+      "symbols/HAG.csv": {
+        "rows": 1997,
+        "sha256": "e3147f3790d3dcf00c25a2ae0ba31710617e13c41b6436428b6c9d817d1cd01b"
+      },
+      "symbols/HBC.csv": {
+        "rows": 1989,
+        "sha256": "91e5d0c4e07bc7d55e75771cec796cb4d9f315a64b653095513214543902a001"
+      },
+      "symbols/HCM.csv": {
+        "rows": 1997,
+        "sha256": "d41396ed42372977a53c4ad66129127ec4b6853f199d8e3b7bf17eac1bbda12b"
+      },
+      "symbols/HDB.csv": {
+        "rows": 1997,
+        "sha256": "a337c2a91fb948ca64fb176c9b4b18bdb77cee023c8275d34c55330f1c00b8f5"
+      },
+      "symbols/HDG.csv": {
+        "rows": 1997,
+        "sha256": "19769354728900ec063137edebc67ef7a16017dba76c31d139a64436fcb9db26"
+      },
+      "symbols/HHV.csv": {
+        "rows": 1500,
+        "sha256": "9d82f803d7fb2331d6f50eb2727cc49cc70f1786bc4a09fc0e6a1a3a73f8fa8f"
+      },
+      "symbols/HNG.csv": {
+        "rows": 1989,
+        "sha256": "e84567cdc485284c63545c9af8e0d4d28e9489221efc150613845b5145e0b8d4"
+      },
+      "symbols/HPG.csv": {
+        "rows": 1997,
+        "sha256": "508e8f84e85c603b9b5cc7e482ec17bc707c0ac5f9ce3ed01296835523164b6e"
+      },
+      "symbols/HSG.csv": {
+        "rows": 1997,
+        "sha256": "8b2f660858a80d0e7b3a77c2005a980d9c18a5510025d02b2b842cbac7db6e0e"
+      },
+      "symbols/HT1.csv": {
+        "rows": 1997,
+        "sha256": "309dfb3a8eb89973105ac57c69942d5f36307e517e16467b2508f970f1c0a457"
+      },
+      "symbols/HUT.csv": {
+        "rows": 1997,
+        "sha256": "6982abb1abae9f69cc9ba261de22b04ebe2c102cf8090186c53084ca5d92c00c"
+      },
+      "symbols/IDC.csv": {
+        "rows": 1972,
+        "sha256": "0c0f30baffef4b297f95abc19fe03f4e4fad45289638d928caf966815c27d6a1"
+      },
+      "symbols/IDV.csv": {
+        "rows": 1970,
+        "sha256": "a1f56b7080e72a51b07d25f16243b1ede65e7b5ed1e22bba1b59335431f0d33a"
+      },
+      "symbols/KBC.csv": {
+        "rows": 1997,
+        "sha256": "61ee55e69b589a6136b3e2b57204d5d1856a6cc8e9bf48da2cae77567349cd32"
+      },
+      "symbols/KDC.csv": {
+        "rows": 1997,
+        "sha256": "5586e1f927ae1482d6ae18de1f978b06d67425eeffbfdf0bf8e352f0cd528aec"
+      },
+      "symbols/KDH.csv": {
+        "rows": 1997,
+        "sha256": "82fd50c6846899766c2ad14b5fb8d451c6dfa617d2716a88acf30e1c94017b37"
+      },
+      "symbols/KOS.csv": {
+        "rows": 1992,
+        "sha256": "632ae6ac2f917530125dd2aa14b43f295efd38f387be661c89c9a4fd430cfba2"
+      },
+      "symbols/L14.csv": {
+        "rows": 1997,
+        "sha256": "9c33b1739658696d4f29182149f9ee9dad3b3da490c81b9a82926aa8db986704"
+      },
+      "symbols/L18.csv": {
+        "rows": 1547,
+        "sha256": "35742b41d797df74f26f37b289cf936196e14babba8283db57fdd634df2ccbf8"
+      },
+      "symbols/LAS.csv": {
+        "rows": 1993,
+        "sha256": "7d297dcb3cd04ea839f03d44863f1e68e70d381093a427c3bb63d4ec778ca32d"
+      },
+      "symbols/LHC.csv": {
+        "rows": 1786,
+        "sha256": "8d7bca75f278f9f573ee6b00f2541c23498f54f89bdbd882c0645540b2a03e16"
+      },
+      "symbols/LPB.csv": {
+        "rows": 1987,
+        "sha256": "dbe85b6cc6534e82b0f4b9787ccc28cc4736f400a421f0a83c356755f3d2c096"
+      },
+      "symbols/LTG.csv": {
+        "rows": 1668,
+        "sha256": "4177e354c0778107b6d60f6a01ffb4123e68090248dd797a224aa42ee95da597"
+      },
+      "symbols/MBB.csv": {
+        "rows": 1997,
+        "sha256": "a52d0544a0196a563ad61960fea3484d18a97373ecff0ff48f46205bb30f88f7"
+      },
+      "symbols/MBS.csv": {
+        "rows": 1997,
+        "sha256": "05b60ee95539a649b526073c546595b0f7686dfed62adce5764c45b13ecc4d34"
+      },
+      "symbols/MCH.csv": {
+        "rows": 1987,
+        "sha256": "2eb8a8e5af9da9cfffa955ccedfb5c2e63d5b962996dd90595ba1e3640666135"
+      },
+      "symbols/MFS.csv": {
+        "rows": 1799,
+        "sha256": "78ed9da42b37380d781d4cf31d0f16ed117f3a2b8f00fca5f86741e144c8c172"
+      },
+      "symbols/MPC.csv": {
+        "rows": 1997,
+        "sha256": "18b70d35d4aa9bfd1bc3923cca722717fcf4b39443b47bae5977427462484bf0"
+      },
+      "symbols/MSB.csv": {
+        "rows": 1401,
+        "sha256": "caab818af8228d1e2a7623b5365f7708a38f3aea9369d11788a14fe30a87f47b"
+      },
+      "symbols/MSN.csv": {
+        "rows": 1997,
+        "sha256": "3247901bb29c165b35f915a20b2512ddda57bc1f99e36527cd611ed7f28a1486"
+      },
+      "symbols/MSR.csv": {
+        "rows": 1997,
+        "sha256": "f24c3773cf99cb2b9cc2c7391e1ac3bcdd399d0a590c4a528ccacc510c611ca1"
+      },
+      "symbols/MWG.csv": {
+        "rows": 1997,
+        "sha256": "528b8fcaea09391945f2e5b8d61c3c1f2e7e939bb8c2e9daf45379a915a0df6e"
+      },
+      "symbols/NAB.csv": {
+        "rows": 1448,
+        "sha256": "860e9784f5f914652023f10d3b8f2f5c1aff9eadd444662a908616ad0b29e116"
+      },
+      "symbols/NDN.csv": {
+        "rows": 1997,
+        "sha256": "e651f45c831c84e514cf6d478ef42ead1be0d92d62ff261f2ad1642aca9cb7ce"
+      },
+      "symbols/NKG.csv": {
+        "rows": 1997,
+        "sha256": "7f45388a147c777cf65545baa3a066f4d12fbdd00478a71a22f72039b41ad426"
+      },
+      "symbols/NLG.csv": {
+        "rows": 1997,
+        "sha256": "b3d8b705a1e8e1e1c27d818df455436ed7c1e2535a8aaf5d2eadc29cf91d60e1"
+      },
+      "symbols/NT2.csv": {
+        "rows": 1997,
+        "sha256": "7226572cd579ffee589e2dc73226364a4a71828d17cf3da7bdf66dd0021fbb48"
+      },
+      "symbols/NTP.csv": {
+        "rows": 1992,
+        "sha256": "72b89715a40673fbcd1260acfdb94731f28b68127acb23978341a4bce2180025"
+      },
+      "symbols/NVL.csv": {
+        "rows": 1997,
+        "sha256": "0cd54becbe45dcf239d37c6b7a9acea78971b82a4925228444933303f8fc16ab"
+      },
+      "symbols/OCB.csv": {
+        "rows": 1376,
+        "sha256": "9c5c21648d23d26b3a7bce031269df4f125f3054abe1d39a7c6b6346d61c33ef"
+      },
+      "symbols/OIL.csv": {
+        "rows": 1997,
+        "sha256": "9ecdec5daf58994e2271c47a947bab3fa82cfd0dd5cf32bcbf471a915106421d"
+      },
+      "symbols/PAN.csv": {
+        "rows": 1990,
+        "sha256": "373bfc6380f4699a3ad18a60526a75a86d28fe3e82428465b5407bd88f12043d"
+      },
+      "symbols/PAT.csv": {
+        "rows": 1017,
+        "sha256": "bd4a1e3b8797adb2d5bc829e51de2f3e5e16e80ef4cfd9c8d869db74abf551ca"
+      },
+      "symbols/PC1.csv": {
+        "rows": 1997,
+        "sha256": "254df7002818c900011aaaea00a5601c3e8f540ceacf5346ce1ea1adfb9e5cb7"
+      },
+      "symbols/PDR.csv": {
+        "rows": 1997,
+        "sha256": "3842d76750edc4db9b415828775b1edc8c9f8624d768a78211118dfd43ba709b"
+      },
+      "symbols/PHR.csv": {
+        "rows": 1997,
+        "sha256": "2b51956855626cf970e5e1fa2e9a45f1ee151892c451fb9ada39784ffe772f9e"
+      },
+      "symbols/PLC.csv": {
+        "rows": 1982,
+        "sha256": "6df0fe28ff4c0d6498999d05f2c56e54003db3a215ac3660d47c63f78641cb31"
+      },
+      "symbols/PLX.csv": {
+        "rows": 1997,
+        "sha256": "b722b38aa448c3af7039f78a57ce9b588ebd44e3f84077eb3573e8caa661feb2"
+      },
+      "symbols/PNJ.csv": {
+        "rows": 1997,
+        "sha256": "c70c4646595a729127a91b4312d509dfe64f4bb7e08230dfac6e2d7547c919c5"
+      },
+      "symbols/POW.csv": {
+        "rows": 1988,
+        "sha256": "96ab1fabbc5901a9cd738de03917d9fc49d0d586810ef674d3fcbea4b1d65922"
+      },
+      "symbols/PSD.csv": {
+        "rows": 1811,
+        "sha256": "13dc2acd105006102b7c6ca45b225693af47456b34a0225e5a15a5ae73e74077"
+      },
+      "symbols/PVB.csv": {
+        "rows": 1997,
+        "sha256": "18f58b12f0883848720cef1939f239111bc290a36d552030a04a8b505a03e4a2"
+      },
+      "symbols/PVC.csv": {
+        "rows": 2713,
+        "sha256": "3ba04a4f52ae64f5b6901fb1d6143a8f34b45be714064a20edbfb62ae14ff1f2"
+      },
+      "symbols/PVD.csv": {
+        "rows": 1997,
+        "sha256": "d31396216dd99e3761ee07d3560af6d42a5d1e92763f8597811cad15e103b5f7"
+      },
+      "symbols/PVS.csv": {
+        "rows": 1997,
+        "sha256": "23788364c22d148c7ded9f5a890f7fbf81fde253c47ac85d5e1f14ccc0df24d1"
+      },
+      "symbols/PVT.csv": {
+        "rows": 1997,
+        "sha256": "1e777a7d26982d8c668763e4a73cce7f92d60573e6dd81bc3d83aba6756ee689"
+      },
+      "symbols/QNS.csv": {
+        "rows": 1997,
+        "sha256": "294561ceb185ec306ef536ff5152f9f8342ab5fd22e8b7131f00d4947cc36bba"
+      },
+      "symbols/REE.csv": {
+        "rows": 1997,
+        "sha256": "4ba4d22e76bf7a53d3f10697a6e8f19c006f05820752d71012a1da462b7440fb"
+      },
+      "symbols/SAB.csv": {
+        "rows": 1997,
+        "sha256": "3262d6bd5019944efddf3912883bef16a66d7451c64e2a1cd18abd6413129311"
+      },
+      "symbols/SBT.csv": {
+        "rows": 1997,
+        "sha256": "749d1b2360c993c5893b9bb9019efc6e45d1b2ba24927059fa410c5f5d0ad635"
+      },
+      "symbols/SGP.csv": {
+        "rows": 1945,
+        "sha256": "b8b553dee131233a073081e4b9a1f4587043c0ae2d621a5af3ee86f1b41aef9a"
+      },
+      "symbols/SHB.csv": {
+        "rows": 1994,
+        "sha256": "f8a72d2dec753cdd282439d193ca4bed691b88f1b6aa460630a7671bc844f511"
+      },
+      "symbols/SHS.csv": {
+        "rows": 1997,
+        "sha256": "9bbc638702ee4982903e8dc16225880048866c3196a3e149c2aa640c07d58479"
+      },
+      "symbols/SIP.csv": {
+        "rows": 1784,
+        "sha256": "662e68471299ca91b6ad9ab6e522246a17dd7cb87000f4975671034f563b1962"
+      },
+      "symbols/SJS.csv": {
+        "rows": 1997,
+        "sha256": "48c7c921ee2b27cbdd6d09420d99e56793655f0233443b4775256b212b2010bb"
+      },
+      "symbols/SLS.csv": {
+        "rows": 1977,
+        "sha256": "40b91b57569493dac288dae66bdb0cb6a42db6716a3d1640251d9edbe4483cee"
+      },
+      "symbols/SSB.csv": {
+        "rows": 1342,
+        "sha256": "8ba71a8ae2cf3f4c882f492762a6427f4c447af6ae6a8f7cad567f39a14f6901"
+      },
+      "symbols/SSI.csv": {
+        "rows": 1997,
+        "sha256": "67ce8a29e40f9bb6967783ac79f81763f61f460ea079819508f7e52bd1e8775b"
+      },
+      "symbols/STB.csv": {
+        "rows": 1997,
+        "sha256": "ae0f53386af12d21c2e3920fa8d246f9ec893b10f9db2380b1ec75ed49961de7"
+      },
+      "symbols/TAL.csv": {
+        "rows": 630,
+        "sha256": "0ae0f8fbea64e36b8645b238877ce448f6e55e6af7c2a47dc7d0c8ec8af44e3d"
+      },
+      "symbols/TCB.csv": {
+        "rows": 1997,
+        "sha256": "fe6d799c66c40033dc0cc943e03528fa758c03407f3de007bd877006cc37e1b9"
+      },
+      "symbols/TCH.csv": {
+        "rows": 1997,
+        "sha256": "a5b35a0f96e53b3d341fae58db84fbb9fb1df56fa32eec8be5ed95aa18254f12"
+      },
+      "symbols/TCX.csv": {
+        "rows": 199,
+        "sha256": "bb12ad5da369c8d9449eb72ecd014fcfcd94410c5cb1a7f106b87c7f4cb5af57"
+      },
+      "symbols/TMB.csv": {
+        "rows": 1541,
+        "sha256": "68b9e8df06392ade4c7f40bdbf9da9789104bdec76111ca1ff369cddac534c19"
+      },
+      "symbols/TNG.csv": {
+        "rows": 1998,
+        "sha256": "b0c6effb6c6975720de74065a0545b317708707b97f4ac77fe3b5a49f1483ca6"
+      },
+      "symbols/TPB.csv": {
+        "rows": 1997,
+        "sha256": "7ccd087aa7f5fb5c14b15e4f9e13e296c7ad01addcf4cf5b6ab72dee997c771c"
+      },
+      "symbols/TVD.csv": {
+        "rows": 1851,
+        "sha256": "8d455f6621df8817a6bf75dee1c579921119ba445c9d58ebda43eac72b86483b"
+      },
+      "symbols/VC3.csv": {
+        "rows": 1997,
+        "sha256": "9c1496014e5bf0d6b3ff833b313ffc50b4526be7351f1f9f613e6aa4dc95823e"
+      },
+      "symbols/VCB.csv": {
+        "rows": 1997,
+        "sha256": "a9f5e6f43241996eba8fea96f4c1fc987f505d061beda91c7f7bf5594380c86c"
+      },
+      "symbols/VCG.csv": {
+        "rows": 1992,
+        "sha256": "823dd389402597352dede993dcf9a878bf8e09b54a4fd45bca732dc4152dd68e"
+      },
+      "symbols/VCI.csv": {
+        "rows": 1997,
+        "sha256": "bf48ca80683a16ba40ad698f44f9d15a97201cb7924df9122deeda942986912f"
+      },
+      "symbols/VCK.csv": {
+        "rows": 159,
+        "sha256": "adb11851a9e08a02ceae13396cb09dc45a8d7b13f1f314beeed6946c9e356158"
+      },
+      "symbols/VCS.csv": {
+        "rows": 1997,
+        "sha256": "7ead0c2739cab88fdba417b9080758ca5c426956e51f0610b9520d4f758fdfd6"
+      },
+      "symbols/VEA.csv": {
+        "rows": 1997,
+        "sha256": "625450315e800f1c78bc7da6a6321e28e07e3941425b7bcd2a41a4434c1c7bb0"
+      },
+      "symbols/VEF.csv": {
+        "rows": 1990,
+        "sha256": "3358f241f27ee92c2352901ec5d73d7f99c9f301437e52d3430f278da7e0d925"
+      },
+      "symbols/VFS.csv": {
+        "rows": 1514,
+        "sha256": "fe977742466ad5c15f7d9d6da2ac115d1e7301c70b8802cb74b02e16870b21f3"
+      },
+      "symbols/VGC.csv": {
+        "rows": 1990,
+        "sha256": "ad52444085cf0d4130e65c242a3b16db8da44d74715805196c23e857d22007ef"
+      },
+      "symbols/VGI.csv": {
+        "rows": 1965,
+        "sha256": "e5c9a8fc9c132570f19a81722d37637c15eb67ab11ca13870440971b15d7d55e"
+      },
+      "symbols/VGT.csv": {
+        "rows": 1987,
+        "sha256": "c5da2c02801a97f99a2a0faa89c5111dbf08a8d37015732b8c031e9c0638a466"
+      },
+      "symbols/VHC.csv": {
+        "rows": 1997,
+        "sha256": "79b2f848c1cdd70b802b05a005a4e8b31b95e051656d2ce82b6bb1e24f9fa8ad"
+      },
+      "symbols/VHM.csv": {
+        "rows": 1997,
+        "sha256": "ee2bc9d968aec5558dd04f6941f6f9f3b93adbb347053df5ee428db58dc8e5dd"
+      },
+      "symbols/VIB.csv": {
+        "rows": 1990,
+        "sha256": "7201baa89bab5c0c63615c5086380de3ad34af0d577e578a24fcf49273095dd8"
+      },
+      "symbols/VIC.csv": {
+        "rows": 1997,
+        "sha256": "ee79f7bfc3f03931adcc6d03126d74f71073d4e46dd2bfe7c721901ac75ee45e"
+      },
+      "symbols/VIX.csv": {
+        "rows": 1987,
+        "sha256": "4de8be827dfa7b11cad953849a70a59792300dcd77cd0f37df6d383d50c1fed4"
+      },
+      "symbols/VJC.csv": {
+        "rows": 1997,
+        "sha256": "9b59bc52c88773350360b8d462ac9f180a8cb1a00f8e196a77fd9d56b1f25ddc"
+      },
+      "symbols/VND.csv": {
+        "rows": 1991,
+        "sha256": "d2eca709fa8c2af2e6bf18f3d95216b3cbd80eed486397151a34a2687b806c69"
+      },
+      "symbols/VNM.csv": {
+        "rows": 1997,
+        "sha256": "a642cd73a3f06f53bd3b403e245ffdc61129d7ae25c3aeb2d1c0bf8b015390d5"
+      },
+      "symbols/VPB.csv": {
+        "rows": 1997,
+        "sha256": "1b9fa38405989cc43316f47c78366d6928dd2fe8fe4e9e08d7255f4d5f75f253"
+      },
+      "symbols/VPI.csv": {
+        "rows": 1997,
+        "sha256": "4ad56c2dcc2e5797f1525e16033e85e766df8259a078d4fa53eb0d052e78364b"
+      },
+      "symbols/VPL.csv": {
+        "rows": 312,
+        "sha256": "345821ec7d6ef37e97fce5f7f15cb5b4936d40c226b4ee6151f9b752bf8f81d9"
+      },
+      "symbols/VPX.csv": {
+        "rows": 162,
+        "sha256": "ddb59b0b56835971993fb838a4936280254201a11277bb15ac7e8d7f80fedcd6"
+      },
+      "symbols/VRE.csv": {
+        "rows": 1997,
+        "sha256": "72d39558148b7d0d3889cc0147b80da16e666c954a00f107285616f7c513f22e"
+      },
+      "symbols/VSC.csv": {
+        "rows": 1997,
+        "sha256": "222a5a04da0cd330fd0d9a1ddb4228df5b474cfe84a58bb07554ba634f8c0306"
+      },
+      "symbols/VTP.csv": {
+        "rows": 1915,
+        "sha256": "7105713321f68d9dc0b8b245e56f9ca9190292acbb36f725508dcdef1bea1177"
+      }
+    }
+  },
+  "universe_sha256": "518eb01f4eebe18f5803b156918efad08da4f4512023a99d7c497bee83210a7c",
+  "symbols": {
+    "BVS": {
+      "raw_rows": 2671,
+      "valid_rows": 1996,
+      "segments": 2
+    },
+    "CAP": {
+      "raw_rows": 1982,
+      "valid_rows": 1982,
+      "segments": 16
+    },
+    "CEO": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "DP3": {
+      "raw_rows": 1875,
+      "valid_rows": 1875,
+      "segments": 99
+    },
+    "DTD": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "DVM": {
+      "raw_rows": 1012,
+      "valid_rows": 1012,
+      "segments": 1
+    },
+    "DXP": {
+      "raw_rows": 1946,
+      "valid_rows": 1945,
+      "segments": 34
+    },
+    "HUT": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "IDC": {
+      "raw_rows": 1972,
+      "valid_rows": 1971,
+      "segments": 17
+    },
+    "IDV": {
+      "raw_rows": 1970,
+      "valid_rows": 1969,
+      "segments": 22
+    },
+    "L14": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "L18": {
+      "raw_rows": 1547,
+      "valid_rows": 1547,
+      "segments": 107
+    },
+    "LAS": {
+      "raw_rows": 1993,
+      "valid_rows": 1992,
+      "segments": 6
+    },
+    "LHC": {
+      "raw_rows": 1786,
+      "valid_rows": 1786,
+      "segments": 125
+    },
+    "MBS": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "NDN": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "NTP": {
+      "raw_rows": 1992,
+      "valid_rows": 1991,
+      "segments": 7
+    },
+    "PLC": {
+      "raw_rows": 1982,
+      "valid_rows": 1982,
+      "segments": 14
+    },
+    "PSD": {
+      "raw_rows": 1811,
+      "valid_rows": 1811,
+      "segments": 88
+    },
+    "PVB": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "PVC": {
+      "raw_rows": 2713,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "PVS": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "SHS": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "SLS": {
+      "raw_rows": 1977,
+      "valid_rows": 1977,
+      "segments": 17
+    },
+    "TMB": {
+      "raw_rows": 1541,
+      "valid_rows": 1541,
+      "segments": 115
+    },
+    "TNG": {
+      "raw_rows": 1998,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "TVD": {
+      "raw_rows": 1851,
+      "valid_rows": 1851,
+      "segments": 83
+    },
+    "VC3": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "VCS": {
+      "raw_rows": 1997,
+      "valid_rows": 1996,
+      "segments": 2
+    },
+    "VFS": {
+      "raw_rows": 1514,
+      "valid_rows": 1514,
+      "segments": 6
+    },
+    "ACB": {
+      "raw_rows": 1992,
+      "valid_rows": 1992,
+      "segments": 2
+    },
+    "ANV": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "BAF": {
+      "raw_rows": 1165,
+      "valid_rows": 1165,
+      "segments": 1
+    },
+    "BCM": {
+      "raw_rows": 1982,
+      "valid_rows": 1975,
+      "segments": 15
+    },
+    "BID": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "BMP": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "BSI": {
+      "raw_rows": 1991,
+      "valid_rows": 1990,
+      "segments": 4
+    },
+    "BSR": {
+      "raw_rows": 1989,
+      "valid_rows": 1987,
+      "segments": 4
+    },
+    "BVH": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "BWE": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "CII": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "CMG": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "CTD": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "CTG": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "CTR": {
+      "raw_rows": 1990,
+      "valid_rows": 1986,
+      "segments": 7
+    },
+    "CTS": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "DBC": {
+      "raw_rows": 1991,
+      "valid_rows": 1990,
+      "segments": 3
+    },
+    "DCM": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "DGW": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "DIG": {
+      "raw_rows": 1997,
+      "valid_rows": 1996,
+      "segments": 2
+    },
+    "DPM": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "DSE": {
+      "raw_rows": 526,
+      "valid_rows": 526,
+      "segments": 1
+    },
+    "DXG": {
+      "raw_rows": 1997,
+      "valid_rows": 1996,
+      "segments": 2
+    },
+    "EIB": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "EVF": {
+      "raw_rows": 1986,
+      "valid_rows": 1980,
+      "segments": 8
+    },
+    "FPT": {
+      "raw_rows": 1997,
+      "valid_rows": 1996,
+      "segments": 2
+    },
+    "FRT": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "FTS": {
+      "raw_rows": 1997,
+      "valid_rows": 1996,
+      "segments": 2
+    },
+    "GAS": {
+      "raw_rows": 1997,
+      "valid_rows": 1996,
+      "segments": 2
+    },
+    "GEE": {
+      "raw_rows": 1072,
+      "valid_rows": 1071,
+      "segments": 15
+    },
+    "GEX": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "GMD": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "GVR": {
+      "raw_rows": 1991,
+      "valid_rows": 1991,
+      "segments": 2
+    },
+    "HAG": {
+      "raw_rows": 1997,
+      "valid_rows": 1994,
+      "segments": 4
+    },
+    "HCM": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "HDB": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "HDG": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "HHV": {
+      "raw_rows": 1500,
+      "valid_rows": 1494,
+      "segments": 91
+    },
+    "HPG": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "HSG": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "HT1": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "KBC": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "KDC": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "KDH": {
+      "raw_rows": 1997,
+      "valid_rows": 1994,
+      "segments": 4
+    },
+    "KOS": {
+      "raw_rows": 1992,
+      "valid_rows": 1991,
+      "segments": 3
+    },
+    "LPB": {
+      "raw_rows": 1987,
+      "valid_rows": 1986,
+      "segments": 3
+    },
+    "MBB": {
+      "raw_rows": 1997,
+      "valid_rows": 1996,
+      "segments": 2
+    },
+    "MCH": {
+      "raw_rows": 1987,
+      "valid_rows": 1973,
+      "segments": 18
+    },
+    "MSB": {
+      "raw_rows": 1401,
+      "valid_rows": 1401,
+      "segments": 1
+    },
+    "MSN": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "MWG": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "NAB": {
+      "raw_rows": 1448,
+      "valid_rows": 1448,
+      "segments": 2
+    },
+    "NKG": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "NLG": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "NT2": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "NVL": {
+      "raw_rows": 1997,
+      "valid_rows": 1996,
+      "segments": 2
+    },
+    "OCB": {
+      "raw_rows": 1376,
+      "valid_rows": 1376,
+      "segments": 1
+    },
+    "PAN": {
+      "raw_rows": 1990,
+      "valid_rows": 1989,
+      "segments": 4
+    },
+    "PC1": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "PDR": {
+      "raw_rows": 1997,
+      "valid_rows": 1996,
+      "segments": 2
+    },
+    "PHR": {
+      "raw_rows": 1997,
+      "valid_rows": 1996,
+      "segments": 2
+    },
+    "PLX": {
+      "raw_rows": 1997,
+      "valid_rows": 1996,
+      "segments": 2
+    },
+    "PNJ": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "POW": {
+      "raw_rows": 1988,
+      "valid_rows": 1987,
+      "segments": 3
+    },
+    "PVD": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "PVT": {
+      "raw_rows": 1997,
+      "valid_rows": 1996,
+      "segments": 2
+    },
+    "REE": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "SAB": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "SBT": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "SHB": {
+      "raw_rows": 1994,
+      "valid_rows": 1994,
+      "segments": 2
+    },
+    "SIP": {
+      "raw_rows": 1784,
+      "valid_rows": 1778,
+      "segments": 8
+    },
+    "SJS": {
+      "raw_rows": 1997,
+      "valid_rows": 1996,
+      "segments": 2
+    },
+    "SSB": {
+      "raw_rows": 1342,
+      "valid_rows": 1342,
+      "segments": 1
+    },
+    "SSI": {
+      "raw_rows": 1997,
+      "valid_rows": 1996,
+      "segments": 2
+    },
+    "STB": {
+      "raw_rows": 1997,
+      "valid_rows": 1996,
+      "segments": 2
+    },
+    "TAL": {
+      "raw_rows": 630,
+      "valid_rows": 630,
+      "segments": 4
+    },
+    "TCB": {
+      "raw_rows": 1997,
+      "valid_rows": 1996,
+      "segments": 2
+    },
+    "TCH": {
+      "raw_rows": 1997,
+      "valid_rows": 1994,
+      "segments": 4
+    },
+    "TCX": {
+      "raw_rows": 199,
+      "valid_rows": 199,
+      "segments": 1
+    },
+    "TPB": {
+      "raw_rows": 1997,
+      "valid_rows": 1994,
+      "segments": 3
+    },
+    "VCB": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "VCG": {
+      "raw_rows": 1992,
+      "valid_rows": 1992,
+      "segments": 2
+    },
+    "VCI": {
+      "raw_rows": 1997,
+      "valid_rows": 1996,
+      "segments": 2
+    },
+    "VCK": {
+      "raw_rows": 159,
+      "valid_rows": 159,
+      "segments": 1
+    },
+    "VGC": {
+      "raw_rows": 1990,
+      "valid_rows": 1987,
+      "segments": 5
+    },
+    "VHC": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "VHM": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "VIB": {
+      "raw_rows": 1990,
+      "valid_rows": 1988,
+      "segments": 4
+    },
+    "VIC": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "VIX": {
+      "raw_rows": 1987,
+      "valid_rows": 1987,
+      "segments": 5
+    },
+    "VJC": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "VND": {
+      "raw_rows": 1991,
+      "valid_rows": 1989,
+      "segments": 5
+    },
+    "VNM": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "VPB": {
+      "raw_rows": 1997,
+      "valid_rows": 1997,
+      "segments": 1
+    },
+    "VPI": {
+      "raw_rows": 1997,
+      "valid_rows": 1996,
+      "segments": 2
+    },
+    "VPL": {
+      "raw_rows": 312,
+      "valid_rows": 312,
+      "segments": 1
+    },
+    "VPX": {
+      "raw_rows": 162,
+      "valid_rows": 162,
+      "segments": 1
+    },
+    "VRE": {
+      "raw_rows": 1997,
+      "valid_rows": 1994,
+      "segments": 4
+    },
+    "VSC": {
+      "raw_rows": 1997,
+      "valid_rows": 1996,
+      "segments": 2
+    },
+    "VTP": {
+      "raw_rows": 1915,
+      "valid_rows": 1908,
+      "segments": 9
+    },
+    "ABB": {
+      "raw_rows": 1398,
+      "valid_rows": 1398,
+      "segments": 1
+    },
+    "ABI": {
+      "raw_rows": 1941,
+      "valid_rows": 1936,
+      "segments": 37
+    },
+    "ACV": {
+      "raw_rows": 1991,
+      "valid_rows": 1988,
+      "segments": 5
+    },
+    "C4G": {
+      "raw_rows": 1911,
+      "valid_rows": 1906,
+      "segments": 4
+    },
+    "DDV": {
+      "raw_rows": 1779,
+      "valid_rows": 1772,
+      "segments": 110
+    },
+    "FOX": {
+      "raw_rows": 1926,
+      "valid_rows": 1916,
+      "segments": 55
+    },
+    "HBC": {
+      "raw_rows": 1989,
+      "valid_rows": 1989,
+      "segments": 2
+    },
+    "HNG": {
+      "raw_rows": 1989,
+      "valid_rows": 1988,
+      "segments": 3
+    },
+    "LTG": {
+      "raw_rows": 1668,
+      "valid_rows": 1629,
+      "segments": 88
+    },
+    "MFS": {
+      "raw_rows": 1799,
+      "valid_rows": 1783,
+      "segments": 36
+    },
+    "MPC": {
+      "raw_rows": 1997,
+      "valid_rows": 1995,
+      "segments": 3
+    },
+    "MSR": {
+      "raw_rows": 1997,
+      "valid_rows": 1992,
+      "segments": 5
+    },
+    "OIL": {
+      "raw_rows": 1997,
+      "valid_rows": 1993,
+      "segments": 5
+    },
+    "PAT": {
+      "raw_rows": 1017,
+      "valid_rows": 1017,
+      "segments": 6
+    },
+    "QNS": {
+      "raw_rows": 1997,
+      "valid_rows": 1992,
+      "segments": 6
+    },
+    "SGP": {
+      "raw_rows": 1945,
+      "valid_rows": 1940,
+      "segments": 44
+    },
+    "VEA": {
+      "raw_rows": 1997,
+      "valid_rows": 1993,
+      "segments": 5
+    },
+    "VEF": {
+      "raw_rows": 1990,
+      "valid_rows": 1979,
+      "segments": 15
+    },
+    "VGI": {
+      "raw_rows": 1965,
+      "valid_rows": 1963,
+      "segments": 3
+    },
+    "VGT": {
+      "raw_rows": 1987,
+      "valid_rows": 1984,
+      "segments": 7
+    }
+  },
+  "artifact_hashes": {
+    "calendars/HNX.csv": "380ab17f09c2e86f39da52ce8c26a5511c2712aef566fd49ab4f0720277404f0",
+    "calendars/HOSE.csv": "380ab17f09c2e86f39da52ce8c26a5511c2712aef566fd49ab4f0720277404f0",
+    "calendars/UPCOM.csv": "380ab17f09c2e86f39da52ce8c26a5511c2712aef566fd49ab4f0720277404f0",
+    "exclusions.csv": "544f4e1c3721ce733744bdc83bc9c338d8d6d758dc873ec47bdbfe12c57378d0",
+    "symbols/ABB.csv": "31673c564d5a6eefdba29e097eb90d60802048bf7cf65dd189b39c889490ef86",
+    "symbols/ABI.csv": "6e0aec8561f705d942074dcd866c9c8f1fca2074d329c9ef36f4fe9724c40c49",
+    "symbols/ACB.csv": "e0fbdd7414a7a9d80b3575f1ee70c976f23aefbef0b733c72fc9d802989fa729",
+    "symbols/ACV.csv": "50b099639e676b6f378e01275decacc71f9830a1f8b0903614723a0d0b71d57b",
+    "symbols/ANV.csv": "a96e3a14f64be14573de26cf3db7a540a2978a602b4ad330c312b11803980c03",
+    "symbols/BAF.csv": "b161bc23e55dc107f5fd3b493bbe5c0f5662917cd32ecfd1fa5cb576e2786558",
+    "symbols/BCM.csv": "be22eb36c8df5224ad97a2a7a277965c95761b55a0fdfcf84f3937f75e454948",
+    "symbols/BID.csv": "f3aa727aefd719ff3d25e762430864e6acbf56fb3dbcd1cc84801a07cbc7948f",
+    "symbols/BMP.csv": "35786a6e046e914fa9f0ec93acef321b51690cb0503e884f68e1fcdbdaab43ac",
+    "symbols/BSI.csv": "98fef2df3ee13fe60c9c427f75e539bcc92e34095b95877d1cbabbb702f8a3a4",
+    "symbols/BSR.csv": "508c2421db714a541ca9ea59d659ea2d037b99ea058d167fb61a5c489b695508",
+    "symbols/BVH.csv": "ba0400e33e9fd67be0857ed8b28b5b19e1b7e87d494801d917907768756617a1",
+    "symbols/BVS.csv": "40cb084c345aff2acf7f01a1651b2483d09c9e8a63db7b63ca01c82c93a62d8e",
+    "symbols/BWE.csv": "ee9abd0a82ce45e83261bc8fd61cadbd36fbe6eaa2e6abc474802bea5a2de2bb",
+    "symbols/C4G.csv": "4e2efbdc0f07cc054cf021550f8963a740160af63681a9596044a603f9f5e9ab",
+    "symbols/CAP.csv": "ee9d54f8f115ce8e6ec6547cd62ec069e15c0bb33a017636a6e53f45fd6aee8c",
+    "symbols/CEO.csv": "63bdd922a543792ffd648e90db5b8124f7468a2f842a509c25814ff3b11661ac",
+    "symbols/CII.csv": "f098df2c961bf78376a58f93cb048fa9b96d8b48316e6d9d1e15529174d366a0",
+    "symbols/CMG.csv": "8f707eb760866de56df3cb82e59d68b321b1d695e87ed1ae45087378730dad62",
+    "symbols/CTD.csv": "f67fdcf2170d3e38dbc21d8aef30c95248fec9869a5e5ad0f6d7e6c98487b1e3",
+    "symbols/CTG.csv": "6e33200eac0e31c1b4132e4e1763638ba15e5d1c4fedaaacf521c81d00c2bead",
+    "symbols/CTR.csv": "c36c1be864a643156cd6d103e26295dcda2adc8ebb3f458b429121759d6079c2",
+    "symbols/CTS.csv": "9be897f19c16a8c64fa245d9dac3bb1287d6f838f10c642d67dc648048243f28",
+    "symbols/DBC.csv": "8b9b5581615e63cb5fc4c3508817ae7a11470557b885c716a5f39dd529fcfc89",
+    "symbols/DCM.csv": "ffd20abdad4baa3daab5d0828f5e09cecb28cfd9f57a74dbe14b7ff75703422b",
+    "symbols/DDV.csv": "1a6e6b498935d532af1dc465d6f817ce0c2a076e3c8a53aafa1e78669af92b88",
+    "symbols/DGW.csv": "a3672be759be5d42d6e3cad6c0134046e7dd02449b115489cd763fb409fa6f3b",
+    "symbols/DIG.csv": "c610c72201c00731f26331277f6b01501ca68bf75ab469494d88d5a7a19e8d52",
+    "symbols/DP3.csv": "da16f11fe538d745c1e14e2c1d222b372ace906966731c1421beb6226866fb94",
+    "symbols/DPM.csv": "47304b73db207da8329585d9c2ab38ae2ca60a2e624f08182777f40bd4358165",
+    "symbols/DSE.csv": "0383d6f20d37b8db833d210bd6528124ddc898121f609ffe8912958873c24caf",
+    "symbols/DTD.csv": "34bcb7ea872ef5bfe4715b850ad854282d7c35b10a305c8675dd2cab8dda0378",
+    "symbols/DVM.csv": "a8cdf53bbfcc990665a0fa849b3196912da6e70e8c3c7fcb74446b0b4cc0743c",
+    "symbols/DXG.csv": "9ca7d89d9ee917e9acd16955d1104aeb81c50fe86e3a004f8b4b2359514de925",
+    "symbols/DXP.csv": "35da5706df1058dbfb067687206300dd85060d2d9ecced23bfdd60e0af4c8dba",
+    "symbols/EIB.csv": "ab78fb96d4b94c4cdd69d89eb88ed04a7e7026911524f743651f0dd435b66fd8",
+    "symbols/EVF.csv": "da7b0e97d9df5d477235ed526edff0926d973557f2e5dd3c951784e73d09cf2e",
+    "symbols/FOX.csv": "099e47fe0a3d0c3b7e658aea4ac467ccc119cf5de986f7b0cf0bb7a3133797ab",
+    "symbols/FPT.csv": "45b887c23751a79b9b47de4b47623d072f841d14eb3f62b61580c6c3d51fb81f",
+    "symbols/FRT.csv": "293631236fede89cccbe002bbb848fa28418e7715adf7f7fc6f8b21f45d91eb6",
+    "symbols/FTS.csv": "fe0d071ca9244ba155791cb031c7fa970427ee38f9fdbb78058e8688e62c9338",
+    "symbols/GAS.csv": "57f1a4420b15035c838153717bc87cd1c0e632ad0a3caaffdf46228114aa6997",
+    "symbols/GEE.csv": "5f7a3c1390c36be863bb729985e7569d5e4ec4eb4fafe245c3f023b381356fac",
+    "symbols/GEX.csv": "6fd724ef86181baf21e075b2c99a7a0088cf0cf5f1a2eddba9bfde0c2d3af594",
+    "symbols/GMD.csv": "92df5e9180b714835abf826f8b5c19488ee187e0fe1192acb2180c32f46c8f5e",
+    "symbols/GVR.csv": "eff9b95aafc488acb881ce133adfcf6be5a238a66c8fe3933101f1d4ccae9831",
+    "symbols/HAG.csv": "e2be5f8282035e6ae88162bc401428709f029f9e76296aeea4841683b209cdc7",
+    "symbols/HBC.csv": "943aab29785a08575f68c23a6d767c290b4293464b25b995821abdb16e068399",
+    "symbols/HCM.csv": "18020119c6ceb1328854c09f3dbc55c5bd4d37925bf581c647d8af6ddf3a27a8",
+    "symbols/HDB.csv": "234b482a05c88128d84c32c5e5d4634d4b0f62ff70d446771792570507dbb117",
+    "symbols/HDG.csv": "f5a486772c67b0eb5ff57e51f661a8e83f24f56d6070f1b587d6510d3db1ea19",
+    "symbols/HHV.csv": "00f73a8ef9bafd26b55e694cd3fbfeb49cf17093f3d2c5aa6bd656f01f31cb29",
+    "symbols/HNG.csv": "efdb617d7b846533f453bfe227120f200c36a6ba0b8e9ae12cb0acb5f1e96711",
+    "symbols/HPG.csv": "78d900b4f5ea9f5879e25a89988ee89e44b739f70892b0bb4a9bd4752e2d184c",
+    "symbols/HSG.csv": "7e5e7937b85e4bda8bfc4960dd335714816739095fd891ea9a69c770e856ea09",
+    "symbols/HT1.csv": "3ad15177565668cca2c18dab8b7b80cdb3a4430a793ced997d625c5fb422d7f6",
+    "symbols/HUT.csv": "d438962ba4c94213e16b6eace7c5c6bbe57852aabacc24016d6ec91082932402",
+    "symbols/IDC.csv": "3da3b9806e4555ab812dc29b68c42dfaf7d882467df0b73bd36155677bc3b9f8",
+    "symbols/IDV.csv": "735c94ec4b6057e3dd62473badc213f0460f93f8741dd6da5828bd7f7bb64499",
+    "symbols/KBC.csv": "43c00fc3ce0a9ebcd1701d2c9610b205e5a9a2560b864a3e4c00609d03883383",
+    "symbols/KDC.csv": "80c86cec1dbaf4b01b43e9131c6835b188743459c0320135f1e68768ca76989d",
+    "symbols/KDH.csv": "93d05720e31ea1992c70ee82c3c953e49e8f6b52e8dbe428ef98db98aa8b420f",
+    "symbols/KOS.csv": "78588d92a46a712567b544cedbed3c018296b0d5f662f84815208a995a06b6b8",
+    "symbols/L14.csv": "4cbed1f2d730314b4c77be3fa5c011bd7c6cb700a0610d07c8072fd5929d23ed",
+    "symbols/L18.csv": "252585f9d7de87a7c198a6ce27d2612a2d7a3a4f7e68cdac6c8917ac636ee035",
+    "symbols/LAS.csv": "2cda3e776216e2a9df7e25f12bbe400b4db27bc756d18c37e508ea8597ebe71d",
+    "symbols/LHC.csv": "ed3cf2f037d0fc2b391292257adc164b05a34a87f97c772914c82211f1cd5a41",
+    "symbols/LPB.csv": "86939321ee5806bbbf698ee902e5f2d56148ad249f884a36f454747630a63e82",
+    "symbols/LTG.csv": "a07e2abfc17315f2de46268e744064c9045e00533fd65e4a96d30bc8afc5861d",
+    "symbols/MBB.csv": "55b3313e1c70cc436e9e3350ef3fda71668fa5fc231a31ba80e17df508fc4c86",
+    "symbols/MBS.csv": "78d7b04ad98b1c51d004cbff62ebe39e30caf9f009423fc6fe374bd0d4ce08cc",
+    "symbols/MCH.csv": "96ca07a968f5aa5126eeb69670c5eb7afd29dac3677c4e191c11b373e94dff3a",
+    "symbols/MFS.csv": "1d78a7c97410147fa6c472e782e9084aba64f4108fc46190965c615b342608e2",
+    "symbols/MPC.csv": "6c53776dc05cb6a1ae09dacca3bb4b363bcc1f92f58187fb4085c5552b867cc5",
+    "symbols/MSB.csv": "aebeee4ac3293ad22c61106cf141453f34fcf6c84fb1a7999bde01eafbcbf33c",
+    "symbols/MSN.csv": "6d39522fba3911e601c571a5e7e7c7d0ddb23554c4b6e0e11e75bcee703b39fa",
+    "symbols/MSR.csv": "09e283baf32f89f7d31def7d032967a1d290ed32fc64f8099df79716c123035a",
+    "symbols/MWG.csv": "6be03779e16d2d0d2024a06bd6e0fcd54967f03abb288c889171b16ca3f8be1b",
+    "symbols/NAB.csv": "48064ef450d26752a0321d97cebef171d92908ee0fc0a1c3334a622a3063739e",
+    "symbols/NDN.csv": "7e32b02025c9194a1ae2548e223d17ca6c79ade51acf2634015f7d796353253b",
+    "symbols/NKG.csv": "642dc3475ed6c240295b9e3e828e864df02b63d0fbc9e9c337eaee4349922a4c",
+    "symbols/NLG.csv": "4e9516dcf7966573d531e29e8c2bd8343656285afd40335c04b8fe58b2d46ef3",
+    "symbols/NT2.csv": "e71185a8256eb12740b809311f94098620b7af3d8d617d05e9bf478472507212",
+    "symbols/NTP.csv": "1b691d17c10b7acdddbd03bd32dd9e6d45efc57b7e5c96a6603528b69a86a067",
+    "symbols/NVL.csv": "7cf56c726fc34ffdb55ca3fd29c20d84118d89f5cd4881d84e7e8c74eec46ced",
+    "symbols/OCB.csv": "1cd757e94a60ce8f8f979c64c07eed00f790c17dcaae8c32c722186fa76459ff",
+    "symbols/OIL.csv": "c3b20c8618173f6c0bde0f59e5796779bdf812469fb1db4b661bfc494d5ca194",
+    "symbols/PAN.csv": "e25ed8ba59cc5f78e597704bb04ff3ac83b1337cf61f72f5a7f5dc1374c7da20",
+    "symbols/PAT.csv": "02926757332cb6c24fc1db49f6a483b0cc936525ff19533bc199673643abbbe7",
+    "symbols/PC1.csv": "8b406008dda3bb5613fd9ebacc89bfdd562206358d413ce3e2ecaa85c6274322",
+    "symbols/PDR.csv": "92ba8b14d620f357186bcd0644ef6568f4a9d1581ee358d09478ec803dc2fab0",
+    "symbols/PHR.csv": "de574842bd540e3227157d9945d70f74cd040e17ae0f6edea08e1a9d72205c51",
+    "symbols/PLC.csv": "1cec5bbb869530d54cacb5caf5b79c95b3bc1cd8bf5aa575a94a7335ea11b75d",
+    "symbols/PLX.csv": "037ae7a8db168424b1e8bc118af31d7abf4c691f1d59854f53bf1b80864e9052",
+    "symbols/PNJ.csv": "226062015d304ad48824104ccbb4cc35020faa638017dab29f0c0423781af105",
+    "symbols/POW.csv": "77dc7d8898a83514bb2c5495b7d297e3b59b04a66283becb3ee5d5dbfa6c4c7b",
+    "symbols/PSD.csv": "a8de327325ef01c3640456fdf911eb1b605a3940e7d990a32af7aa3ced461907",
+    "symbols/PVB.csv": "b8c2ab6fa8c6751c15c01a2a77395eddd33027c2209f0e961816933e75870d99",
+    "symbols/PVC.csv": "83367b348314b7fbacb645db30d85e08a8a7dccef3d97adfad3afc7197181fec",
+    "symbols/PVD.csv": "1488cf443dad274ff471e7716768f4ad766484319998b1c62e6a43e8172f5ebd",
+    "symbols/PVS.csv": "f13dd872a16fee6873814f2a9d32de4d40184bb47310de8cece159e48f584b6e",
+    "symbols/PVT.csv": "30c5cc3e48a18681f09debfa5f4018da61a082205ece6c22b330580fdffcd485",
+    "symbols/QNS.csv": "943e011d551ccba839fc277f75fc52b2ffa91a0e1cd36c0f571932193978eac0",
+    "symbols/REE.csv": "0b90820e9dec003c6c1b23651880782d3a920729c88b25d6b312dc689ceedc66",
+    "symbols/SAB.csv": "05adc0196ef1cd4ee9dd764859954e86b3ade0323ef7e3afe6c6f14cf63f3f17",
+    "symbols/SBT.csv": "d5dd39e8083b2071d1c2105369af7ffbf60fa2cc40cffdea15437a290f2e3353",
+    "symbols/SGP.csv": "9203ed77ba930ace0ed80f079bd15764cdc9b177ac7682aa0e3afb19999e68e6",
+    "symbols/SHB.csv": "8481448902871738bb67846e073f6edadabe3973036d299955a33186ff406676",
+    "symbols/SHS.csv": "25b8646765d0bb7061ef05343baf36bee5612dd13f2fcf7e20d2cea0792a741c",
+    "symbols/SIP.csv": "e139b1c20c04b4967674b39b112b7325fba30bbbfac1ab75bcb840c4d65ae810",
+    "symbols/SJS.csv": "e0ba65cf82bd5bc55ce88be67c085d989c7618a5974ca475ef51683b6c281592",
+    "symbols/SLS.csv": "f7f5b9b93c4f64dc3f9641a3db44b5efdde81fe2fae86406d4c73d7f19204032",
+    "symbols/SSB.csv": "6ed167abea688afe5ff99c51e1729c05961adbaf94f40d3f96de9c8190263879",
+    "symbols/SSI.csv": "b868cbf185640f635ed34658aa2bc30511f105c52aaa2cd5eeb42b9c0275400c",
+    "symbols/STB.csv": "ed2c1dba28a2071f09fb4d34696bd0edb63c04beae459ba82cb5fb143c1e5f62",
+    "symbols/TAL.csv": "8772ed34e13f88ec5ddacb068db6177381bfceb12c0f9de96ff660298e5508d3",
+    "symbols/TCB.csv": "92627d12c2dca0a73078c92fc9706186fc66f951ef8cca3b2dace60938a97b92",
+    "symbols/TCH.csv": "7d26b4216812d4188128905b57866e93eda88921f5bc9b3b3e805a4a66aadc51",
+    "symbols/TCX.csv": "5bac168f0ded161a098851d492465195dce6f7e60e03b224441eab1b4088d9ac",
+    "symbols/TMB.csv": "5cb9486ed8c74689bf51be7071a9a730f920435cc97746032ecb06b6a9376580",
+    "symbols/TNG.csv": "b7b43b6a3cfde243a673fdb4aa03e0018d294336fd7d4f05a745ca7d1414a3f5",
+    "symbols/TPB.csv": "ee6fc83175bd4d9541698383997ba82fc09ba2ca89e095d252c793082941d5d9",
+    "symbols/TVD.csv": "d2d7e05814763345d9327751062fc03134c1d71a360874ecc6d2cb53bcde77a8",
+    "symbols/VC3.csv": "be420b9b9c04916349d448bb1469ab5926f6e9d7d5be466eb94d82b80383e314",
+    "symbols/VCB.csv": "119824012a282b156aa475ca55587329619124bcd43a73e09a3aab231613394c",
+    "symbols/VCG.csv": "ecb03f71bb39aaab4f83b4b26e02a2769c60e711b331306bd8e0398559b3e0ec",
+    "symbols/VCI.csv": "be43ce038b02d0c50a13c217e882de3afcd160925a3869ef58ec188ab117fd25",
+    "symbols/VCK.csv": "77650636fcac0dc9397d5f8630a05fcc7c04efab13ebc4fd196418feb0ba7b1b",
+    "symbols/VCS.csv": "43f19d79e2f82c7a9079bd5cb7c1625c1ed9ff82a49b11dd8a30cb9ae891c1ca",
+    "symbols/VEA.csv": "ab26ec115fafd467625c3fa7c59f16bbc6c678ad8d700b95b3e40e95bf095a62",
+    "symbols/VEF.csv": "005f2ac0201147ff0c688aeb31e290b696878916176cb0b79f269ea8c9ecfaac",
+    "symbols/VFS.csv": "6dd152971598fa0e60fb9e904d411857da5d410d87683b595026b72e259bbdc5",
+    "symbols/VGC.csv": "a34ea95d6ed1ba522e3be9b98e81d6991d3bb9be8ee35073bc2e257a186667a8",
+    "symbols/VGI.csv": "a42890ccffba396269b770d204b6ef6f0ccb3920f937701e1782b23f643b4a06",
+    "symbols/VGT.csv": "d63123553b3c888c94ef16f4f5c5a428b09fdb30db8917ae537d1e9e2e6b90b5",
+    "symbols/VHC.csv": "d1fc33a542821ef32c1eb9f59a7192b71c6f23f553c9483f4f289e900ed8942e",
+    "symbols/VHM.csv": "a347a6659598461d0929b36748ac58e09c7cb9ec1875e775b4ff0c3966a2a453",
+    "symbols/VIB.csv": "02956dd5734a924519bbc5062bfc370c3ab086964c72be72d8efc2b7e6c43af5",
+    "symbols/VIC.csv": "1f33445c11dcb3cd47c94b741ace0d54e934e23711f4fa342ad3baf6bab00a07",
+    "symbols/VIX.csv": "60ad5bac0f5815ef08d51e8d874daceabb8d36ba7c37ca7f7f011e775aac36bf",
+    "symbols/VJC.csv": "7f3eb8063ee9748cd6707e4060c561d46670c81123c1a060c681930f1cd4c5df",
+    "symbols/VND.csv": "ffee018ad0a6326e4aa2a6c259761e8c9227724c451a86c6c0f844de1559969b",
+    "symbols/VNM.csv": "80b8cb748bf215092fdd9a4764c4ef8307c6ce824e85625f4017cf110b9ef78e",
+    "symbols/VPB.csv": "4864fbdd00b8bc5cdf3887e35d9098752d50088cc795b323015c0809744cbbc9",
+    "symbols/VPI.csv": "e51e03d1f254fd8b53c8d685456db96231c16982cc6d37ed653b8a35d6e355f4",
+    "symbols/VPL.csv": "be873f8155550669689ce5c3bc0e477aa83aeff43838e38dd2e969e19ac19cdf",
+    "symbols/VPX.csv": "228b06b81483a7c630c9ab38ed22228838d49f130849a42217d6b530398b6620",
+    "symbols/VRE.csv": "7045ba08fa347976c562152c3ffa8d8f8895d15f6b533d77fb51097a713d29b1",
+    "symbols/VSC.csv": "9345cc5fd1117028a3cb849efb6778dee9dd33e013f6e1b5a5abf5795580aa5e",
+    "symbols/VTP.csv": "1ad797ed4cee98ec5193603c4295e069f253629add43cefcb27aacd1da5f4da2"
+  }
+}

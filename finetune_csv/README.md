@@ -1,5 +1,15 @@
 # Kronos Fine-tuning on Custom CSV Datasets
 
+## Dataset Implementations
+
+- `legacy_dataset.py` preserves the M0 `CustomKlineDataset` behavior so the
+  frozen baseline remains reproducible.
+- `strict_dataset.py` is the only dataset implementation for new research. It
+  reads segmented curated data, rejects invalid values, never imputes them, and
+  uses the shared lookback-only normalization in `data_pipeline/transforms.py`.
+
+Do not use the legacy loader for new model comparisons.
+
 This module provides a comprehensive pipeline for fine-tuning Kronos models on your own CSV-formatted financial data. It supports both sequential training (tokenizer followed by predictor) and individual component training, with full distributed training capabilities.
 
 
@@ -14,9 +24,12 @@ Your CSV file must contain the following columns:
 - `low`: Lowest price  
 - `close`: Closing price
 - `volume`: Trading volume
-- `amount`: Trading amount
+- `amount`: Provider turnover when available, otherwise a provenance-marked
+  Kronos compatibility proxy
 
-(volume and amount can be 0 if not available)
+In `vn150_strict_v2`, `amount` is `volume * mean(open, high, low, close)` because
+the KBS snapshot has no turnover column. It is not an independent feature and
+must not be described as provider-reported traded value.
 
 ### Sample Data Format
 

@@ -40,7 +40,8 @@ Q/V LoRA rank 8 are baselines or candidates. They are not proven optima.
 2. Use temporal or nested walk-forward validation; never random time-series
    splits.
 3. Keep windows inside one security.
-4. Use point-in-time universe and preprocessing information.
+4. Use point-in-time preprocessing information. Treat the fixed VN150 M1
+   population as a conditional benchmark, not an unbiased historical universe.
 5. Do not modify `model/kronos.py` or `model/module.py` unless explicitly
    instructed.
 6. Do not add prediction heads or new loss families by default.
@@ -59,10 +60,9 @@ without a reviewed experiment plan.
 - Freeze the pretrained tokenizer for the first small-model experiments.
 - Compare LoRA target modules at equal trainable-parameter budget.
 - Gate full fine-tuning behind evidence that broad LoRA is underfitting.
-- Expand data through dynamic point-in-time universes at 50, 150, and 300
-  symbols; do not backfill today's constituents through history.
-- Treat `L in {40, 63, 126, 252}` and `H in {3, 5, 10, 20}` as a sequential
-  research grid, not a full expensive Cartesian sweep.
+- Build the approved fixed VN150 strict dataset before model work. Dynamic
+  point-in-time universe reconstruction is deferred.
+- Compare only `L in {63, 126}` at `H=5` in the next research step.
 
 ## Data Contract
 
@@ -76,9 +76,16 @@ timestamps,open,close,high,low,volume,amount
 
 Model feature order is `[open, high, low, close, volume, amount]`.
 
-Do not zero-fill or forward-fill pre-listing history. Distinguish pre-listing,
-provider missing, no-trade, suspended/restricted, and valid sessions. Preserve
-delisted and transferred securities to control survivorship bias.
+For `vn150_strict_v2`, prices are retained in KBS thousand-VND units and
+corporate-action adjustment semantics are unverified. `amount` is exactly the
+`volume * OHLC4` Kronos compatibility proxy, not provider turnover. Large
+overnight jumps are audited but never rewritten or used to split data without
+point-in-time reference-price or corporate-action evidence.
+
+Do not zero-fill or forward-fill missing history. M1 uses `valid`,
+`unavailable`, and implicit `pre_history`; every unavailable exchange session
+splits the sequence. Historical identity and detailed status reconstruction are
+deferred.
 
 ## Evaluation Contract
 
@@ -107,8 +114,10 @@ coverage/width. The current paired t-test output is diagnostic, not canonical.
 - The former fine-tuned v2 result has mismatched date coverage and is
   noncanonical.
 - Do not claim fine-tuning improvement from the mixed-coverage report.
-- M1 data/universe foundation is active, followed by the research
-  evaluation harness and small-model adaptation.
+- M1.1 data readiness is conditionally complete: there is no structural blocker
+  for M2 evaluation, while price-adjustment semantics and the derived amount
+  proxy remain explicit limitations. M2 origin-registry work follows; training
+  does not.
 
 ## Commands
 

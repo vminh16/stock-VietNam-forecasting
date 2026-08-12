@@ -26,7 +26,7 @@ If the task touches frontend design, also use `vn-finance-frontend-taste` and th
 - Treat the current repo as a baseline first, not a blank slate.
 - Do not change Kronos architecture, add prediction heads, or add new losses unless explicitly requested.
 - Keep Trend and Risk as business logic over forecast outputs, not as model heads.
-- Preserve daily data, point-in-time processing, temporal validation, and no random split.
+- Preserve daily data, point-in-time preprocessing, temporal validation, and no random split.
 - Treat lookback 126 and horizon 5 as incumbents. Use the candidate grid and
   sequential selection protocol in `SPEC.md` when research changes them.
 - Keep Kronos-base as the zero-shot reference and use Kronos-small as the
@@ -56,7 +56,7 @@ sits outside the active milestone numbering.
 
 1. Milestone 0: freeze the zero-shot reference; archive mismatched fine-tuned
    artifacts as noncanonical.
-2. Milestone 1: point-in-time data and dynamic-universe foundation.
+2. Milestone 1: fixed VN150 raw snapshot and strict segmented data foundation.
 3. Milestone 2: focused research evaluation harness and small/base diagnostics.
 4. Milestone 3: Kronos-small objective-alignment and matched-budget LoRA study.
 5. Milestone 4: Kronos Path Viewer for forecast paths and uncertainty.

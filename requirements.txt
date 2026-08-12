@@ -11,4 +11,5 @@ scipy
 tqdm==4.67.1
 safetensors==0.6.2
 peft
+vnstock==4.0.4
 

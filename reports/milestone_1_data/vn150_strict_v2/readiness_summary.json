@@ -1,0 +1,34 @@
+{
+  "dataset_id": "vn150_strict_v2",
+  "policy_version": "strict_v2",
+  "status": "CONDITIONAL",
+  "blocking_findings": [],
+  "conditional_findings": [
+    "unverified_provider_history",
+    "derived_ohlc4_compatibility_proxy"
+  ],
+  "symbols": 150,
+  "rows": 278303,
+  "segments": 1594,
+  "continuity_candidates": 19,
+  "price_adjustment_status": "unverified_provider_history",
+  "amount_policy": "derived_ohlc4_compatibility_proxy",
+  "normalization": [
+    {
+      "lookback": 63,
+      "sampled_nonoverlap_windows": 4115,
+      "clipped_values": 1038,
+      "normalization_values": 1555470,
+      "constant_feature_windows": 0,
+      "clip_rate": 0.0006673224170186503
+    },
+    {
+      "lookback": 126,
+      "sampled_nonoverlap_windows": 1943,
+      "clipped_values": 1383,
+      "normalization_values": 1468908,
+      "constant_feature_windows": 0,
+      "clip_rate": 0.0009415157382218627
+    }
+  ]
+}

@@ -32,28 +32,33 @@ Verify:
 - No mixed-coverage delta is presented as model improvement.
 - `DA >= 52` is described as a utility floor, not significance.
 
-## M1: Point-In-Time Data And Universe
+## M1: Fixed VN150 Data Foundation
 
-**Status:** Active.
+**Status:** Complete.
 
 Goal: make the training population scientifically valid before retraining.
 
 Deliverables:
 
-- Stable security identity and listing/status intervals.
-- Ragged-history handling with no pre-listing fills.
-- Dynamic monthly universe builder.
-- Data-quality and scale reports for 50, 150, and 300 symbols.
+- Fixed 150-symbol universe contract.
+- Immutable raw symbol and index-calendar snapshot.
+- Strict segmented data with no missing-value repair.
+- Data-quality report for `L={63,126}`, `H=5`.
 - Valid-window index that never crosses symbols or invalid gaps.
 
 Verify:
 
-- Historical membership is reproducible at any cutoff.
-- Delisted/transferred securities are retained.
-- Training origins use only information known at that date.
+- Snapshot and curated hashes reproduce.
+- The fixed-universe survivorship limitation is explicit.
+- No model window crosses a symbol or unavailable segment.
+- The published manifest contains hashes for 153 raw and 154 curated artifacts.
 - Raw sliding windows are not reported as independent sample size.
 
 ## M2: Research Evaluation Harness
+
+**Next unit:** M2.1 temporal common-origin registry only. Do not implement model
+runner, probabilistic metrics, bootstrap, and benchmark execution in the same
+work package.
 
 Goal: compare candidates without leakage or metric sprawl.
 

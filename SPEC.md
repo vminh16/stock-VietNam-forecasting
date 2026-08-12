@@ -1,10 +1,10 @@
 # SPEC - Vietnam Stock Market Radar with Kronos
 
-> **Version:** 2.1
+> **Version:** 2.3
 >
-> **Date:** 2026-07-26
+> **Date:** 2026-08-12
 >
-> **Status:** M0 zero-shot baseline frozen; M1 data and universe foundation active
+> **Status:** M1.1 data readiness closed conditionally; M2 evaluation registry next
 >
 > **Authority:** Source of truth for product, data, model, evaluation, and delivery decisions
 
@@ -85,9 +85,10 @@ the output as a buy/sell instruction.
    forbidden.
 3. **No cross-symbol windows.** A training or evaluation sequence belongs to
    exactly one security.
-4. **Point-in-time information only.** Universe membership, listing status,
-   liquidity, normalization, and preprocessing must use information known at
-   the forecast origin.
+4. **Point-in-time preprocessing only.** Normalization and preprocessing must
+   use information known at the forecast origin. M1 uses an explicitly
+   conditional fixed-universe benchmark; it MUST NOT be presented as an
+   unbiased historical whole-market backtest.
 5. **Kronos architecture remains frozen.** Do not modify `model/kronos.py` or
    `model/module.py`, add neural output heads, or change model topology without
    explicit user approval and a new research design.
@@ -119,7 +120,8 @@ Known quality findings:
 - at least one duplicate date exists in the current panel;
 - aggregate missing-rate statistics hide symbol-local corruption.
 
-The 50-symbol dataset is a frozen baseline, not the target universe.
+The 50-symbol dataset is a frozen baseline, not the target universe. M1 expands
+the development benchmark to a fixed set of 150 symbols selected on 2026-08-09.
 
 ### 3.2 Baseline Model Evidence
 
@@ -154,10 +156,12 @@ test and does not replace a confidence interval.
 
 ### 4.1 Source And Frequency
 
-The default source remains `vnstock`, with daily OHLCV and traded amount. Raw
-provider payloads SHOULD be retained before transformation. If `amount` is not
-provided, a derived estimate MAY be stored with an explicit provenance flag;
-it must not be indistinguishable from provider-reported turnover.
+The default source remains `vnstock`, with daily OHLCV and provider-reported
+turnover when available. Raw provider payloads SHOULD be retained before
+transformation. The M1 KBS snapshot has no turnover column, so `amount` is the
+deterministic compatibility proxy `volume * mean(OHLC)`, explicitly marked
+`derived_ohlc4`. It MUST NOT be described as provider-reported turnover or as
+an independent liquidity feature.
 
 Canonical model features are:
 
@@ -168,36 +172,34 @@ open, high, low, close, volume, amount
 Timestamps MUST map to the official exchange trading calendar. A fixed intraday
 time may be attached for model compatibility, but it has no economic meaning.
 
-### 4.2 Security Identity
+KBS price values are retained in thousand-VND units. The retained provider
+payload does not carry a machine-readable corporate-action adjustment guarantee.
+The strict pipeline therefore MUST NOT guess adjustment factors or rewrite
+historical OHLC. Transitions with absolute close-to-next-open return above 17%
+are audit candidates only; they do not automatically split a segment.
 
-Ticker alone is not a stable primary key. The curated layer SHOULD use a stable
-security identifier and effective date ranges. It MUST preserve:
+### 4.2 Benchmark Identity
 
-- listing and delisting dates;
-- exchange transfers;
-- symbol changes;
-- security type;
-- trading status;
-- `effective_at` and, where available, `known_at` timestamps.
-
-Delisted and transferred securities MUST NOT be silently removed from history.
+M1 uses a minimal committed mapping of `security_id`, `symbol`, `exchange`, and
+`included_as_of`. `security_id` is `<exchange>_<symbol>`. Historical symbol and
+exchange event graphs are deferred. Any ambiguous transfer or identity gap is
+excluded from valid model windows rather than repaired.
 
 ### 4.3 Ragged Histories
 
-Pre-listing time is absence of a security, not a zero-price observation. The
-pipeline MUST distinguish at least:
+Pre-listing time is absence of a security, not a zero-price observation. The M1
+strict pipeline distinguishes:
 
 ```text
-pre_listing
-provider_missing
-listed_no_trade
-suspended_or_restricted
-valid_bar
+valid
+unavailable
+pre_history (implicit; no row is materialized)
 ```
 
-Do not zero-fill or forward-fill `pre_listing` periods. Forward-filling a real
-no-trade session is permitted only when the status is known and the treatment
-is recorded. Provider gaps SHOULD invalidate affected windows by default.
+`unavailable` includes missing exchange sessions, invalid OHLC, zero-trade
+observations, conflicting duplicates, and gaps whose cause is unknown. Do not
+zero-fill, forward-fill, or backward-fill them. Every unavailable observation
+splits the contiguous sequence.
 
 For valid contiguous segments of length `ell_is`, symbol `i` contributes:
 
@@ -205,27 +207,17 @@ For valid contiguous segments of length `ell_is`, symbol `i` contributes:
 N_i(L,H)=\sum_s \max(0,\ell_{is}-L-H+1).
 \]
 
-### 4.4 Point-In-Time Universe
+### 4.4 Fixed VN150 Benchmark
 
-At cutoff `c`, an eligible top-K universe is:
+M1 freezes exactly 150 symbols in `data_pipeline/universe_150.csv`: the current
+VN100 constituents, current HNX30 constituents, and 20 reviewed UPCoM stocks as
+returned by `vnstock 4.0.4` on 2026-08-09. The composition is a reproducible
+development population, not a historical membership reconstruction.
 
-\[
-U_c^K=\operatorname{TopK}_{Liq_{i,c}}
-\{i: listing_i\le c<delisting_i,\ history_{i,c}\ge M,
-status_{i,c}=eligible\}.
-\]
-
-Initial research candidates:
-
-- common shares on HOSE, HNX, and eligible UPCoM securities;
-- monthly universe refresh;
-- minimum history `M=252` sessions, with `M=504` as sensitivity analysis;
-- at least 90% positive-turnover sessions in the trailing 63 sessions;
-- liquidity rank derived from trailing data only.
-
-The current recommendation is **dynamic top 300 for training** and **dynamic
-top 150 for primary evaluation**, but this is a research candidate. It is
-accepted only if the learning curve supports it.
+This benchmark MAY support matched comparisons between models on identical
+symbols and origins. It MUST NOT support claims that rely on survivorship-free
+market membership. Dynamic point-in-time reconstruction, delisted securities,
+and historical symbol changes are deferred until such claims are required.
 
 ### 4.5 Dataset Scale And Learning Curve
 
@@ -242,23 +234,9 @@ conservative non-overlap planning proxy near 377; it is not an ESS estimate.
 Actual ESS MUST be estimated from score, loss, label, or gradient-proxy
 autocorrelation and cross-sectional dependence.
 
-Run nested point-in-time learning curves at:
-
-```text
-K = 50, 150, 300
-```
-
-An optional `all eligible` arm may be added only after 300. The x-axis MUST use
-valid transitions, symbol-months, and non-overlap blocks, not raw window count.
-Fit a descriptive transfer curve:
-
-\[
-\mathcal L(N)=\mathcal L_\infty+aN^{-\alpha}.
-\]
-
-More data is preferred only when it is point-in-time valid, sufficiently liquid,
-and improves the fixed target universe. Adding low-quality or distributionally
-distant symbols can create negative transfer.
+M1 reports valid bars, contiguous segments, and available windows for the fixed
+150-symbol benchmark. Raw window count remains a dependent-observation count,
+not an effective sample size.
 
 ### 4.6 Sampling
 
@@ -371,16 +349,15 @@ optimum.
 
 ### 6.2 Candidate Grid
 
-The pre-registered research grid is:
+The next pre-registered comparison is:
 
 ```text
-Lookback L: 40, 63, 126, 252
-Horizon H: 3, 5, 10, 20
-Boundary diagnostics: L=512 and h=1
+Lookback L: 63, 126
+Horizon H: 5
 ```
 
-Prior expectation is `L=63-126`, `H=5-10`. This prior must not influence final
-test interpretation.
+`L=63` is the cheaper candidate and `L=126` is the incumbent. Neither is the
+selected winner until evaluated on identical temporal folds.
 
 ### 6.3 Statistical Trade-Off
 
@@ -715,7 +692,8 @@ versioned artifacts. Research failure is a valid exit when it is documented.
 | Milestone | Status | Depends on | Exit artifact |
 |---|---|---|---|
 | M0 Baseline Reference | **Complete** | Context harness | `manifest.json` and zero-shot freeze report |
-| M1 Data And Universe Foundation | **Active** | M0 | Point-in-time security master, universe snapshots, data-quality report |
+| M1 Data And Universe Foundation | **Complete** | M0 | Fixed VN150 snapshot, strict curated data, manifest, data-quality report |
+| M1.1 Data Readiness Closure | **Conditional complete** | M1 | `vn150_strict_v2` readiness report and preprocessing contract |
 | M2 Research Evaluation Harness | Planned | M1 | Versioned folds, common-origin evaluation, block-bootstrap report |
 | M3 Small-Model Adaptation | Planned | M2 | Experiment ledger and promoted model or documented no-improvement result |
 | M4 Kronos Path Viewer | Planned | Stable M2 artifact schema | Reproducible cached path visualization |
@@ -736,11 +714,26 @@ traceable. No claim is made that the baseline is useful.
 
 ### M1 - Data And Universe Foundation
 
-Build the point-in-time security master, ragged-history validation, dynamic
-universe, and dataset audit. Produce 50/150/300 scale estimates before training.
+Build an immutable VN150 raw snapshot, index-derived exchange calendars, strict
+segmented curated data, and a dataset audit. Preserve the legacy M0 loader and
+artifacts separately.
 
-Success: no pre-listing fills, no cross-symbol windows, reproducible eligibility
-at any historical date, and explicit data-quality reports.
+Success: exactly 150 symbols are accounted for, no imputation or cross-segment
+windows exist, a repeated build reproduces hashes, and reports cover `63/5` and
+`126/5` before training.
+
+### M1.1 - Data Readiness Closure
+
+**Status:** Conditional complete. `vn150_strict_v2` has no structural blocker
+for M2 evaluation: no duplicate symbol-session keys, non-finite features,
+invalid curated OHLC, timestamp violations, or session gaps inside segments.
+Normalization is a shared lookback-only transform. Nineteen returns above 17%
+remain unchanged and are listed for review.
+
+The conditions are material: provider price adjustment semantics are unverified,
+and `amount` is a deterministic OHLC4 compatibility proxy. M2 zero-shot
+evaluation may proceed. M3 adaptation MUST preserve these limitations and must
+not claim corporate-action-adjusted training data without new source evidence.
 
 ### M2 - Research Evaluation Harness
 
@@ -806,7 +799,7 @@ semantic change does not.
 
 | Decision | Required evidence |
 |---|---|
-| Expand 50 to 150 or 300 | Improvement on fixed top-150 evaluation universe across at least 3/4 folds, including unseen symbols |
+| Accept VN150 data foundation | Complete snapshot, deterministic hashes, strict valid segments, and explicit survivorship limitation |
 | Select small over base | Small is inside pre-registered non-inferiority bound and materially cheaper |
 | Select LoRA module family | Matched-parameter ablation with paired date-block intervals |
 | Increase LoRA rank | Train and validation both improve; not train loss alone |
