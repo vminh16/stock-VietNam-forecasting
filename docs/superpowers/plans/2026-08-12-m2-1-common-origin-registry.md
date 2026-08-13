@@ -110,6 +110,7 @@ def test_config_rejects_a_fold_that_touches_lockbox(tmp_path):
         """
 dataset_id: vn150_strict_v2
 dataset_dir: data/curated/vn150_strict_v2
+dataset_manifest_path: reports/milestone_1_data/vn150_strict_v2/dataset_manifest.json
 universe_path: data_pipeline/universe_150.csv
 registry_path: data/evaluation/m2_1/common_origins.csv.gz
 report_dir: reports/milestone_2_research_eval/origin_registry
@@ -154,6 +155,7 @@ Expected: collection fails because `evaluation.research.origins` does not exist.
 schema_version: m2_1_origin_registry_v1
 dataset_id: vn150_strict_v2
 dataset_dir: data/curated/vn150_strict_v2
+dataset_manifest_path: reports/milestone_1_data/vn150_strict_v2/dataset_manifest.json
 universe_path: data_pipeline/universe_150.csv
 registry_path: data/evaluation/m2_1/common_origins.csv.gz
 report_dir: reports/milestone_2_research_eval/origin_registry

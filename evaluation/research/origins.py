@@ -47,6 +47,7 @@ class OriginRegistryConfig:
     schema_version: str
     dataset_id: str
     dataset_dir: Path
+    dataset_manifest_path: Path
     universe_path: Path
     registry_path: Path
     report_dir: Path
@@ -77,6 +78,7 @@ def load_origin_config(path):
         schema_version=str(raw["schema_version"]),
         dataset_id=str(raw["dataset_id"]),
         dataset_dir=Path(raw["dataset_dir"]),
+        dataset_manifest_path=Path(raw["dataset_manifest_path"]),
         universe_path=Path(raw["universe_path"]),
         registry_path=Path(raw["registry_path"]),
         report_dir=Path(raw["report_dir"]),
@@ -124,8 +126,7 @@ def dataset_fingerprint(manifest):
 
 
 def _load_dataset_inputs(config):
-    manifest_path = config.dataset_dir / "dataset_manifest.json"
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest = json.loads(config.dataset_manifest_path.read_text(encoding="utf-8"))
     if manifest["dataset_id"] != config.dataset_id:
         raise ValueError("Dataset ID does not match origin config")
 

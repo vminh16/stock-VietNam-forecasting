@@ -1,5 +1,7 @@
 import hashlib
 import json
+import subprocess
+import sys
 from dataclasses import replace
 from datetime import date
 from pathlib import Path
@@ -82,6 +84,7 @@ def registry_fixture(tmp_path):
         schema_version="m2_1_origin_registry_v1",
         dataset_id="fixture",
         dataset_dir=dataset_dir,
+        dataset_manifest_path=dataset_dir / "dataset_manifest.json",
         universe_path=universe_path,
         registry_path=tmp_path / "common_origins.csv.gz",
         report_dir=tmp_path / "report",
@@ -102,12 +105,19 @@ def registry_fixture(tmp_path):
 def registry_artifacts(registry_fixture, tmp_path):
     config = registry_fixture["config"]
     config_path = tmp_path / "origins.yaml"
+    _write_config(config, config_path)
+    build_registry_artifacts(config_path, command="pytest fixture")
+    return config.report_dir
+
+
+def _write_config(config, config_path):
     config_path.write_text(
         yaml.safe_dump(
             {
                 "schema_version": config.schema_version,
                 "dataset_id": config.dataset_id,
                 "dataset_dir": str(config.dataset_dir),
+                "dataset_manifest_path": str(config.dataset_manifest_path),
                 "universe_path": str(config.universe_path),
                 "registry_path": str(config.registry_path),
                 "report_dir": str(config.report_dir),
@@ -128,14 +138,16 @@ def registry_artifacts(registry_fixture, tmp_path):
         ),
         encoding="utf-8",
     )
-    build_registry_artifacts(config_path, command="pytest fixture")
-    return config.report_dir
+    return config_path
 
 
 def test_m2_1_config_locks_common_origin_contract():
     config = load_origin_config(Path("evaluation/configs/m2_1_origins.yaml"))
 
     assert config.dataset_id == "vn150_strict_v2"
+    assert config.dataset_manifest_path == Path(
+        "reports/milestone_1_data/vn150_strict_v2/dataset_manifest.json"
+    )
     assert config.lookbacks == (63, 126)
     assert config.horizon == 5
     assert config.minimum_cross_section == 10
@@ -155,6 +167,7 @@ def test_config_rejects_a_fold_that_touches_lockbox(tmp_path):
 schema_version: m2_1_origin_registry_v1
 dataset_id: vn150_strict_v2
 dataset_dir: data/curated/vn150_strict_v2
+dataset_manifest_path: reports/milestone_1_data/vn150_strict_v2/dataset_manifest.json
 universe_path: data_pipeline/universe_150.csv
 registry_path: data/evaluation/m2_1/common_origins.csv.gz
 report_dir: reports/milestone_2_research_eval/origin_registry
@@ -257,3 +270,25 @@ def test_summary_has_fold_and_registered_date_rows(registry_artifacts):
     assert set(summary["scope"]) == {"fold", "date"}
     assert set(summary.loc[summary.scope == "fold", "fold_id"]) == {"eval_2022"}
     assert summary.loc[summary.scope == "date", "symbol_count"].ge(10).all()
+
+
+def test_cli_runs_directly_from_repo_root(registry_fixture, tmp_path):
+    config_path = _write_config(
+        registry_fixture["config"], tmp_path / "cli_origins.yaml"
+    )
+    repo_root = Path(__file__).resolve().parents[1]
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "evaluation/build_origin_registry.py",
+            "--config",
+            str(config_path),
+        ],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert "SHA256:" in completed.stdout

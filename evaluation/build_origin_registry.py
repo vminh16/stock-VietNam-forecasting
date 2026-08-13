@@ -7,6 +7,10 @@ from pathlib import Path
 
 import pandas as pd
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 from data_pipeline.crawl import sha256_file
 from evaluation.research.origins import (
     build_common_origins,
@@ -117,7 +121,7 @@ def build_registry_artifacts(config_path, command=None):
         _render_report(config, origins, summary, registry_hash), encoding="utf-8"
     )
 
-    source_manifest_path = config.dataset_dir / "dataset_manifest.json"
+    source_manifest_path = config.dataset_manifest_path
     source_manifest = json.loads(source_manifest_path.read_text(encoding="utf-8"))
     if command is None:
         command = (
