@@ -54,6 +54,18 @@ of sampled values at `L=63` and 0.0942% at `L=126`; no sampled window has a
 constant feature. Status is `CONDITIONAL` because KBS corporate-action
 adjustment semantics remain unverified and `amount` is a deterministic proxy.
 
+M2.1 is complete. The canonical common-origin registry contains 133,937
+symbol-origins across 977 dates and 147 symbols for folds 2022-2025. Every row
+supports both `L=63` and `L=126` at `H=5` in one segment. The minimum daily
+cross-section is 128 symbols, no duplicate origin exists, and the last target
+is 2025-12-31. `TCX`, `VCK`, and `VPX` have no eligible origin because their
+short histories do not support the registered folds. The ignored registry is
+`data/evaluation/m2_1/common_origins.csv.gz`; its SHA256 is
+`dcd71d14c5016b721111172d6a2ff384122eb74d2cc9c27252d359857e6726c6`.
+Compact provenance is under
+`reports/milestone_2_research_eval/origin_registry/`. The 2026 lockbox remains
+closed.
+
 ## Research Direction
 
 - Daily data remains invariant.
@@ -94,11 +106,12 @@ CRPS and interval coverage/width before any model is promoted.
 
 1. Zero-shot reference: accepted.
 2. Fixed VN150 raw/curated foundation and readiness closure: conditional complete.
-3. M2.1 temporal common-origin registry: next.
-4. Kronos-small objective and LoRA study.
-5. Path Viewer.
-6. Ranking and risk radar.
-7. Daily operations, cache, and deployment.
+3. M2.1 temporal common-origin registry: complete.
+4. M2.2 deterministic smoke/screen views and causal naive references: next.
+5. Kronos-small objective and LoRA study.
+6. Path Viewer.
+7. Ranking and risk radar.
+8. Daily operations, cache, and deployment.
 
 ## Non-Negotiables
 

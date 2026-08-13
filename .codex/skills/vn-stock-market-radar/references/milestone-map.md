@@ -56,9 +56,16 @@ Verify:
 
 ## M2: Research Evaluation Harness
 
-**Next unit:** M2.1 temporal common-origin registry only. Do not implement model
-runner, probabilistic metrics, bootstrap, and benchmark execution in the same
-work package.
+**Status:** In progress. M2.1 common-origin registry is complete.
+
+**Completed unit:** M2.1 froze 133,937 origins over 977 dates and 147 symbols
+for 2022-2025. Every origin supports both `L={63,126}` at `H=5`; registry SHA256
+is `dcd71d14c5016b721111172d6a2ff384122eb74d2cc9c27252d359857e6726c6`.
+No 2026 target was opened.
+
+**Next unit:** M2.2 derives deterministic smoke/screen views and adds causal
+naive references only. Do not implement the Kronos runner, probabilistic
+metrics, bootstrap, and benchmark execution in the same work package.
 
 Goal: compare candidates without leakage or metric sprawl.
 

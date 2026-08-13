@@ -1,0 +1,55 @@
+{
+  "amount_policy": "derived_ohlc4_compatibility_proxy",
+  "artifact_hashes": {
+    "registry": "dcd71d14c5016b721111172d6a2ff384122eb74d2cc9c27252d359857e6726c6",
+    "registry_report.md": "dd40a6f948d7b1740eabfb8bfa162cab98a0bf2f945b47598858ebd9a081cd41",
+    "registry_summary.csv": "758f36c0c0ff5ef57efde364d995f4fb7f97a6b8fe74c3ed26f93b7d2a3ca1c4"
+  },
+  "code_revision": "1aa89049a072515948c7a6b2c82ecf31dd22284f",
+  "command": "C:\\Users\\USER\\anaconda3\\envs\\stock\\python.exe C:\\Users\\USER\\Desktop\\Stock-VN-forecashing\\evaluation\\build_origin_registry.py --config evaluation\\configs\\m2_1_origins.yaml",
+  "config_path": "evaluation/configs/m2_1_origins.yaml",
+  "config_sha256": "7b12255d3b97fa54fc785d5e418b50eb100ef7e2a517ed4ba443a8e8622e7f64",
+  "dataset_fingerprint": "b52ff4784203b173979c6c1f23088b942edcbf21374987a6b269c71ed694ee3a",
+  "dataset_id": "vn150_strict_v2",
+  "eligible_dates": 977,
+  "folds": [
+    {
+      "end": "2022-12-31",
+      "fold_id": "eval_2022",
+      "start": "2022-01-01"
+    },
+    {
+      "end": "2023-12-31",
+      "fold_id": "eval_2023",
+      "start": "2023-01-01"
+    },
+    {
+      "end": "2024-12-31",
+      "fold_id": "eval_2024",
+      "start": "2024-01-01"
+    },
+    {
+      "end": "2025-12-31",
+      "fold_id": "eval_2025",
+      "start": "2025-01-01"
+    }
+  ],
+  "generated_at_utc": "2026-08-13T00:04:29.070864+00:00",
+  "horizon": 5,
+  "lockbox_opened": false,
+  "lockbox_start": "2026-01-01",
+  "lookbacks": [
+    63,
+    126
+  ],
+  "minimum_cross_section": 10,
+  "origin_rows": 133937,
+  "price_adjustment_status": "unverified_provider_history",
+  "registry_path": "data/evaluation/m2_1/common_origins.csv.gz",
+  "registry_sha256": "dcd71d14c5016b721111172d6a2ff384122eb74d2cc9c27252d359857e6726c6",
+  "schema_version": "m2_1_origin_registry_v1",
+  "source_dataset_manifest": "reports/milestone_1_data/vn150_strict_v2/dataset_manifest.json",
+  "source_dataset_manifest_sha256": "59bd6e2c0d5c50f4cd69f1b63f5b687933569b610f59c9e6ae70798842a4b6ea",
+  "symbols": 147,
+  "worktree_dirty": true
+}

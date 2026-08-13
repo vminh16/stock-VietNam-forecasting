@@ -116,8 +116,11 @@ coverage/width. The current paired t-test output is diagnostic, not canonical.
 - Do not claim fine-tuning improvement from the mixed-coverage report.
 - M1.1 data readiness is conditionally complete: there is no structural blocker
   for M2 evaluation, while price-adjustment semantics and the derived amount
-  proxy remain explicit limitations. M2 origin-registry work follows; training
-  does not.
+  proxy remain explicit limitations.
+- M2.1 common-origin registry is complete for 2022-2025 with 133,937 origins,
+  977 dates, and 147 symbols. The 2026 lockbox remains closed.
+- M2.2 deterministic evaluation views and naive references follow; model
+  inference and training do not.
 
 ## Commands
 

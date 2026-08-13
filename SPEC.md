@@ -1,10 +1,10 @@
 # SPEC - Vietnam Stock Market Radar with Kronos
 
-> **Version:** 2.3
+> **Version:** 2.4
 >
 > **Date:** 2026-08-12
 >
-> **Status:** M1.1 data readiness closed conditionally; M2 evaluation registry next
+> **Status:** M2.1 common-origin registry complete; M2.2 naive references next
 >
 > **Authority:** Source of truth for product, data, model, evaluation, and delivery decisions
 
@@ -694,7 +694,7 @@ versioned artifacts. Research failure is a valid exit when it is documented.
 | M0 Baseline Reference | **Complete** | Context harness | `manifest.json` and zero-shot freeze report |
 | M1 Data And Universe Foundation | **Complete** | M0 | Fixed VN150 snapshot, strict curated data, manifest, data-quality report |
 | M1.1 Data Readiness Closure | **Conditional complete** | M1 | `vn150_strict_v2` readiness report and preprocessing contract |
-| M2 Research Evaluation Harness | Planned | M1 | Versioned folds, common-origin evaluation, block-bootstrap report |
+| M2 Research Evaluation Harness | **In progress (M2.1 complete)** | M1 | Versioned folds, common-origin evaluation, block-bootstrap report |
 | M3 Small-Model Adaptation | Planned | M2 | Experiment ledger and promoted model or documented no-improvement result |
 | M4 Kronos Path Viewer | Planned | Stable M2 artifact schema | Reproducible cached path visualization |
 | M5 Ranking And Risk Radar | Planned | M3 decision and M4 | Point-in-time ranking replay and metric report |
@@ -736,6 +736,11 @@ evaluation may proceed. M3 adaptation MUST preserve these limitations and must
 not claim corporate-action-adjusted training data without new source evidence.
 
 ### M2 - Research Evaluation Harness
+
+**Status:** In progress. M2.1 froze 133,937 common symbol-origins over 977
+dates and 147 symbols for 2022-2025. Every row supports both `L={63,126}` at
+`H=5`; the 2026 lockbox remains unopened. M2.2 adds deterministic evaluation
+views and causal naive references without model inference.
 
 Implement nested walk-forward folds, unseen-symbol groups, paired date-block
 inference, horizon/lookback diagnostics, and confidence intervals.
