@@ -57,6 +57,7 @@ Desktop.ini
 *.pt
 *.ckpt
 *.bin
+*.safetensors
 
 # Logs
 *.log
@@ -86,3 +87,7 @@ data_cleaned
 finetune_csv/finetuned
 
 reports.docx
+
+# runtime cache and debug scratch
+output/
+scratch/
