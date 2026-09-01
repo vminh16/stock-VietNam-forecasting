@@ -1,0 +1,83 @@
+{
+  "artifact_hashes": {
+    "paired_comparisons.csv": "6649da901330468f475963e94aab8e03bfaeea86e0124d7357987a315ce367d2",
+    "paired_inference_report.md": "0b57f1ee079b5b3e117e837f4c96e91aeb1fc1935fdb6016698992e5eec54221"
+  },
+  "bootstrap": {
+    "confidence": 0.95,
+    "mean_block_dates": 10,
+    "method": "stationary",
+    "replicates": 5000,
+    "seed": 20260901
+  },
+  "code_revision": "1c2055e8579e3ef2ce40af5fd1d617547953cd80",
+  "command": "C:\\Users\\USER\\anaconda3\\envs\\stock\\python.exe C:\\Users\\USER\\Desktop\\Stock-VN-forecashing\\evaluation\\run_paired_comparison.py --config evaluation\\configs\\m2_5_paired_inference.yaml",
+  "comparisons": [
+    {
+      "left": "small_l63",
+      "right": "small_l63_norm126"
+    },
+    {
+      "left": "small_l63_norm126",
+      "right": "small_l126"
+    },
+    {
+      "left": "small_l63",
+      "right": "small_l126"
+    },
+    {
+      "left": "small_l63",
+      "right": "base_l63"
+    },
+    {
+      "left": "small_l126",
+      "right": "base_l126"
+    },
+    {
+      "left": "base_l63",
+      "right": "base_l126"
+    },
+    {
+      "left": "small_l63",
+      "right": "recent_return_bootstrap"
+    },
+    {
+      "left": "base_l126",
+      "right": "recent_return_bootstrap"
+    },
+    {
+      "left": "base_l126",
+      "right": "persistence"
+    }
+  ],
+  "config_path": "evaluation/configs/m2_5_paired_inference.yaml",
+  "config_sha256": "714ff0032bb997ffb83918a8e053894da1f377cde82e36e4e739395111d98d19",
+  "generated_at_utc": "2026-09-01T14:52:57.093247+00:00",
+  "input_dirs": [
+    "data/evaluation/m2_5",
+    "data/evaluation/m2_2"
+  ],
+  "input_hashes": {
+    "base_l126_per_date_metrics.csv.gz": "f53451662cd624da61c1f0e7d72bd1783d9599991ce3747b935dbb6ad02a55e2",
+    "base_l63_per_date_metrics.csv.gz": "6ec11613b185f5a33edc28612d7b9d9f07a52be16622af72cabab69a42d59450",
+    "persistence_per_date_metrics.csv.gz": "27bf23d30da45fb6e479422ed22d864abb23a1f969c69322483093503b0b303f",
+    "recent_return_bootstrap_per_date_metrics.csv.gz": "97862bdb0548629043df5c725d0fcefd33dd8163125ba5927dbef087fe94d163",
+    "small_l126_per_date_metrics.csv.gz": "8a8e09a0b88c1a70dcf18ebc8e592321954439d37d2cde1c219080d99cc622c4",
+    "small_l63_norm126_per_date_metrics.csv.gz": "1c2b9802e74e3b26c10f045aab2c5e2c2ea2d1b7b9f78d302bc70fc4febfd2ed",
+    "small_l63_per_date_metrics.csv.gz": "7db291f3fd9951563cf6264425625e999c77c4989bc788e951edadde83dc0cee"
+  },
+  "lockbox_opened": false,
+  "metrics": [
+    "DA",
+    "MW-DA",
+    "RankIC",
+    "HitRate@Top10",
+    "CRPS",
+    "coverage",
+    "interval_width"
+  ],
+  "model_inference": false,
+  "restrict_dates_to": "small_l63",
+  "schema_version": "m2_3_paired_inference_v1",
+  "worktree_dirty": true
+}

@@ -130,8 +130,18 @@ coverage/width. The current paired t-test output is diagnostic, not canonical.
 - Consequence: the 52% DA floor is not decidable against the 51.63% zero-shot
   reference, and a RankIC gain below about 0.02 cannot be separated from zero
   against a naive reference. Pre-register the target effect size before M3.
-- M2.4 adds the zero-shot Kronos runner on the same origins; training remains
-  out of scope.
+- M2.5 zero-shot screen is complete on 13,431 origins over 98 dates. Pooled
+  RankIC: small_l63 0.0013, small_l126 0.0247, small_l63_norm126 0.0224,
+  base_l63 0.0149, base_l126 0.0267, recent_return_bootstrap 0.0050.
+- No arm cleared the registered naive gate. base_l126 versus
+  recent_return_bootstrap is +0.0217 with interval [-0.0238, +0.0705].
+- The lookback gap decomposes mostly into normalization: borrowing the
+  126-session normalizer while keeping 63 rows recovers -0.0211 of the -0.0235
+  confounded gap, and the context-only contrast is -0.0023.
+- Every arm covers only 0.33 to 0.40 inside its nominal 80% band and has worse
+  CRPS than the naive bootstrap. Do not describe Kronos intervals as calibrated.
+- Training remains out of scope until a confirmation run with roughly 210 paired
+  dates settles the non-inferiority margin.
 
 ## Commands
 

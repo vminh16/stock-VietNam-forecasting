@@ -88,6 +88,21 @@ zero-shot reference, and a RankIC gain below roughly 0.02 cannot be separated
 from zero against a naive reference. Evidence is under
 `reports/milestone_2_research_eval/paired_inference/`.
 
+M2.5 is complete. Five zero-shot arms ran on 13,431 common origins over 98
+strided dates with ten sample paths, `T=0.6`, `top_p=0.9`, seed `20260901`.
+Pooled RankIC: `small_l63` 0.0013, `small_l126` 0.0247, `small_l63_norm126`
+0.0224, `base_l63` 0.0149, `base_l126` 0.0267, against 0.0050 for
+`recent_return_bootstrap`. No arm cleared the registered naive gate; `base_l126`
+beats `persistence` at +0.0267 with interval [+0.0081, +0.0460] but reaches only
++0.0217 with interval [-0.0238, +0.0705] against the bootstrap reference. The
+lookback gap decomposes mostly into normalization rather than context. At
+`L=126` small and base differ by -0.0020 RankIC, a dead heat that the 98-date
+design cannot certify against the registered 0.01 margin; that needs about 210
+paired dates. All arms are overconfident: 0.33 to 0.40 coverage inside a nominal
+80% band, and worse CRPS than the naive bootstrap. Cost gap is 6.7x in
+throughput. Evidence is under
+`reports/milestone_2_research_eval/zero_shot_screen/`.
+
 ## Research Direction
 
 - Daily data remains invariant.
@@ -132,11 +147,13 @@ and CRPS plus interval coverage/width ship with the M2.2 metric layer.
 3. M2.1 temporal common-origin registry: complete.
 4. M2.2 causal naive references and locked metric implementation: complete.
 5. M2.3 paired stationary date-block inference: complete.
-6. M2.4 zero-shot Kronos runner on the same origins: next.
-7. Kronos-small objective and LoRA study.
-8. Path Viewer.
-9. Ranking and risk radar.
-10. Daily operations, cache, and deployment.
+6. M2.4 training-free data diagnostics: complete.
+7. M2.5 zero-shot screen: complete, no arm cleared the naive gate.
+8. Confirmation run with about 210 paired dates, then the M3 decision: next.
+9. Kronos-small objective and LoRA study.
+10. Path Viewer.
+11. Ranking and risk radar.
+12. Daily operations, cache, and deployment.
 
 ## Non-Negotiables
 

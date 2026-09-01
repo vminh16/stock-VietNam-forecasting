@@ -74,9 +74,19 @@ and measured design resolution: on 977 paired dates the 95% interval half-width
 is 3.79 pp for DA, 6.69 pp for MW-DA, 0.0204 for RankIC. Evidence is under
 `reports/milestone_2_research_eval/paired_inference/`.
 
-**Next unit:** M2.4 adds the zero-shot Kronos runner on the same origins and
-reuses the existing metric and inference layers. Do not fold training or LoRA
-work into that package.
+**Completed unit:** M2.4 measured VN150 variance ratios and the lookback
+normalization confound, both training-free.
+
+**Completed unit:** M2.5 screened five zero-shot arms on 13,431 origins over 98
+dates. No arm cleared the registered `recent_return_bootstrap` gate on RankIC.
+The lookback gap decomposes mostly into normalization, small and base tie at
+`L=126`, and every arm is overconfident against its nominal 80% band. Evidence is
+under `reports/milestone_2_research_eval/zero_shot_screen/`.
+
+**Next unit:** a confirmation run on roughly 210 paired dates, sized so the
+registered non-inferiority margin becomes testable. Register
+`small_l126 versus recent_return_bootstrap` there; the screen registration
+omitted it. Do not fold training or LoRA work into that package.
 
 Goal: compare candidates without leakage or metric sprawl.
 

@@ -4,7 +4,7 @@
 >
 > **Date:** 2026-09-01
 >
-> **Status:** M2.4 data diagnostics complete; zero-shot Kronos screen next
+> **Status:** M2.5 zero-shot screen complete; no arm cleared the naive gate
 >
 > **Authority:** Source of truth for product, data, model, evaluation, and delivery decisions
 
@@ -166,7 +166,50 @@ Paired difference variance shrinks when candidates are correlated, so a
 Kronos-small versus Kronos-base comparison resolves smaller differences than a
 model versus naive comparison.
 
-### 3.3 Baseline Interpretation
+### 3.3 M2.5 Zero-Shot Screen Evidence
+
+Five arms ran on 13,431 common origins over 98 strided dates, ten sample paths
+each, `T=0.6`, `top_p=0.9`, seed `20260901`. Pooled results:
+
+| Arm | RankIC | MW-DA | DA | CRPS | 80% coverage |
+|---|---:|---:|---:|---:|---:|
+| `small_l63` | 0.0013 | 48.23 | 49.89 | 0.02533 | 0.368 |
+| `small_l126` | 0.0247 | 50.07 | 50.68 | 0.02555 | 0.400 |
+| `small_l63_norm126` | 0.0224 | 49.53 | 50.69 | 0.02549 | 0.383 |
+| `base_l63` | 0.0149 | 48.46 | 51.08 | 0.02561 | 0.331 |
+| `base_l126` | 0.0267 | 49.18 | 51.87 | 0.02584 | 0.356 |
+| `recent_return_bootstrap` | 0.0050 | 50.70 | 49.58 | 0.02387 | 0.689 |
+
+Four findings are binding on later milestones.
+
+1. **No arm cleared the naive gate.** The registered rule required a Kronos arm
+   to beat `recent_return_bootstrap` on RankIC with an interval excluding zero.
+   The best arm, `base_l126`, reached `+0.0217` with interval
+   `[-0.0238, +0.0705]`, so the gate fails. `base_l126` does beat the
+   zero-information `persistence` reference at `+0.0267` with interval
+   `[+0.0081, +0.0460]`.
+2. **The lookback advantage is mostly normalization, not context.** The
+   confounded contrast `small_l63` versus `small_l126` gives RankIC `-0.0235`
+   with interval `[-0.0461, -0.0016]`. Holding the rows at 63 sessions and only
+   borrowing the 126-session normalizer recovers `-0.0211` of that gap, while the
+   context-only contrast is `-0.0023` with interval `[-0.0143, +0.0099]`. Each
+   component interval still contains zero at 98 dates, so the decomposition is a
+   point-estimate result awaiting confirmation, not a proven mechanism.
+3. **Small versus base is a dead heat at the incumbent lookback, but
+   non-inferiority is not certifiable here.** At `L=126` the RankIC difference is
+   `-0.0020` with interval `[-0.0184, +0.0129]`. The registered margin of `0.01`
+   sits below the design's resolution at 98 dates, so the test cannot pass
+   regardless of model quality. Certifying that margin needs roughly 210 paired
+   dates.
+4. **Zero-shot Kronos is badly overconfident.** Every arm covers 0.33 to 0.40 of
+   realized outcomes inside its nominal 80% band, against 0.689 for the naive
+   bootstrap, and every arm has worse CRPS than that naive reference. Probabilistic
+   quality is currently a weakness of the model, not a strength.
+
+Cost, measured on one RTX 2050: `base_l126` runs at 1.47 origins per second and
+`small_l63` at 9.91, a 6.7x gap, with peak VRAM 0.54 GB against 0.16 GB.
+
+### 3.4 Baseline Interpretation
 
 - Zero-shot has not demonstrated actionable directional or ranking value.
 - The existing fine-tuning procedure has not demonstrated improvement.
@@ -284,7 +327,7 @@ returns or future universe membership.
 | Model | Role | Status |
 |---|---|---|
 | Kronos-base, 102.3M | Frozen zero-shot reference | Frozen baseline |
-| Kronos-small, 24.7M | Primary development and deployment candidate | Research candidate |
+| Kronos-small, 24.7M | Development and deployment candidate on cost grounds | Research candidate, non-inferiority unproven |
 | Full fine-tuned small | Performance-ceiling challenger | Gated candidate |
 | Kronos-base fine-tuning | Expensive challenger only | Deferred by default |
 

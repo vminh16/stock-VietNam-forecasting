@@ -1,0 +1,84 @@
+{
+  "amount_policy": "derived_ohlc4_compatibility_proxy",
+  "arms": [
+    {
+      "arm_id": "small_l63",
+      "cache_key": "712b5062dded2b18ce8fb29f6c58d3a4c97c340ea74f46f398696557497fb10d",
+      "lookback": 63,
+      "model_path": "pretrained/Kronos-small",
+      "model_sha256": "b082dfcbd8e8c142a725c8bbb99781802f38fec81210e13479effb32b3c3e020",
+      "normalizer_lookback": 63
+    },
+    {
+      "arm_id": "small_l126",
+      "cache_key": "766532d2cc5abdee1ea2bec3ed406f0805b4da3d58023724b6e3147ed2e4afa8",
+      "lookback": 126,
+      "model_path": "pretrained/Kronos-small",
+      "model_sha256": "b082dfcbd8e8c142a725c8bbb99781802f38fec81210e13479effb32b3c3e020",
+      "normalizer_lookback": 126
+    },
+    {
+      "arm_id": "small_l63_norm126",
+      "cache_key": "5cf7f0febb4241b7ef6c811a98c46c08aae5030f21c5bbe02cd383e1c1fca416",
+      "lookback": 63,
+      "model_path": "pretrained/Kronos-small",
+      "model_sha256": "b082dfcbd8e8c142a725c8bbb99781802f38fec81210e13479effb32b3c3e020",
+      "normalizer_lookback": 126
+    },
+    {
+      "arm_id": "base_l63",
+      "cache_key": "342546fe4fbd4641098c3cda9e5b2aa9fd6f7d04c7a6c16c49c2e95e6f0e91f6",
+      "lookback": 63,
+      "model_path": "pretrained/Kronos-base",
+      "model_sha256": "abff193acab6db1a0368e9773e75799d11403b6d054ee6d5f0a11aeabc5f4b83",
+      "normalizer_lookback": 63
+    },
+    {
+      "arm_id": "base_l126",
+      "cache_key": "0f7992559c42fb49d46671985cf039a5613091e6b7af89a6315185e727f05e41",
+      "lookback": 126,
+      "model_path": "pretrained/Kronos-base",
+      "model_sha256": "abff193acab6db1a0368e9773e75799d11403b6d054ee6d5f0a11aeabc5f4b83",
+      "normalizer_lookback": 126
+    }
+  ],
+  "artifact_hashes": {
+    "base_l126_per_date_metrics.csv.gz": "f53451662cd624da61c1f0e7d72bd1783d9599991ce3747b935dbb6ad02a55e2",
+    "base_l63_per_date_metrics.csv.gz": "6ec11613b185f5a33edc28612d7b9d9f07a52be16622af72cabab69a42d59450",
+    "metric_summary.csv": "c1467dbe0051a8deb3ab52ef179d6d50ab6abd0725ad973d940528f50a5af9be",
+    "runtime_summary.csv": "c66a7e5e3f6fb33f52a07ee867369e1d48dcd9cf16bd534ca1f181793cab8de3",
+    "small_l126_per_date_metrics.csv.gz": "8a8e09a0b88c1a70dcf18ebc8e592321954439d37d2cde1c219080d99cc622c4",
+    "small_l63_norm126_per_date_metrics.csv.gz": "1c2b9802e74e3b26c10f045aab2c5e2c2ea2d1b7b9f78d302bc70fc4febfd2ed",
+    "small_l63_per_date_metrics.csv.gz": "7db291f3fd9951563cf6264425625e999c77c4989bc788e951edadde83dc0cee",
+    "zero_shot_screen_report.md": "4d431854121f03377d692e618b3f98f202027866aabaeee21f3066c42517aad0"
+  },
+  "batch_size": 2,
+  "code_revision": "1c2055e8579e3ef2ce40af5fd1d617547953cd80",
+  "command": "C:\\Users\\USER\\anaconda3\\envs\\stock\\python.exe C:\\Users\\USER\\Desktop\\Stock-VN-forecashing\\evaluation\\run_zero_shot_screen.py --config evaluation\\configs\\m2_5_zero_shot_screen.yaml",
+  "config_path": "evaluation/configs/m2_5_zero_shot_screen.yaml",
+  "config_sha256": "89dddacfb9bdbf7ce43d487af54d258a8677c512ef2dcc9bc40d8f4541641881",
+  "dataset_fingerprint": "b52ff4784203b173979c6c1f23088b942edcbf21374987a6b269c71ed694ee3a",
+  "dataset_id": "vn150_strict_v2",
+  "date_stride": 10,
+  "device": "cuda",
+  "evaluation_dates": 98,
+  "generated_at_utc": "2026-09-01T14:52:35.379439+00:00",
+  "horizon": 5,
+  "lockbox_opened": false,
+  "origins_per_arm": 13431,
+  "price_adjustment_status": "unverified_provider_history",
+  "registry_sha256": "dcd71d14c5016b721111172d6a2ff384122eb74d2cc9c27252d359857e6726c6",
+  "sample_count": 10,
+  "sampling_seed": 20260901,
+  "schema_version": "m2_5_zero_shot_screen_v1",
+  "selection_sha256": "d67ec22fdbd4032cb0ff76f3f1a24f6412363e26d699743cacf31b44d712e533",
+  "smoke": false,
+  "symbols": 147,
+  "temperature": 0.6,
+  "tokenizer_path": "pretrained/Kronos-Tokenizer-base",
+  "tokenizer_sha256": "59d85f6af76a2c3b8240ea06cb21db4213b4eeca053f246b23e29cf832fc6bee",
+  "top_k": 0,
+  "top_p": 0.9,
+  "training": false,
+  "worktree_dirty": true
+}
