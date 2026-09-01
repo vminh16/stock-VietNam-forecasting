@@ -69,9 +69,14 @@ those origins with the locked point metrics, ensemble CRPS, and 80% interval
 coverage/width. No model inference ran. Evidence is under
 `reports/milestone_2_research_eval/naive_references/`.
 
-**Next unit:** M2.3 adds the zero-shot Kronos runner on the same origins, then
-paired stationary date-block inference. Do not fold training or LoRA work into
-that package.
+**Completed unit:** M2.3 implemented the paired stationary date-block bootstrap
+and measured design resolution: on 977 paired dates the 95% interval half-width
+is 3.79 pp for DA, 6.69 pp for MW-DA, 0.0204 for RankIC. Evidence is under
+`reports/milestone_2_research_eval/paired_inference/`.
+
+**Next unit:** M2.4 adds the zero-shot Kronos runner on the same origins and
+reuses the existing metric and inference layers. Do not fold training or LoRA
+work into that package.
 
 Goal: compare candidates without leakage or metric sprawl.
 

@@ -4,7 +4,7 @@
 >
 > **Date:** 2026-09-01
 >
-> **Status:** M2.2 naive references complete; M2.3 zero-shot Kronos runner next
+> **Status:** M2.3 paired date-block inference complete; M2.4 zero-shot Kronos runner next
 >
 > **Authority:** Source of truth for product, data, model, evaluation, and delivery decisions
 
@@ -147,6 +147,24 @@ and it still reaches `DA = 55.96%` in the falling 2022 fold while carrying zero
 forecast information. A DA above the floor is therefore not evidence of skill by
 itself; promotion requires MW-DA and RankIC evidence against these references on
 identical origins.
+
+M2.3 measured how small a difference this evaluation design can resolve. For two
+weakly correlated candidates over 977 paired dates, the 95% paired date-block
+interval has a half-width of `3.79` percentage points for DA, `6.69` for MW-DA,
+`0.0204` for RankIC, and `2.36` for HitRate@Top10. Fold-level intervals are about
+twice as wide. Two consequences are binding:
+
+1. The `DA >= 52%` floor is not decidable against the frozen zero-shot reference
+   at `DA = 51.63%`, because the gap is an order of magnitude below resolution.
+2. A RankIC improvement smaller than roughly `0.02` cannot be separated from zero
+   against a naive reference on this population, which is the same order as a
+   realistic equity ranking signal. M3 must therefore pre-register the effect size
+   it intends to detect; a smaller true effect requires a larger evaluation
+   population or a variance-reduction design, not a louder claim.
+
+Paired difference variance shrinks when candidates are correlated, so a
+Kronos-small versus Kronos-base comparison resolves smaller differences than a
+model versus naive comparison.
 
 ### 3.3 Baseline Interpretation
 
@@ -547,8 +565,12 @@ statistical harness is not yet complete.
 
 The current paired t-test output in `evaluation/inference_pipeline.py` is
 diagnostic only. It is not canonical evidence because overlapping horizons and
-market-wide dependence violate independent-date assumptions. M2 replaces it
-with paired date-block bootstrap inference.
+market-wide dependence violate independent-date assumptions. M2.3 replaced it
+with `evaluation/research/bootstrap.py`: a paired stationary date-block
+bootstrap with an expected block of ten forecast dates, 5,000 replicates, and a
+registered seed. Ratio metrics are recomputed from resampled numerator and
+denominator sums inside each replicate, and both candidates share one resampled
+date index.
 
 ### 8.4 Small Metric Contract
 
@@ -748,8 +770,10 @@ not claim corporate-action-adjusted training data without new source evidence.
 dates and 147 symbols for 2022-2025. Every row supports both `L={63,126}` at
 `H=5`; the 2026 lockbox remains unopened. M2.2 evaluated the two causal naive
 references on those origins with locked point metrics, ensemble CRPS, and 80%
-interval diagnostics; no model inference was performed. M2.3 adds the zero-shot
-Kronos runner on the same origins, then paired date-block inference.
+interval diagnostics; no model inference was performed. M2.3 replaced the
+diagnostic paired t-test with the canonical paired stationary date-block
+bootstrap and measured the design's resolution. M2.4 adds the zero-shot Kronos
+runner on the same origins and reuses this inference layer.
 
 Implement nested walk-forward folds, unseen-symbol groups, paired date-block
 inference, horizon/lookback diagnostics, and confidence intervals.

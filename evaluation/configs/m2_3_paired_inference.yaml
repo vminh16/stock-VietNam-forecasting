@@ -1,0 +1,12 @@
+schema_version: m2_3_paired_inference_v1
+input_dir: data/evaluation/m2_2
+report_dir: reports/milestone_2_research_eval/paired_inference
+comparisons:
+  - left: recent_return_bootstrap
+    right: persistence
+bootstrap:
+  method: stationary
+  mean_block_dates: 10
+  replicates: 5000
+  confidence: 0.95
+  seed: 20260901

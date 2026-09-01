@@ -124,8 +124,14 @@ coverage/width. The current paired t-test output is diagnostic, not canonical.
   DA 49.53, MW-DA 50.11, RankIC -0.0086, CRPS 0.024238, 80% coverage 0.6869.
 - The `persistence` down call reaches DA 55.96 in the 2022 fold, so DA above the
   52% floor is not evidence of skill. Judge candidates on MW-DA and RankIC.
-- M2.3 adds the zero-shot Kronos runner and paired date-block inference on the
-  same origins; training remains out of scope.
+- M2.3 paired date-block bootstrap is complete and replaces the diagnostic
+  t-test. On 977 paired dates the 95% interval half-width is 3.79 pp for DA,
+  6.69 pp for MW-DA, 0.0204 for RankIC, and 2.36 pp for HitRate@Top10.
+- Consequence: the 52% DA floor is not decidable against the 51.63% zero-shot
+  reference, and a RankIC gain below about 0.02 cannot be separated from zero
+  against a naive reference. Pre-register the target effect size before M3.
+- M2.4 adds the zero-shot Kronos runner on the same origins; training remains
+  out of scope.
 
 ## Commands
 

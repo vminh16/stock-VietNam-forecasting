@@ -1,0 +1,41 @@
+{
+  "artifact_hashes": {
+    "paired_comparisons.csv": "52758fff112f1ee67b65d5064f9ff6bc7d20a9e0d70292ec013bb71c9dc255b2",
+    "paired_inference_report.md": "e16b794c7f49d809079aea7ef734c4af485f3d7c40a0ebc714bd2db601f5a939"
+  },
+  "bootstrap": {
+    "confidence": 0.95,
+    "mean_block_dates": 10,
+    "method": "stationary",
+    "replicates": 5000,
+    "seed": 20260901
+  },
+  "code_revision": "8a8a9848f4704eb7e372b194b26af9f7ae7b4ecb",
+  "command": "C:\\Users\\USER\\anaconda3\\envs\\stock\\python.exe C:\\Users\\USER\\Desktop\\Stock-VN-forecashing\\evaluation\\run_paired_comparison.py --config evaluation\\configs\\m2_3_paired_inference.yaml",
+  "comparisons": [
+    {
+      "left": "recent_return_bootstrap",
+      "right": "persistence"
+    }
+  ],
+  "config_path": "evaluation/configs/m2_3_paired_inference.yaml",
+  "config_sha256": "c3b2f30b780c5d4194c32df78b60b33ae960f6dc1a1752f7cfc7417b0fd85a1d",
+  "generated_at_utc": "2026-09-01T05:37:37.564774+00:00",
+  "input_hashes": {
+    "persistence_per_date_metrics.csv.gz": "27bf23d30da45fb6e479422ed22d864abb23a1f969c69322483093503b0b303f",
+    "recent_return_bootstrap_per_date_metrics.csv.gz": "97862bdb0548629043df5c725d0fcefd33dd8163125ba5927dbef087fe94d163"
+  },
+  "lockbox_opened": false,
+  "metrics": [
+    "DA",
+    "MW-DA",
+    "RankIC",
+    "HitRate@Top10",
+    "CRPS",
+    "coverage",
+    "interval_width"
+  ],
+  "model_inference": false,
+  "schema_version": "m2_3_paired_inference_v1",
+  "worktree_dirty": true
+}

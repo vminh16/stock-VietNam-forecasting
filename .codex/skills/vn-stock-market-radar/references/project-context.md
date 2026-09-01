@@ -78,6 +78,16 @@ diagnostic, not a formality. Compact provenance is under
 `reports/milestone_2_research_eval/naive_references/`; per-date metrics stay in
 the ignored `data/evaluation/m2_2/`.
 
+M2.3 is complete. `evaluation/research/bootstrap.py` implements the paired
+stationary date-block bootstrap (expected block ten dates, 5,000 replicates,
+seed `20260901`) and replaces the diagnostic t-test. Measured resolution over
+977 paired dates for two weakly correlated candidates: 95% interval half-width
+3.79 pp for DA, 6.69 pp for MW-DA, 0.0204 for RankIC, 2.36 pp for
+HitRate@Top10. The 52% DA floor is therefore not decidable against the 51.63%
+zero-shot reference, and a RankIC gain below roughly 0.02 cannot be separated
+from zero against a naive reference. Evidence is under
+`reports/milestone_2_research_eval/paired_inference/`.
+
 ## Research Direction
 
 - Daily data remains invariant.
@@ -111,8 +121,9 @@ dependence. Never report raw windows as independent observations.
 
 RankIC is the primary product metric because the app is a radar. Model promotion
 is still forecast-gated and requires paired date-block confidence intervals.
-The current paired t-test is diagnostic only; M2 must add block bootstrap plus
-CRPS and interval coverage/width before any model is promoted.
+The legacy paired t-test in `evaluation/inference_pipeline.py` stays diagnostic
+only. Canonical inference is the M2.3 paired stationary date-block bootstrap,
+and CRPS plus interval coverage/width ship with the M2.2 metric layer.
 
 ## Current Sequence
 
@@ -120,11 +131,12 @@ CRPS and interval coverage/width before any model is promoted.
 2. Fixed VN150 raw/curated foundation and readiness closure: conditional complete.
 3. M2.1 temporal common-origin registry: complete.
 4. M2.2 causal naive references and locked metric implementation: complete.
-5. M2.3 zero-shot Kronos runner and paired date-block inference: next.
-6. Kronos-small objective and LoRA study.
-7. Path Viewer.
-8. Ranking and risk radar.
-9. Daily operations, cache, and deployment.
+5. M2.3 paired stationary date-block inference: complete.
+6. M2.4 zero-shot Kronos runner on the same origins: next.
+7. Kronos-small objective and LoRA study.
+8. Path Viewer.
+9. Ranking and risk radar.
+10. Daily operations, cache, and deployment.
 
 ## Non-Negotiables
 
