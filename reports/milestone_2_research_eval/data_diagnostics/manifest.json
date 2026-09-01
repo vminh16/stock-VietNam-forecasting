@@ -1,0 +1,33 @@
+{
+  "amount_policy": "derived_ohlc4_compatibility_proxy",
+  "artifact_hashes": {
+    "data_diagnostics_report.md": "6e165f6eac82537387df9a7631a4ad4bfe86bb20fcc6185572ad82d057e396dd",
+    "normalization_summary.csv": "9fd6848770c524a075244417a166f965cd9f506a607a49506d02e0bc0e2eb12a",
+    "variance_ratio_summary.csv": "d7cd7cc7b1c66bc16ea2833509c33d7bae7d00d98cfcd64be28d86ffa5df139a"
+  },
+  "code_revision": "152fe3965f11cdfb112a902711e3f75fcdb3b427",
+  "command": "C:\\Users\\USER\\anaconda3\\envs\\stock\\python.exe C:\\Users\\USER\\Desktop\\Stock-VN-forecashing\\evaluation\\run_data_diagnostics.py --config evaluation\\configs\\m2_4_data_diagnostics.yaml",
+  "config_path": "evaluation/configs/m2_4_data_diagnostics.yaml",
+  "config_sha256": "c165d57f41b2cc4dcb9f96f0621e094bc75455ecc641446361f47d1de72fd22c",
+  "dataset_fingerprint": "b52ff4784203b173979c6c1f23088b942edcbf21374987a6b269c71ed694ee3a",
+  "dataset_id": "vn150_strict_v2",
+  "date_stride": 10,
+  "generated_at_utc": "2026-09-01T09:14:08.354235+00:00",
+  "lockbox_opened": false,
+  "model_inference": false,
+  "normalization_lookbacks": [
+    63,
+    126
+  ],
+  "normalization_windows": 13431,
+  "price_adjustment_status": "unverified_provider_history",
+  "registry_sha256": "dcd71d14c5016b721111172d6a2ff384122eb74d2cc9c27252d359857e6726c6",
+  "schema_version": "m2_4_data_diagnostics_v1",
+  "series_evaluated": 147,
+  "variance_ratio_horizons": [
+    2,
+    5,
+    10
+  ],
+  "worktree_dirty": true
+}

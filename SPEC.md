@@ -4,7 +4,7 @@
 >
 > **Date:** 2026-09-01
 >
-> **Status:** M2.3 paired date-block inference complete; M2.4 zero-shot Kronos runner next
+> **Status:** M2.4 data diagnostics complete; zero-shot Kronos screen next
 >
 > **Authority:** Source of truth for product, data, model, evaluation, and delivery decisions
 
@@ -289,9 +289,20 @@ returns or future universe membership.
 | Kronos-base fine-tuning | Expensive challenger only | Deferred by default |
 
 Small is not assumed statistically superior because it has fewer parameters.
-Pretraining can make a larger model more sample-efficient. Small is preferred
-operationally only if it proves non-inferior under matched data, seeds, origins,
-and compute-aware evaluation.
+Pretraining can make a larger model more sample-efficient; the Kronos paper
+states that performance improves with size but publishes no quantitative scaling
+law, so this remains a hypothesis. Small is preferred operationally only if it
+proves non-inferior under matched data, seeds, origins, and compute-aware
+evaluation.
+
+Kronos-small is currently a cost-driven choice, not an evidence-backed one. The
+published per-size tables separate `Kronos_S`, `Kronos_B`, and `Kronos_L` but
+carry no confidence interval, average over nine frequencies, and cannot be split
+back to daily. Their price-series RankIC gap from small to base is `0.0254` to
+`0.0258`; small beats base on the out-of-distribution XKLS exchange while the one
+daily-only comparison favours base. Vietnam is absent from the pretraining
+corpus, so VN150 is out-of-distribution at exchange level and no published number
+transfers. See `docs/research/2026-09-01-kronos-small-and-window-selection.md`.
 
 ### 5.2 Tokenizer Policy
 
@@ -381,8 +392,13 @@ Lookback L: 63, 126
 Horizon H: 5
 ```
 
-`L=63` is the cheaper candidate and `L=126` is the incumbent. Neither is the
-selected winner until evaluated on identical temporal folds.
+`L=126` is the incumbent by history only. A primary-source review
+(`docs/research/2026-09-01-kronos-small-and-window-selection.md`) found that every
+daily-frequency lookback the Kronos authors published falls in 40-96 bars, which
+leaves `L=126` outside their published range and `L=63` inside it. `L=63` is also
+only about `2.05x` cheaper, not `4x`. Neither value is the selected winner until
+both are evaluated on identical temporal folds, and the comparison carries the
+normalization confound recorded in section 6.3.
 
 ### 6.3 Statistical Trade-Off
 
@@ -397,13 +413,35 @@ Under independent innovations,
 `sqrt(h)`. Serial correlation, regime changes, and recursive model error can
 increase it further.
 
+M2.4 measured the departure from that i.i.d. baseline on VN150. Per-symbol
+variance ratios at `q=5` have fold medians of `1.145` for 2022, `0.951` for
+2023, `0.946` for 2024, and `1.007` for 2025. The sign of the departure is
+regime-linked rather than stable: 2022 is trending, where 32.4% of symbols reject
+the random walk upward at `q=2`, while 2024 is mildly mean-reverting. Low-liquidity
+symbols mean-revert more than high-liquidity symbols. The `sqrt(h)` rule is
+therefore an acceptable average approximation with a regime-dependent error of
+roughly 5% to 15% at `H=5`, not an invariant.
+
 Longer lookback can reduce truncation bias when older observations contain
 incremental information, but it also:
 
-- reduces valid windows linearly;
-- increases attention compute approximately as `O(L^2)`;
+- reduces valid windows; measured on VN150 this is `-7.4%` (247,999 to 229,734)
+  and exactly zero inside the M2.1 common-origin registry, not a linear cost;
+- increases attention compute as `O(L^2)` asymptotically, but at `L <= 126` the
+  quadratic term is a small share of total cost and `63 -> 126` measures near
+  `2.05x`, not `4x`;
 - mixes stale regimes with the current state;
-- increases sensitivity to short listing histories.
+- increases sensitivity to short listing histories;
+- changes the normalization window, because `L` sets both the context and the
+  point-in-time scaling (`data_pipeline/transforms.py`, `model/kronos.py`).
+
+That last item is not a detail. M2.4 measured that moving the normalizer from 126
+to 63 sessions rescales the price channels by a median factor of `1.364` and
+shifts their window means by `0.572` long-window scale units, while volume
+channels move only to `0.974`. An `L=63` versus `L=126` comparison therefore
+measures `context + normalization`, concentrated in the channels the forecast
+depends on. Any lookback conclusion MUST be reported with that compound label, or
+the experiment MUST add a third arm that holds the normalizer fixed.
 
 ### 6.4 Selection Rule
 
@@ -772,8 +810,10 @@ dates and 147 symbols for 2022-2025. Every row supports both `L={63,126}` at
 references on those origins with locked point metrics, ensemble CRPS, and 80%
 interval diagnostics; no model inference was performed. M2.3 replaced the
 diagnostic paired t-test with the canonical paired stationary date-block
-bootstrap and measured the design's resolution. M2.4 adds the zero-shot Kronos
-runner on the same origins and reuses this inference layer.
+bootstrap and measured the design's resolution. M2.4 ran two training-free data
+diagnostics: variance ratios on VN150 daily returns and a normalization-confound
+measurement for the lookback grid. The zero-shot Kronos screen follows and needs
+the `Kronos-small` checkpoint, which is not in `pretrained/` yet.
 
 Implement nested walk-forward folds, unseen-symbol groups, paired date-block
 inference, horizon/lookback diagnostics, and confidence intervals.
