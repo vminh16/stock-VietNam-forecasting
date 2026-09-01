@@ -5,6 +5,13 @@ from .baselines import (
     persistence_paths,
     recent_return_bootstrap_paths,
 )
+from .bootstrap import (
+    COMPARISON_COLUMNS,
+    POOLED_METRICS,
+    compare_candidates,
+    pooled_metric,
+    stationary_block_indices,
+)
 from .metrics import (
     DATE_COLUMNS,
     FORECAST_COLUMNS,
@@ -32,15 +39,18 @@ from .origins import (
 
 __all__ = [
     "BASELINE_IDS",
+    "COMPARISON_COLUMNS",
     "DATE_COLUMNS",
     "FORECAST_COLUMNS",
     "FoldSpec",
     "INTERVAL_QUANTILES",
     "ORIGIN_COLUMNS",
     "OriginRegistryConfig",
+    "POOLED_METRICS",
     "RECENT_RETURN_LOOKBACK",
     "aggregate_dates",
     "build_common_origins",
+    "compare_candidates",
     "dataset_fingerprint",
     "direction",
     "ensemble_crps",
@@ -49,7 +59,9 @@ __all__ = [
     "interval_metrics",
     "load_origin_config",
     "persistence_paths",
+    "pooled_metric",
     "rank_ic",
+    "stationary_block_indices",
     "read_symbol_frame",
     "recent_return_bootstrap_paths",
     "summarize_metrics",
