@@ -66,6 +66,18 @@ Compact provenance is under
 `reports/milestone_2_research_eval/origin_registry/`. The 2026 lockbox remains
 closed.
 
+M2.2 is complete. Both causal naive references were scored on every M2.1 origin
+with 20 sample paths and seed `20260812`. Pooled 2022-2025: `persistence` DA
+50.88, MW-DA 48.04, RankIC 0.0000, HitRate@Top10 45.84, CRPS 0.029795;
+`recent_return_bootstrap` DA 49.53, MW-DA 50.11, RankIC -0.0086,
+HitRate@Top10 50.30, CRPS 0.024238, 80% coverage 0.6869, width 0.1153. Two
+findings matter for later decisions: the trivial `persistence` down call reaches
+DA 55.96 in the falling 2022 fold, so DA above the 52% floor is not skill; and
+the bootstrap reference under-covers its nominal 80% band, so coverage is a live
+diagnostic, not a formality. Compact provenance is under
+`reports/milestone_2_research_eval/naive_references/`; per-date metrics stay in
+the ignored `data/evaluation/m2_2/`.
+
 ## Research Direction
 
 - Daily data remains invariant.
@@ -107,11 +119,12 @@ CRPS and interval coverage/width before any model is promoted.
 1. Zero-shot reference: accepted.
 2. Fixed VN150 raw/curated foundation and readiness closure: conditional complete.
 3. M2.1 temporal common-origin registry: complete.
-4. M2.2 deterministic smoke/screen views and causal naive references: next.
-5. Kronos-small objective and LoRA study.
-6. Path Viewer.
-7. Ranking and risk radar.
-8. Daily operations, cache, and deployment.
+4. M2.2 causal naive references and locked metric implementation: complete.
+5. M2.3 zero-shot Kronos runner and paired date-block inference: next.
+6. Kronos-small objective and LoRA study.
+7. Path Viewer.
+8. Ranking and risk radar.
+9. Daily operations, cache, and deployment.
 
 ## Non-Negotiables
 

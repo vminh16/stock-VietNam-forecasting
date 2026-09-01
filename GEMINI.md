@@ -119,8 +119,13 @@ coverage/width. The current paired t-test output is diagnostic, not canonical.
   proxy remain explicit limitations.
 - M2.1 common-origin registry is complete for 2022-2025 with 133,937 origins,
   977 dates, and 147 symbols. The 2026 lockbox remains closed.
-- M2.2 deterministic evaluation views and naive references follow; model
-  inference and training do not.
+- M2.2 naive references are complete on those origins. Pooled 2022-2025:
+  `persistence` DA 50.88, MW-DA 48.04, RankIC 0.0000; `recent_return_bootstrap`
+  DA 49.53, MW-DA 50.11, RankIC -0.0086, CRPS 0.024238, 80% coverage 0.6869.
+- The `persistence` down call reaches DA 55.96 in the 2022 fold, so DA above the
+  52% floor is not evidence of skill. Judge candidates on MW-DA and RankIC.
+- M2.3 adds the zero-shot Kronos runner and paired date-block inference on the
+  same origins; training remains out of scope.
 
 ## Commands
 

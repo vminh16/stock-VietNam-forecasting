@@ -171,6 +171,10 @@ def _read_symbol(config, manifest, symbol, security_id):
     return frame
 
 
+def read_symbol_frame(config, manifest, symbol, security_id):
+    return _read_symbol(config, manifest, symbol, security_id)
+
+
 def build_common_origins(config):
     manifest, universe = _load_dataset_inputs(config)
     fingerprint = dataset_fingerprint(manifest)

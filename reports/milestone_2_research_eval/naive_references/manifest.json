@@ -1,0 +1,39 @@
+{
+  "amount_policy": "derived_ohlc4_compatibility_proxy",
+  "artifact_hashes": {
+    "metric_summary.csv": "1a01667e530debd0af39cf0c62acfb03d9a2d43dfc2d15dcd3dcd0707312e1b8",
+    "naive_reference_report.md": "bb7151fb3083020fd03768927b2833934d01524c2add9f23ce66127fe345a7ea",
+    "persistence_per_date_metrics.csv.gz": "27bf23d30da45fb6e479422ed22d864abb23a1f969c69322483093503b0b303f",
+    "recent_return_bootstrap_per_date_metrics.csv.gz": "97862bdb0548629043df5c725d0fcefd33dd8163125ba5927dbef087fe94d163"
+  },
+  "candidates": [
+    "persistence",
+    "recent_return_bootstrap"
+  ],
+  "code_revision": "9870c49795ea022b2bcbd242f17fdbd3fbb7cb2c",
+  "command": "C:\\Users\\USER\\anaconda3\\envs\\stock\\python.exe C:\\Users\\USER\\Desktop\\Stock-VN-forecashing\\evaluation\\run_naive_references.py --config evaluation\\configs\\m2_2_naive.yaml",
+  "config_path": "evaluation/configs/m2_2_naive.yaml",
+  "config_sha256": "599dc4f6c4ea0164ffd956125745d63a3fbb5d0b24191dfe2ff34557ff1f7198",
+  "dataset_fingerprint": "b52ff4784203b173979c6c1f23088b942edcbf21374987a6b269c71ed694ee3a",
+  "dataset_id": "vn150_strict_v2",
+  "evaluation_dates": 977,
+  "generated_at_utc": "2026-09-01T04:40:38.019222+00:00",
+  "horizon": 5,
+  "interval_quantiles": [
+    0.1,
+    0.9
+  ],
+  "lockbox_opened": false,
+  "lockbox_start": "2026-01-01",
+  "model_inference": false,
+  "origin_rows": 133937,
+  "price_adjustment_status": "unverified_provider_history",
+  "registry_manifest_sha256": "ad32717c4aaec609ca880717412f514d44515519d9d9b611ec67ede8a523f531",
+  "registry_path": "data/evaluation/m2_1/common_origins.csv.gz",
+  "registry_sha256": "dcd71d14c5016b721111172d6a2ff384122eb74d2cc9c27252d359857e6726c6",
+  "sample_count": 20,
+  "sampling_seed": 20260812,
+  "schema_version": "m2_2_naive_references_v1",
+  "symbols": 147,
+  "worktree_dirty": true
+}

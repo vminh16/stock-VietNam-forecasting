@@ -1,10 +1,10 @@
 # SPEC - Vietnam Stock Market Radar with Kronos
 
-> **Version:** 2.4
+> **Version:** 2.5
 >
-> **Date:** 2026-08-12
+> **Date:** 2026-09-01
 >
-> **Status:** M2.1 common-origin registry complete; M2.2 naive references next
+> **Status:** M2.2 naive references complete; M2.3 zero-shot Kronos runner next
 >
 > **Authority:** Source of truth for product, data, model, evaluation, and delivery decisions
 
@@ -140,6 +140,13 @@ zero-shot reference.
 
 `DA >= 52%` is retained as an operational utility floor. It is not a hypothesis
 test and does not replace a confidence interval.
+
+M2.2 evidence sharpens this limitation. On the VN150 common origins, the
+`persistence` reference is a permanent down call because `direction(0) = -1`,
+and it still reaches `DA = 55.96%` in the falling 2022 fold while carrying zero
+forecast information. A DA above the floor is therefore not evidence of skill by
+itself; promotion requires MW-DA and RankIC evidence against these references on
+identical origins.
 
 ### 3.3 Baseline Interpretation
 
@@ -739,8 +746,10 @@ not claim corporate-action-adjusted training data without new source evidence.
 
 **Status:** In progress. M2.1 froze 133,937 common symbol-origins over 977
 dates and 147 symbols for 2022-2025. Every row supports both `L={63,126}` at
-`H=5`; the 2026 lockbox remains unopened. M2.2 adds deterministic evaluation
-views and causal naive references without model inference.
+`H=5`; the 2026 lockbox remains unopened. M2.2 evaluated the two causal naive
+references on those origins with locked point metrics, ensemble CRPS, and 80%
+interval diagnostics; no model inference was performed. M2.3 adds the zero-shot
+Kronos runner on the same origins, then paired date-block inference.
 
 Implement nested walk-forward folds, unseen-symbol groups, paired date-block
 inference, horizon/lookback diagnostics, and confidence intervals.

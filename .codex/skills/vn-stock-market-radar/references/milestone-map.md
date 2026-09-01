@@ -56,16 +56,22 @@ Verify:
 
 ## M2: Research Evaluation Harness
 
-**Status:** In progress. M2.1 common-origin registry is complete.
+**Status:** In progress. M2.1 common-origin registry and M2.2 naive references
+are complete.
 
 **Completed unit:** M2.1 froze 133,937 origins over 977 dates and 147 symbols
 for 2022-2025. Every origin supports both `L={63,126}` at `H=5`; registry SHA256
 is `dcd71d14c5016b721111172d6a2ff384122eb74d2cc9c27252d359857e6726c6`.
 No 2026 target was opened.
 
-**Next unit:** M2.2 derives deterministic smoke/screen views and adds causal
-naive references only. Do not implement the Kronos runner, probabilistic
-metrics, bootstrap, and benchmark execution in the same work package.
+**Completed unit:** M2.2 scored `persistence` and `recent_return_bootstrap` on
+those origins with the locked point metrics, ensemble CRPS, and 80% interval
+coverage/width. No model inference ran. Evidence is under
+`reports/milestone_2_research_eval/naive_references/`.
+
+**Next unit:** M2.3 adds the zero-shot Kronos runner on the same origins, then
+paired stationary date-block inference. Do not fold training or LoRA work into
+that package.
 
 Goal: compare candidates without leakage or metric sprawl.
 
