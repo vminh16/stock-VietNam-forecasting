@@ -646,7 +646,37 @@ Report:
 If the interval includes no meaningful improvement, the correct conclusion is
 "insufficient evidence", not "the fine-tuned model wins".
 
-### 8.6 Multiple Comparisons
+### 8.6 Pre-Registered M2.5 Screen Rule
+
+Registered on 2026-09-01, before any screen result existed. The screen ranks
+candidates for a later confirmation run; it MUST NOT promote a model.
+
+Arms: `small_l63`, `small_l126`, `small_l63_norm126`, `base_l63`, `base_l126`,
+on 98 strided dates from the frozen common origins, ten sample paths per origin,
+`T=0.6`, `top_p=0.9`, seed `20260901`.
+
+Reading rule, applied to paired date-block intervals at 95%:
+
+1. `small_l63` versus `small_l63_norm126` isolates the normalizer, because the
+   two arms see identical rows and differ only in scaling.
+2. `small_l63_norm126` versus `small_l126` isolates context length, because the
+   two arms share a normalizer and differ only in how many sessions the model
+   reads.
+3. `small_l63` versus `small_l126` is the confounded contrast. If its interval
+   disagrees in sign with rule 2, the lookback question is decided by
+   normalization rather than by context, and SPEC section 6.2 must say so.
+4. Backbone size is read from `small_l63` versus `base_l63` and `small_l126`
+   versus `base_l126`. Kronos-small survives as the development candidate when
+   the RankIC paired lower bound exceeds `-0.01` and the MW-DA paired lower bound
+   exceeds `-1.0` percentage point at the same lookback.
+5. Every Kronos arm must beat `recent_return_bootstrap` on RankIC with an
+   interval excluding zero before any arm is called useful. Failing this is a
+   valid and reportable outcome.
+
+No threshold in this subsection may be changed after the screen is read. A
+changed threshold requires a new registration and a new run.
+
+### 8.7 Multiple Comparisons
 
 The grid, primary metric, promotion rule, and non-inferiority bound must be
 registered before evaluation. If many candidates are inspected, use a Model

@@ -118,6 +118,34 @@ def test_run_is_reproducible_and_records_input_hashes(paired_fixture):
     }
 
 
+def test_restriction_pairs_a_subsample_against_a_longer_candidate(
+    paired_fixture, tmp_path
+):
+    raw = yaml.safe_load(paired_fixture["config_path"].read_text(encoding="utf-8"))
+    short_dir = tmp_path / "short"
+    short_dir.mkdir()
+    full = pd.read_csv(
+        paired_fixture["input_dir"] / "candidate_a_per_date_metrics.csv.gz"
+    )
+    full.iloc[::3].to_csv(
+        short_dir / "candidate_c_per_date_metrics.csv.gz",
+        index=False,
+        compression="gzip",
+    )
+    raw.pop("input_dir")
+    raw["input_dirs"] = [str(short_dir), str(paired_fixture["input_dir"])]
+    raw["restrict_dates_to"] = "candidate_c"
+    raw["comparisons"] = [{"left": "candidate_c", "right": "candidate_b"}]
+    path = tmp_path / "restricted.yaml"
+    path.write_text(yaml.safe_dump(raw, sort_keys=False), encoding="utf-8")
+
+    manifest, comparisons = run_paired_comparison(path)
+
+    assert manifest["restrict_dates_to"] == "candidate_c"
+    pooled = comparisons[comparisons["scope"] == "pooled"].iloc[0]
+    assert pooled["n_paired_dates"] == len(full.iloc[::3])
+
+
 def test_config_rejects_an_unregistered_bootstrap_method(paired_fixture, tmp_path):
     raw = yaml.safe_load(paired_fixture["config_path"].read_text(encoding="utf-8"))
     raw["bootstrap"]["method"] = "iid"

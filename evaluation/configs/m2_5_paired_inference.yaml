@@ -1,0 +1,28 @@
+schema_version: m2_3_paired_inference_v1
+input_dirs:
+  - data/evaluation/m2_5
+  - data/evaluation/m2_2
+report_dir: reports/milestone_2_research_eval/zero_shot_screen/paired_inference
+restrict_dates_to: small_l63
+comparisons:
+  # Normalizer isolated: identical rows, identical model, different scaling.
+  - {left: small_l63, right: small_l63_norm126}
+  # Context isolated: identical normalizer, different context length.
+  - {left: small_l63_norm126, right: small_l126}
+  # Confounded lookback contrast, kept for comparison with the two above.
+  - {left: small_l63, right: small_l126}
+  # Backbone size at each lookback.
+  - {left: small_l63, right: base_l63}
+  - {left: small_l126, right: base_l126}
+  # Lookback effect inside the larger backbone.
+  - {left: base_l63, right: base_l126}
+  # Every Kronos arm must clear the causal naive references.
+  - {left: small_l63, right: recent_return_bootstrap}
+  - {left: base_l126, right: recent_return_bootstrap}
+  - {left: base_l126, right: persistence}
+bootstrap:
+  method: stationary
+  mean_block_dates: 10
+  replicates: 5000
+  confidence: 0.95
+  seed: 20260901

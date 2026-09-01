@@ -27,9 +27,10 @@ SCOPE_COLUMNS = ["scope", *COMPARISON_COLUMNS]
 @dataclass(frozen=True)
 class PairedInferenceConfig:
     schema_version: str
-    input_dir: Path
+    input_dirs: tuple
     report_dir: Path
     comparisons: tuple
+    restrict_dates_to: str
     method: str
     mean_block_dates: int
     replicates: int
@@ -40,12 +41,16 @@ class PairedInferenceConfig:
 def load_paired_config(path):
     raw = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
     bootstrap = raw["bootstrap"]
+    directories = raw.get("input_dirs") or [raw["input_dir"]]
     config = PairedInferenceConfig(
         schema_version=str(raw["schema_version"]),
-        input_dir=Path(raw["input_dir"]),
+        input_dirs=tuple(Path(value) for value in directories),
         report_dir=Path(raw["report_dir"]),
         comparisons=tuple(
             (str(item["left"]), str(item["right"])) for item in raw["comparisons"]
+        ),
+        restrict_dates_to=(
+            str(raw["restrict_dates_to"]) if raw.get("restrict_dates_to") else ""
         ),
         method=str(bootstrap["method"]),
         mean_block_dates=int(bootstrap["mean_block_dates"]),
@@ -71,7 +76,12 @@ def _git_value(*args):
 
 
 def _candidate_path(config, candidate_id):
-    return config.input_dir / f"{candidate_id}_per_date_metrics.csv.gz"
+    name = f"{candidate_id}_per_date_metrics.csv.gz"
+    for directory in config.input_dirs:
+        candidate = directory / name
+        if candidate.exists():
+            return candidate
+    raise ValueError(f"No per-date metrics found for candidate: {candidate_id}")
 
 
 def load_candidate_dates(config, candidate_id):
@@ -79,6 +89,20 @@ def load_candidate_dates(config, candidate_id):
     frame = pd.read_csv(path)
     frame["origin_date"] = pd.to_datetime(frame["origin_date"])
     return frame
+
+
+def _restrict(dates, restriction):
+    """Keep only the reference candidate's dates so a subsample can be paired."""
+    if restriction is None:
+        return dates
+    keep = [
+        (fold_id, origin_date) in restriction
+        for fold_id, origin_date in zip(dates["fold_id"], dates["origin_date"])
+    ]
+    restricted = dates[keep].reset_index(drop=True)
+    if restricted.empty:
+        raise ValueError("Date restriction removed every evaluation date")
+    return restricted
 
 
 def compare_scopes(config, left, right, left_id, right_id):
@@ -214,11 +238,18 @@ def run_paired_comparison(config_path, command=None):
     config_path = Path(config_path)
     config = load_paired_config(config_path)
 
+    restriction = None
+    if config.restrict_dates_to:
+        reference = load_candidate_dates(config, config.restrict_dates_to)
+        restriction = set(
+            zip(reference["fold_id"], reference["origin_date"])
+        )
+
     frames = []
     input_hashes = {}
     for left_id, right_id in config.comparisons:
-        left = load_candidate_dates(config, left_id)
-        right = load_candidate_dates(config, right_id)
+        left = _restrict(load_candidate_dates(config, left_id), restriction)
+        right = _restrict(load_candidate_dates(config, right_id), restriction)
         frames.append(compare_scopes(config, left, right, left_id, right_id))
         for candidate_id in (left_id, right_id):
             path = _candidate_path(config, candidate_id)
@@ -245,6 +276,8 @@ def run_paired_comparison(config_path, command=None):
             for left_id, right_id in config.comparisons
         ],
         "metrics": list(POOLED_METRICS),
+        "input_dirs": [directory.as_posix() for directory in config.input_dirs],
+        "restrict_dates_to": config.restrict_dates_to,
         "bootstrap": {
             "method": config.method,
             "mean_block_dates": config.mean_block_dates,
