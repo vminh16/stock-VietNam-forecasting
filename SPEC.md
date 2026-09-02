@@ -1,10 +1,10 @@
 # SPEC - Vietnam Stock Market Radar with Kronos
 
-> **Version:** 2.6
+> **Version:** 2.7
 >
-> **Date:** 2026-09-02
+> **Date:** 2026-09-03
 >
-> **Status:** M2.6 slice harness complete; M2.5 screen cleared no naive gate
+> **Status:** M2.7 confirmation complete; naive gate cleared, backbone margin still untestable
 >
 > **Authority:** Source of truth for product, data, model, evaluation, and delivery decisions
 
@@ -238,7 +238,53 @@ M2.5's five Kronos arms cannot be sliced: that run predates the per-origin metri
 artifact and kept only per-date aggregates. Slice evidence for a model therefore
 begins with the confirmation run.
 
-### 3.5 Baseline Interpretation
+### 3.5 M2.7 Confirmation Evidence
+
+`small_l126` and `base_l126` ran on 26,869 origins over the 196 dates at
+`{2, 5} mod 10`, disjoint from the 98 screen dates that selected them. Ten sample
+paths, `T=0.6`, `top_p=0.9`, seed `20260901`. Pooled RankIC is `0.0270` for small
+and `0.0300` for base, close to the screen's `0.0247` and `0.0267` on different
+dates.
+
+Read against the registered rule in section 8.8:
+
+1. **The non-inferiority margin does not pass.** `small_l126` versus `base_l126`
+   is `-0.0030` RankIC with interval `[-0.0215, +0.0158]`; the registered bound
+   requires a lower bound above `-0.01`. MW-DA is `+0.8619` with lower bound
+   `-1.1373` against a bound of `-1.0`. Both fail because the interval is wide,
+   not because the difference is large.
+2. **Both arms clear the naive gate.** `small_l126` beats
+   `recent_return_bootstrap` on RankIC by `+0.0446` with interval
+   `[+0.0134, +0.0741]`, and `base_l126` by `+0.0476` with `[+0.0104, +0.0831]`.
+   No arm managed this in the screen. The reference scores `-0.0176` on these
+   dates against `-0.0086` over all 977, so part of the gap is the reference
+   running below its own average.
+3. **Calibration remains broken** on disjoint dates: coverage `0.398` and `0.359`
+   inside a nominal `80%` band, with worse CRPS than the naive bootstrap. Kronos
+   intervals MUST NOT be called calibrated.
+
+The design's own resolution is the binding finding. The achieved 95% half-width
+on the primary contrast is `0.0186` against a registered margin of `0.0100`, so
+the margin is still untestable. The earlier estimate of about 210 dates was
+derived from the screen's `0.0157` half-width at 98 dates, and that interval was
+an optimistic draw: the per-date paired difference has standard deviation
+`0.1059` on screen dates against `0.1179` here, with arm correlation `0.719`
+against `0.581`. Doubling the dates widened the interval. Sizing from this run,
+the `0.01` margin needs roughly **681 paired dates**, about 70% of the registry
+and 22.5 GPU hours for these two arms. A margin of `0.015` needs about 303 dates.
+The margin MUST NOT be renegotiated after seeing a result it would flip.
+
+Slice evidence, descriptive under section 8.7: all eight registered slice
+contrasts return insufficient evidence, so no slice carries the pooled result.
+Both arms show a monotone liquidity gradient in RankIC, `0.0162 / 0.0313 / 0.0466`
+for small and `0.0182 / 0.0361 / 0.0440` for base from the most to the least
+liquid tier. The ranking signal is roughly three times stronger in the least
+liquid third of the market. This is a product constraint for M5, not a model
+result: a Top10 drawn where the signal lives is hardest to trade. Testing it
+requires a Kronos-versus-naive contrast inside each tier, which was not
+registered and was deliberately not computed.
+
+### 3.6 Baseline Interpretation
 
 - Zero-shot has not demonstrated actionable directional or ranking value.
 - The existing fine-tuning procedure has not demonstrated improvement.
@@ -997,10 +1043,14 @@ strided dates; no arm cleared the registered naive gate. M2.6 registered the two
 evaluation slice keys of section 8.7, made every runner persist per-origin
 metrics, and recomputed the naive references inside each slice.
 
-Remaining before M2 can close: a confirmation run on roughly 210 paired dates
-with at least two seeds, an unseen-symbol holdout drawn from the registered
-`symbol_group` values, and slice evidence for the Kronos arms, which the M2.5
-run cannot supply because it kept no per-origin metrics.
+M2.7 confirmed two arms on 196 disjoint dates: both cleared the naive gate for
+the first time, but the registered backbone margin remains untestable and needs
+roughly 681 paired dates.
+
+Remaining before M2 can close: enough paired dates to decide the backbone margin
+or a registered change to that margin, at least two sampling seeds, a sampling
+temperature study that also restores comparability with the M0 baseline, and the
+`L=40` arm.
 
 Success: zero-shot small/base and naive baselines are comparable on identical
 origins without opening the final lockbox.

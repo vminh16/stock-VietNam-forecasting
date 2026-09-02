@@ -1,0 +1,21 @@
+schema_version: m2_3_paired_inference_v1
+# Mechanical implementation of SPEC 8.8 rule 4: the primary contrast, read
+# inside each registered slice as a stability check. Descriptive only.
+input_dirs:
+  - data/evaluation/m2_7/slice_metrics
+report_dir: reports/milestone_2_research_eval/confirmation/slice_inference
+comparisons:
+  - {left: small_l126__liquidity_tier_tier_0, right: base_l126__liquidity_tier_tier_0}
+  - {left: small_l126__liquidity_tier_tier_1, right: base_l126__liquidity_tier_tier_1}
+  - {left: small_l126__liquidity_tier_tier_2, right: base_l126__liquidity_tier_tier_2}
+  - {left: small_l126__symbol_group_group_0, right: base_l126__symbol_group_group_0}
+  - {left: small_l126__symbol_group_group_1, right: base_l126__symbol_group_group_1}
+  - {left: small_l126__symbol_group_group_2, right: base_l126__symbol_group_group_2}
+  - {left: small_l126__symbol_group_group_3, right: base_l126__symbol_group_group_3}
+  - {left: small_l126__symbol_group_group_4, right: base_l126__symbol_group_group_4}
+bootstrap:
+  method: stationary
+  mean_block_dates: 10
+  replicates: 5000
+  confidence: 0.95
+  seed: 20260901

@@ -123,6 +123,36 @@ M2.5 arms predate that artifact and therefore carry no slice evidence at all.
 Evidence is under `reports/milestone_2_research_eval/origin_slices/` and
 `reports/milestone_2_research_eval/metric_slices/`.
 
+M2.7 is complete. `small_l126` and `base_l126` ran on 26,869 origins over the
+196 dates at `{2, 5} mod 10`, disjoint from the 98 screen dates that selected
+them, ten sample paths, seed `20260901`, 6.5 GPU hours. Pooled RankIC 0.0270 and
+0.0300, close to the screen's 0.0247 and 0.0267 on different dates.
+
+Both arms cleared the causal naive gate for the first time in this project:
+`small_l126` +0.0446 [+0.0134, +0.0741] and `base_l126` +0.0476 [+0.0104,
++0.0831] on RankIC. Caveat: `recent_return_bootstrap` scores -0.0176 on these
+dates against -0.0086 over all 977, so part of the gap is the reference running
+below its own average.
+
+The registered backbone margin still fails. Small versus base is -0.0030
+[-0.0215, +0.0158] on RankIC against a required lower bound of -0.01, and MW-DA
++0.8619 with lower bound -1.1373 against -1.0. Both fail because the interval is
+wide, not because the difference is large. Achieved half-width is 0.0186 against
+a 0.0100 margin, so the margin is still untestable. The earlier 210-date estimate
+was wrong: it scaled the screen's 0.0157 half-width, which was an optimistic draw
+at 98 dates. Sizing from this run, the 0.01 margin needs about 681 paired dates,
+70% of the registry and ~22.5 GPU hours for two arms; a 0.015 margin needs ~303.
+
+Two descriptive findings matter for later milestones. RankIC rises monotonically
+as liquidity falls, 0.0162/0.0313/0.0466 for small and 0.0182/0.0361/0.0440 for
+base from the most to the least liquid tier, so the ranking signal lives in the
+least tradeable third of the market; testing that needs a registered
+Kronos-versus-naive contrast per tier, which was deliberately not computed. And
+calibration is still broken on fresh dates, coverage 0.398 and 0.359 against a
+nominal 0.80. Evidence is under
+`reports/milestone_2_research_eval/confirmation/`, with the reading in
+`confirmation_decision.md`.
+
 ## Research Direction
 
 - Daily data remains invariant.
@@ -170,12 +200,14 @@ and CRPS plus interval coverage/width ship with the M2.2 metric layer.
 6. M2.4 training-free data diagnostics: complete.
 7. M2.5 zero-shot screen: complete, no arm cleared the naive gate.
 8. M2.6 origin slices and per-origin metric persistence: complete.
-9. Confirmation run with about 210 paired dates, at least two seeds, and an
-   unseen-symbol holdout, then the M3 decision: next.
-10. Kronos-small objective and LoRA study.
-11. Path Viewer.
-12. Ranking and risk radar.
-13. Daily operations, cache, and deployment.
+9. M2.7 confirmation on 196 disjoint dates: complete; naive gate cleared, the
+   backbone margin still untestable.
+10. Decide the backbone margin, by more paired dates or a registered change to
+    the margin, then the M3 decision: next.
+11. Kronos-small objective and LoRA study.
+12. Path Viewer.
+13. Ranking and risk radar.
+14. Daily operations, cache, and deployment.
 
 ## Non-Negotiables
 

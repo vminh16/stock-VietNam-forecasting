@@ -89,12 +89,20 @@ the naive references inside each slice. Evidence is under
 `reports/milestone_2_research_eval/origin_slices/` and
 `reports/milestone_2_research_eval/metric_slices/`.
 
-**Next unit:** a confirmation run on roughly 210 paired dates, sized so the
-registered non-inferiority margin becomes testable. Register
-`small_l126 versus recent_return_bootstrap` there; the screen registration
-omitted it. Register the `symbol_group` values used as the unseen-symbol holdout
-and the slice metrics to be read, per SPEC section 8.7. Use at least two sampling
-seeds. Do not fold training or LoRA work into that package.
+**Completed unit:** M2.7 confirmed `small_l126` and `base_l126` on 196 dates
+disjoint from the screen. Both cleared the naive RankIC gate for the first time,
++0.0446 [+0.0134, +0.0741] and +0.0476 [+0.0104, +0.0831]. The registered
+backbone margin still fails at -0.0030 [-0.0215, +0.0158] because the achieved
+half-width 0.0186 exceeds the 0.0100 margin; that margin needs about 681 paired
+dates, not the 210 previously estimated. RankIC rises as liquidity falls. Evidence
+is under `reports/milestone_2_research_eval/confirmation/`.
+
+**Next unit:** decide the backbone margin, either by running most of the registry
+or by registering a wider margin before the run. Register
+the `symbol_group` values used as an unseen-symbol holdout and the slice metrics
+to be read, per SPEC section 8.7, and add the Kronos-versus-naive contrast inside
+each liquidity tier. Use at least two sampling seeds. Do not fold training or
+LoRA work into that package.
 
 Goal: compare candidates without leakage or metric sprawl.
 

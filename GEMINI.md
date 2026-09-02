@@ -151,12 +151,33 @@ coverage/width. The current paired t-test output is diagnostic, not canonical.
 - Inside the illiquid `tier_2`, the zero-information `persistence` reference
   reaches DA 52.87 against 50.12 in the liquid `tier_0`. A slice DA above the
   52% floor is even weaker evidence of skill than a pooled one.
+- M2.7 confirmed `small_l126` and `base_l126` on 196 dates disjoint from the
+  screen. Pooled RankIC 0.0270 and 0.0300. Both clear the naive gate for the
+  first time: +0.0446 [+0.0134, +0.0741] and +0.0476 [+0.0104, +0.0831].
+- The registered backbone margin still fails: small versus base is -0.0030
+  [-0.0215, +0.0158] against a required lower bound of -0.01. The interval is too
+  wide, not the difference too large.
+- Achieved half-width is 0.0186 against a 0.0100 margin. The old estimate of 210
+  dates was wrong; the margin needs about 681 paired dates, ~22.5 GPU hours for
+  two arms. Do not renegotiate the margin after seeing a result it would flip.
+- RankIC rises monotonically as liquidity falls, 0.0162/0.0313/0.0466 for small.
+  The ranking signal lives in the least tradeable third of the market. Treat this
+  as an M5 product constraint; testing it needs a registered Kronos-versus-naive
+  contrast per tier, which does not exist yet.
+- Calibration is still broken on fresh dates: coverage 0.398 and 0.359 against a
+  nominal 0.80.
 
 ## Commands
 
 ```powershell
 # Unit tests
 $env:PYTHONPATH='finetune_csv'; python -m pytest tests -q
+
+# M2.7 confirmation: run, then registered inference, then slices
+python evaluation/run_zero_shot_screen.py --config evaluation/configs/m2_7_confirmation.yaml
+python evaluation/run_paired_comparison.py --config evaluation/configs/m2_7_paired_inference.yaml
+python evaluation/run_metric_slices.py --config evaluation/configs/m2_7_metric_slices.yaml
+python evaluation/run_paired_comparison.py --config evaluation/configs/m2_7_slice_inference.yaml
 
 # Slice labels, then metrics inside each slice; neither runs a model
 python evaluation/run_origin_slices.py --config evaluation/configs/m2_6_origin_slices.yaml

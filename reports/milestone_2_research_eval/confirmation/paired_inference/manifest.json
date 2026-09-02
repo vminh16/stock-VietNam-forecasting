@@ -1,0 +1,64 @@
+{
+  "artifact_hashes": {
+    "paired_comparisons.csv": "4f1f6846c3091de65e6ba186fd802fc3c64ae871676f3765fd2de1f1e7a95e98",
+    "paired_inference_report.md": "b836ef06e314bee2dc7cb112bdc1aaad7c7f894f4f6693e6c63da416a2f02b49"
+  },
+  "bootstrap": {
+    "confidence": 0.95,
+    "mean_block_dates": 10,
+    "method": "stationary",
+    "replicates": 5000,
+    "seed": 20260901
+  },
+  "code_revision": "7431e6ca15fbb5bec133e7509f2cc137c5c57fe0",
+  "command": "C:\\Users\\USER\\anaconda3\\envs\\stock\\python.exe C:\\Users\\USER\\Desktop\\Stock-VN-forecashing\\evaluation\\run_paired_comparison.py --config evaluation\\configs\\m2_7_paired_inference.yaml",
+  "comparisons": [
+    {
+      "left": "small_l126",
+      "right": "base_l126"
+    },
+    {
+      "left": "small_l126",
+      "right": "recent_return_bootstrap"
+    },
+    {
+      "left": "base_l126",
+      "right": "recent_return_bootstrap"
+    },
+    {
+      "left": "small_l126",
+      "right": "persistence"
+    },
+    {
+      "left": "base_l126",
+      "right": "persistence"
+    }
+  ],
+  "config_path": "evaluation/configs/m2_7_paired_inference.yaml",
+  "config_sha256": "e7dcd9318083089c051e594376d0935ebe4962b28c561f6a18182187c864d1b1",
+  "generated_at_utc": "2026-09-02T22:17:53.929076+00:00",
+  "input_dirs": [
+    "data/evaluation/m2_7",
+    "data/evaluation/m2_2"
+  ],
+  "input_hashes": {
+    "base_l126_per_date_metrics.csv.gz": "aebd2b1dc7c472dadcd56b98f77602945af78a0115cc2109e2a9ebe6564bc060",
+    "persistence_per_date_metrics.csv.gz": "27bf23d30da45fb6e479422ed22d864abb23a1f969c69322483093503b0b303f",
+    "recent_return_bootstrap_per_date_metrics.csv.gz": "97862bdb0548629043df5c725d0fcefd33dd8163125ba5927dbef087fe94d163",
+    "small_l126_per_date_metrics.csv.gz": "9b129bae2e16e83fd94f203a10dcc2c5ad38e0f575b1642c7dbf121b9a2af997"
+  },
+  "lockbox_opened": false,
+  "metrics": [
+    "DA",
+    "MW-DA",
+    "RankIC",
+    "HitRate@Top10",
+    "CRPS",
+    "coverage",
+    "interval_width"
+  ],
+  "model_inference": false,
+  "restrict_dates_to": "small_l126",
+  "schema_version": "m2_3_paired_inference_v1",
+  "worktree_dirty": true
+}

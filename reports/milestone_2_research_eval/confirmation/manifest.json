@@ -1,0 +1,63 @@
+{
+  "amount_policy": "derived_ohlc4_compatibility_proxy",
+  "arms": [
+    {
+      "arm_id": "small_l126",
+      "cache_key": "b2682eecb20884468d9130c7aa5857e4c01dcf2c072591192ec769db8b79ccfb",
+      "lookback": 126,
+      "model_path": "pretrained/Kronos-small",
+      "model_sha256": "b082dfcbd8e8c142a725c8bbb99781802f38fec81210e13479effb32b3c3e020",
+      "normalizer_lookback": 126
+    },
+    {
+      "arm_id": "base_l126",
+      "cache_key": "bb255413e338851d82bd2833aeefd3b4f86eda663a71c4d9df1f7e22be2409d6",
+      "lookback": 126,
+      "model_path": "pretrained/Kronos-base",
+      "model_sha256": "abff193acab6db1a0368e9773e75799d11403b6d054ee6d5f0a11aeabc5f4b83",
+      "normalizer_lookback": 126
+    }
+  ],
+  "artifact_hashes": {
+    "base_l126_per_date_metrics.csv.gz": "aebd2b1dc7c472dadcd56b98f77602945af78a0115cc2109e2a9ebe6564bc060",
+    "base_l126_per_origin_metrics.csv.gz": "476c0f261ec8162e56a237049238dfff5d697073fc1fdf73e64ae13a771fb8ae",
+    "metric_summary.csv": "fe38290c3d4566cec80e4922e91350fd3db517053cb6d5b4ec0a607bcca52cf6",
+    "runtime_summary.csv": "54d755507a9676f64b4e1da4cfbaea9974b6e5698760011d656fe388b0a0f34c",
+    "small_l126_per_date_metrics.csv.gz": "9b129bae2e16e83fd94f203a10dcc2c5ad38e0f575b1642c7dbf121b9a2af997",
+    "small_l126_per_origin_metrics.csv.gz": "e0122432a05a54a256f09307f0cbf5163a4a655a5eb7a3e4864f82fc86834b05",
+    "zero_shot_screen_report.md": "d96bb5a92eef7caa3e08413cd8470845361e0340ed4310f790ad09d4c4e5b143"
+  },
+  "batch_size": 2,
+  "code_revision": "7431e6ca15fbb5bec133e7509f2cc137c5c57fe0",
+  "command": "C:\\Users\\USER\\anaconda3\\envs\\stock\\python.exe C:\\Users\\USER\\Desktop\\Stock-VN-forecashing\\evaluation\\run_zero_shot_screen.py --config evaluation\\configs\\m2_7_confirmation.yaml",
+  "config_path": "evaluation/configs/m2_7_confirmation.yaml",
+  "config_sha256": "be1776b0f7c96850de59ab393fb51e3f8aa17b70e8775760637be652537c11f1",
+  "dataset_fingerprint": "b52ff4784203b173979c6c1f23088b942edcbf21374987a6b269c71ed694ee3a",
+  "dataset_id": "vn150_strict_v2",
+  "date_residues": [
+    2,
+    5
+  ],
+  "date_stride": 10,
+  "device": "cuda",
+  "evaluation_dates": 196,
+  "generated_at_utc": "2026-09-02T22:17:38.610670+00:00",
+  "horizon": 5,
+  "lockbox_opened": false,
+  "origins_per_arm": 26869,
+  "price_adjustment_status": "unverified_provider_history",
+  "registry_sha256": "dcd71d14c5016b721111172d6a2ff384122eb74d2cc9c27252d359857e6726c6",
+  "sample_count": 10,
+  "sampling_seed": 20260901,
+  "schema_version": "m2_5_zero_shot_screen_v1",
+  "selection_sha256": "3115038efc7c1400cf0fc2613a03e7190ffe0667ba693902fc78f1f4511a0d4d",
+  "smoke": false,
+  "symbols": 147,
+  "temperature": 0.6,
+  "tokenizer_path": "pretrained/Kronos-Tokenizer-base",
+  "tokenizer_sha256": "59d85f6af76a2c3b8240ea06cb21db4213b4eeca053f246b23e29cf832fc6bee",
+  "top_k": 0,
+  "top_p": 0.9,
+  "training": false,
+  "worktree_dirty": true
+}

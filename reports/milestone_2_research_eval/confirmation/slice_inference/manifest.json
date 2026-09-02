@@ -1,0 +1,87 @@
+{
+  "artifact_hashes": {
+    "paired_comparisons.csv": "2c2a96bd60e0594fd729005ed78c0f76d9a1713582e66ee9467baacb04ae292a",
+    "paired_inference_report.md": "eddb0855f4e8a54709dc8e44e2d90770c8168c8366617965f4cd6cffd1bd0088"
+  },
+  "bootstrap": {
+    "confidence": 0.95,
+    "mean_block_dates": 10,
+    "method": "stationary",
+    "replicates": 5000,
+    "seed": 20260901
+  },
+  "code_revision": "7431e6ca15fbb5bec133e7509f2cc137c5c57fe0",
+  "command": "C:\\Users\\USER\\anaconda3\\envs\\stock\\python.exe C:\\Users\\USER\\Desktop\\Stock-VN-forecashing\\evaluation\\run_paired_comparison.py --config evaluation\\configs\\m2_7_slice_inference.yaml",
+  "comparisons": [
+    {
+      "left": "small_l126__liquidity_tier_tier_0",
+      "right": "base_l126__liquidity_tier_tier_0"
+    },
+    {
+      "left": "small_l126__liquidity_tier_tier_1",
+      "right": "base_l126__liquidity_tier_tier_1"
+    },
+    {
+      "left": "small_l126__liquidity_tier_tier_2",
+      "right": "base_l126__liquidity_tier_tier_2"
+    },
+    {
+      "left": "small_l126__symbol_group_group_0",
+      "right": "base_l126__symbol_group_group_0"
+    },
+    {
+      "left": "small_l126__symbol_group_group_1",
+      "right": "base_l126__symbol_group_group_1"
+    },
+    {
+      "left": "small_l126__symbol_group_group_2",
+      "right": "base_l126__symbol_group_group_2"
+    },
+    {
+      "left": "small_l126__symbol_group_group_3",
+      "right": "base_l126__symbol_group_group_3"
+    },
+    {
+      "left": "small_l126__symbol_group_group_4",
+      "right": "base_l126__symbol_group_group_4"
+    }
+  ],
+  "config_path": "evaluation/configs/m2_7_slice_inference.yaml",
+  "config_sha256": "41511db68bf2c58417f77531ffec339aee4f18424cc348c673073fc3e0b8158d",
+  "generated_at_utc": "2026-09-02T22:19:35.330651+00:00",
+  "input_dirs": [
+    "data/evaluation/m2_7/slice_metrics"
+  ],
+  "input_hashes": {
+    "base_l126__liquidity_tier_tier_0_per_date_metrics.csv.gz": "3840276068d48df2292822696d4f62b6f3649b57f093caab34cbef27d5b7d2c5",
+    "base_l126__liquidity_tier_tier_1_per_date_metrics.csv.gz": "91c2af9f122ce6af5827e719a9b0e781ee6523dfb07595620e48da1735567b94",
+    "base_l126__liquidity_tier_tier_2_per_date_metrics.csv.gz": "6f0d549f4e1a7a8b791b9104872b9db6d5fdcd1670893ebc30889255536edea9",
+    "base_l126__symbol_group_group_0_per_date_metrics.csv.gz": "757b6fec0f0999defe1bc11b0790eb205a21b7cb35e3b53bf5d0e69bf3d2d888",
+    "base_l126__symbol_group_group_1_per_date_metrics.csv.gz": "de865479aa8eb8e84f14822d6908da2627bdd0bf3f5bb60d3b237cde928056a9",
+    "base_l126__symbol_group_group_2_per_date_metrics.csv.gz": "f87973000c189220e1cdb058ecd5d7adf9171c52059c389cda65efe4a1c65e16",
+    "base_l126__symbol_group_group_3_per_date_metrics.csv.gz": "badf8844fb4a700cccdc86b3ac85be55524af95f1634016f3095a165700b2d69",
+    "base_l126__symbol_group_group_4_per_date_metrics.csv.gz": "bfb1c181c7cb0e3048a5405705bc48d73a12fae877115022709250c58483a94f",
+    "small_l126__liquidity_tier_tier_0_per_date_metrics.csv.gz": "00507ff6b6ffc085428592b31a5a4889d6455930283b092034596a045321b1e0",
+    "small_l126__liquidity_tier_tier_1_per_date_metrics.csv.gz": "040ccd6b6fab31e5fe660b437e2cd0053f53b6708b9f9433d0073bfd3b01de80",
+    "small_l126__liquidity_tier_tier_2_per_date_metrics.csv.gz": "8f4db6fd492d4852a97b1b22b5ea252b50c9f0b73d955de629179e8059126429",
+    "small_l126__symbol_group_group_0_per_date_metrics.csv.gz": "7d6a68600e46a9f4ef1740aeed3f4f20360337342f6f8cfe94d0ba021ddd742c",
+    "small_l126__symbol_group_group_1_per_date_metrics.csv.gz": "8aaacbc6871878044a64aedd9384abf7a80137dd9a28d81283e34a352c35e729",
+    "small_l126__symbol_group_group_2_per_date_metrics.csv.gz": "2911a259cdd29f0a211bae595f405fe0fbd7fb69550fef133e54b3d60ba39058",
+    "small_l126__symbol_group_group_3_per_date_metrics.csv.gz": "395a4c6c15278ed9726cc6ad5f2c781d64782320b67371442648154aa1e31916",
+    "small_l126__symbol_group_group_4_per_date_metrics.csv.gz": "1ad514851754143fca7ac12fa55bd0add050e501c7ed6427ab054c1dd948f729"
+  },
+  "lockbox_opened": false,
+  "metrics": [
+    "DA",
+    "MW-DA",
+    "RankIC",
+    "HitRate@Top10",
+    "CRPS",
+    "coverage",
+    "interval_width"
+  ],
+  "model_inference": false,
+  "restrict_dates_to": "",
+  "schema_version": "m2_3_paired_inference_v1",
+  "worktree_dirty": true
+}
