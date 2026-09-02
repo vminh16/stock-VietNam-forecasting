@@ -83,10 +83,18 @@ The lookback gap decomposes mostly into normalization, small and base tie at
 `L=126`, and every arm is overconfident against its nominal 80% band. Evidence is
 under `reports/milestone_2_research_eval/zero_shot_screen/`.
 
+**Completed unit:** M2.6 registered two evaluation slice keys, `liquidity_tier`
+and `symbol_group`, made every runner persist per-origin metrics, and recomputed
+the naive references inside each slice. Evidence is under
+`reports/milestone_2_research_eval/origin_slices/` and
+`reports/milestone_2_research_eval/metric_slices/`.
+
 **Next unit:** a confirmation run on roughly 210 paired dates, sized so the
 registered non-inferiority margin becomes testable. Register
 `small_l126 versus recent_return_bootstrap` there; the screen registration
-omitted it. Do not fold training or LoRA work into that package.
+omitted it. Register the `symbol_group` values used as the unseen-symbol holdout
+and the slice metrics to be read, per SPEC section 8.7. Use at least two sampling
+seeds. Do not fold training or LoRA work into that package.
 
 Goal: compare candidates without leakage or metric sprawl.
 
@@ -104,6 +112,7 @@ Verify:
 - Train targets do not touch validation intervals.
 - Final lockbox is not used for tuning.
 - Reports include date/symbol/origin counts and regime slices.
+- Any run whose results will be sliced persists per-origin metrics.
 - Metric contract remains small and decision-oriented.
 
 ## M3: Kronos-Small Adaptation

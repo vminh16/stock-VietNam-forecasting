@@ -4,20 +4,22 @@
     "metric_summary.csv": "1a01667e530debd0af39cf0c62acfb03d9a2d43dfc2d15dcd3dcd0707312e1b8",
     "naive_reference_report.md": "bb7151fb3083020fd03768927b2833934d01524c2add9f23ce66127fe345a7ea",
     "persistence_per_date_metrics.csv.gz": "27bf23d30da45fb6e479422ed22d864abb23a1f969c69322483093503b0b303f",
-    "recent_return_bootstrap_per_date_metrics.csv.gz": "97862bdb0548629043df5c725d0fcefd33dd8163125ba5927dbef087fe94d163"
+    "persistence_per_origin_metrics.csv.gz": "e2df45612faf63514b65b2f8caaa3c02b49c1d1c5ec556b43f24582d8db6ca88",
+    "recent_return_bootstrap_per_date_metrics.csv.gz": "97862bdb0548629043df5c725d0fcefd33dd8163125ba5927dbef087fe94d163",
+    "recent_return_bootstrap_per_origin_metrics.csv.gz": "4059bf98246d70f919566f9bec4c4caa6dff56889cd2d457f37255057c931a3c"
   },
   "candidates": [
     "persistence",
     "recent_return_bootstrap"
   ],
-  "code_revision": "9870c49795ea022b2bcbd242f17fdbd3fbb7cb2c",
-  "command": "C:\\Users\\USER\\anaconda3\\envs\\stock\\python.exe C:\\Users\\USER\\Desktop\\Stock-VN-forecashing\\evaluation\\run_naive_references.py --config evaluation\\configs\\m2_2_naive.yaml",
+  "code_revision": "867b15bf24a6bffe08de9cb8d7bba7e67ec37da5",
+  "command": "C:\\Users\\USER\\anaconda3\\python.exe C:\\Users\\USER\\Desktop\\Stock-VN-forecashing\\evaluation\\run_naive_references.py --config evaluation\\configs\\m2_2_naive.yaml",
   "config_path": "evaluation/configs/m2_2_naive.yaml",
   "config_sha256": "599dc4f6c4ea0164ffd956125745d63a3fbb5d0b24191dfe2ff34557ff1f7198",
   "dataset_fingerprint": "b52ff4784203b173979c6c1f23088b942edcbf21374987a6b269c71ed694ee3a",
   "dataset_id": "vn150_strict_v2",
   "evaluation_dates": 977,
-  "generated_at_utc": "2026-09-01T04:40:38.019222+00:00",
+  "generated_at_utc": "2026-09-02T07:42:00.136917+00:00",
   "horizon": 5,
   "interval_quantiles": [
     0.1,

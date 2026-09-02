@@ -1,0 +1,40 @@
+{
+  "amount_policy": "derived_ohlc4_compatibility_proxy",
+  "artifact_hashes": {
+    "liquidity_tiers.csv": "c91dda89e52bc7a971f02540fe62d7f6156e8d541e81cc006a23119fd2ab87c4",
+    "origin_slice_report.md": "c3401841e429d1117f31e2c8559a61df0f3703f6d6fb41f778b64cb8f691de34",
+    "symbol_groups.csv": "1e926e180d4a0c92155d0887d4ae1e98ff5a10dbd338b3a77c9e5289148b16f8"
+  },
+  "code_revision": "867b15bf24a6bffe08de9cb8d7bba7e67ec37da5",
+  "command": "C:\\Users\\USER\\anaconda3\\python.exe C:\\Users\\USER\\Desktop\\Stock-VN-forecashing\\evaluation\\run_origin_slices.py --config evaluation\\configs\\m2_6_origin_slices.yaml",
+  "config_path": "evaluation/configs/m2_6_origin_slices.yaml",
+  "config_sha256": "f1c4167357999a922850698841afda362c7b13d95f7bbb2632724ae8bf68edf8",
+  "dataset_fingerprint": "b52ff4784203b173979c6c1f23088b942edcbf21374987a6b269c71ed694ee3a",
+  "dataset_id": "vn150_strict_v2",
+  "evaluation_dates": 977,
+  "generated_at_utc": "2026-09-02T07:39:16.915015+00:00",
+  "group_count": 5,
+  "group_salt": "vn150-strict-v2-m2-holdout",
+  "liquidity_lookback": 63,
+  "liquidity_source_column": "amount",
+  "lockbox_opened": false,
+  "model_inference": false,
+  "origins": 133937,
+  "price_adjustment_status": "unverified_provider_history",
+  "registry_path": "data/evaluation/m2_1/common_origins.csv.gz",
+  "registry_sha256": "dcd71d14c5016b721111172d6a2ff384122eb74d2cc9c27252d359857e6726c6",
+  "schema_version": "m2_6_origin_slices_v1",
+  "slices_path": "data/evaluation/m2_6/origin_slices.csv.gz",
+  "slices_sha256": "8e474264cfc8b16af3dd2b053d9e965cdee2608f625f46556c57cc6aa83bd61b",
+  "symbol_group_sizes": {
+    "group_0": 30,
+    "group_1": 27,
+    "group_2": 24,
+    "group_3": 27,
+    "group_4": 39
+  },
+  "symbols": 147,
+  "tier_count": 3,
+  "training": false,
+  "worktree_dirty": true
+}

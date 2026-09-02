@@ -103,6 +103,26 @@ paired dates. All arms are overconfident: 0.33 to 0.40 coverage inside a nominal
 throughput. Evidence is under
 `reports/milestone_2_research_eval/zero_shot_screen/`.
 
+M2.6 is complete and training-free. It labelled all 133,937 origins with two
+pre-registered slice keys and recomputed the locked metrics inside each slice.
+`liquidity_tier` splits each date's cross-section into three balanced tiers by
+the trailing 63-session median `amount`; median amount is 133.8M, 36.3M, and
+4.4M, and every tier keeps at least 42 symbols on every date, so no date is
+dropped. `symbol_group` is a salted hash of `security_id` into five groups of
+30/27/24/27/39 symbols that reads no price and no result, which is what makes an
+unseen-symbol holdout honest; its liquidity balance is uneven by chance, with
+`group_2` at 0.181 and `group_1` at 0.417 of origins in the top tier against
+0.333 under a balanced split. The slice table SHA256 is
+`8e474264cfc8b16af3dd2b053d9e965cdee2608f625f46556c57cc6aa83bd61b`.
+
+Two consequences matter. First, `persistence` reaches DA 52.87 inside `tier_2`
+against 50.12 in `tier_0`, so the 52% floor is cleared by a zero-information
+down call exactly where prices fall hardest. Second, every runner now persists
+per-origin metrics, because per-date aggregates cannot be sliced afterwards; the
+M2.5 arms predate that artifact and therefore carry no slice evidence at all.
+Evidence is under `reports/milestone_2_research_eval/origin_slices/` and
+`reports/milestone_2_research_eval/metric_slices/`.
+
 ## Research Direction
 
 - Daily data remains invariant.
@@ -149,11 +169,13 @@ and CRPS plus interval coverage/width ship with the M2.2 metric layer.
 5. M2.3 paired stationary date-block inference: complete.
 6. M2.4 training-free data diagnostics: complete.
 7. M2.5 zero-shot screen: complete, no arm cleared the naive gate.
-8. Confirmation run with about 210 paired dates, then the M3 decision: next.
-9. Kronos-small objective and LoRA study.
-10. Path Viewer.
-11. Ranking and risk radar.
-12. Daily operations, cache, and deployment.
+8. M2.6 origin slices and per-origin metric persistence: complete.
+9. Confirmation run with about 210 paired dates, at least two seeds, and an
+   unseen-symbol holdout, then the M3 decision: next.
+10. Kronos-small objective and LoRA study.
+11. Path Viewer.
+12. Ranking and risk radar.
+13. Daily operations, cache, and deployment.
 
 ## Non-Negotiables
 

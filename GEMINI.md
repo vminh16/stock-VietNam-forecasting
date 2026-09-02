@@ -142,12 +142,25 @@ coverage/width. The current paired t-test output is diagnostic, not canonical.
   CRPS than the naive bootstrap. Do not describe Kronos intervals as calibrated.
 - Training remains out of scope until a confirmation run with roughly 210 paired
   dates settles the non-inferiority margin.
+- M2.6 registered two evaluation slice keys: `liquidity_tier` (three
+  point-in-time tiers by trailing 63-session median amount) and `symbol_group`
+  (five salted-hash groups of security_id, for unseen-symbol holdouts).
+- Every runner now persists per-origin metrics. A run that keeps only per-date
+  aggregates cannot be sliced afterwards, so the M2.5 arms have no slice
+  evidence; slice results for a model begin at the confirmation run.
+- Inside the illiquid `tier_2`, the zero-information `persistence` reference
+  reaches DA 52.87 against 50.12 in the liquid `tier_0`. A slice DA above the
+  52% floor is even weaker evidence of skill than a pooled one.
 
 ## Commands
 
 ```powershell
 # Unit tests
 $env:PYTHONPATH='finetune_csv'; python -m pytest tests -q
+
+# Slice labels, then metrics inside each slice; neither runs a model
+python evaluation/run_origin_slices.py --config evaluation/configs/m2_6_origin_slices.yaml
+python evaluation/run_metric_slices.py --config evaluation/configs/m2_6_metric_slices.yaml
 
 # Frozen zero-shot evaluation
 python evaluation/inference_pipeline.py --config evaluation/configs/milestone0_baseline_zero_shot.yaml --mode final

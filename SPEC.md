@@ -1,10 +1,10 @@
 # SPEC - Vietnam Stock Market Radar with Kronos
 
-> **Version:** 2.5
+> **Version:** 2.6
 >
-> **Date:** 2026-09-01
+> **Date:** 2026-09-02
 >
-> **Status:** M2.5 zero-shot screen complete; no arm cleared the naive gate
+> **Status:** M2.6 slice harness complete; M2.5 screen cleared no naive gate
 >
 > **Authority:** Source of truth for product, data, model, evaluation, and delivery decisions
 
@@ -209,7 +209,36 @@ Four findings are binding on later milestones.
 Cost, measured on one RTX 2050: `base_l126` runs at 1.47 origins per second and
 `small_l63` at 9.91, a 6.7x gap, with peak VRAM 0.54 GB against 0.16 GB.
 
-### 3.4 Baseline Interpretation
+### 3.4 M2.6 Slice Readiness Evidence
+
+M2.6 labelled all 133,937 frozen origins with two pre-registered slice keys and
+recomputed the locked metrics inside each slice. It ran no model. The slice table
+SHA256 is `8e474264cfc8b16af3dd2b053d9e965cdee2608f625f46556c57cc6aa83bd61b`.
+
+- `liquidity_tier` ranks each date's cross-section by the median traded `amount`
+  over the trailing 63 sessions, into three balanced tiers. Median amount is
+  133.8M, 36.3M, and 4.4M in tiers 0 to 2, a 30x span. Every tier keeps at least
+  42 symbols on every date, so no date is dropped and HitRate@Top10 stays defined
+  inside each tier.
+- `symbol_group` is a salted-hash partition of `security_id` into five groups of
+  30, 27, 24, 27, and 39 symbols. It reads no price, no return, and no result, so
+  an unseen-symbol holdout drawn from it cannot be selected after seeing which
+  symbols a candidate ranks well. Realized liquidity balance is uneven by chance:
+  `group_2` holds 0.181 of its origins in the top tier and `group_1` holds 0.417,
+  against 0.333 under a balanced split. A single-group holdout is therefore not a
+  representative sample of the population.
+
+One finding sharpens the existing DA warning. The zero-information `persistence`
+reference reaches DA 52.87 inside the illiquid `tier_2` against 50.12 in the
+liquid `tier_0`, so the `DA >= 52%` utility floor is cleared by a permanent down
+call precisely where prices trend down hardest. A slice-level DA above the floor
+is even weaker evidence of skill than a pooled one.
+
+M2.5's five Kronos arms cannot be sliced: that run predates the per-origin metric
+artifact and kept only per-date aggregates. Slice evidence for a model therefore
+begins with the confirmation run.
+
+### 3.5 Baseline Interpretation
 
 - Zero-shot has not demonstrated actionable directional or ranking value.
 - The existing fine-tuning procedure has not demonstrated improvement.
@@ -719,7 +748,38 @@ Reading rule, applied to paired date-block intervals at 95%:
 No threshold in this subsection may be changed after the screen is read. A
 changed threshold requires a new registration and a new run.
 
-### 8.7 Multiple Comparisons
+### 8.7 Registered Evaluation Slices
+
+Two slice keys are registered. Both are assigned by
+`evaluation/run_origin_slices.py` from the frozen origin registry alone, before
+any metric is computed, and both are recorded with a hash in the M2.6 manifest.
+
+- `liquidity_tier`: three tiers, assigned inside each evaluation date by the
+  median traded `amount` over the trailing 63 sessions, `tier_0` most liquid.
+  Assignment is point-in-time and reads no session after the origin.
+- `symbol_group`: five groups, a salted hash of `security_id` with salt
+  `vn150-strict-v2-m2-holdout`. It MUST NOT depend on prices, returns, or
+  results.
+
+Rules:
+
+1. Any evaluation that reports slice metrics MUST persist per-origin metrics.
+   A run that keeps only per-date aggregates cannot be sliced afterwards and MUST
+   NOT have slice claims attached to it later.
+2. Slice metrics are recomputed from per-origin rows inside the slice. A slice
+   `RankIC` is the cross-sectional correlation among that slice's symbols only,
+   and a slice `HitRate@Top10` selects that slice's top ten, not the market's.
+3. A date holding fewer than ten origins inside a slice is dropped from that
+   slice only. Both sides of a paired comparison share origins, so they drop the
+   same dates and stay paired.
+4. Slicing multiplies comparisons. The slice list and the metric read from it
+   MUST be registered before the run, and section 8.8 applies to the resulting
+   family. Searching slices after seeing a pooled result is data snooping.
+5. An unseen-symbol holdout MUST name its `symbol_group` values in the
+   registration, and MUST report the group's realized liquidity composition from
+   section 3.4, because the hash split is not liquidity-balanced.
+
+### 8.8 Multiple Comparisons
 
 The grid, primary metric, promotion rule, and non-inferiority bound must be
 registered before evaluation. If many candidates are inspected, use a Model
@@ -885,11 +945,15 @@ interval diagnostics; no model inference was performed. M2.3 replaced the
 diagnostic paired t-test with the canonical paired stationary date-block
 bootstrap and measured the design's resolution. M2.4 ran two training-free data
 diagnostics: variance ratios on VN150 daily returns and a normalization-confound
-measurement for the lookback grid. The zero-shot Kronos screen follows and needs
-the `Kronos-small` checkpoint, which is not in `pretrained/` yet.
+measurement for the lookback grid. M2.5 screened five zero-shot arms on 98
+strided dates; no arm cleared the registered naive gate. M2.6 registered the two
+evaluation slice keys of section 8.7, made every runner persist per-origin
+metrics, and recomputed the naive references inside each slice.
 
-Implement nested walk-forward folds, unseen-symbol groups, paired date-block
-inference, horizon/lookback diagnostics, and confidence intervals.
+Remaining before M2 can close: a confirmation run on roughly 210 paired dates
+with at least two seeds, an unseen-symbol holdout drawn from the registered
+`symbol_group` values, and slice evidence for the Kronos arms, which the M2.5
+run cannot supply because it kept no per-origin metrics.
 
 Success: zero-shot small/base and naive baselines are comparable on identical
 origins without opening the final lockbox.

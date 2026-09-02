@@ -1,0 +1,55 @@
+{
+  "artifact_hashes": {
+    "metric_slice_report.md": "61ffc276a29a6f6d503922599a4df3e0fbfcf4eadffc8e1925873d04802b7e54",
+    "persistence__liquidity_tier_tier_0_per_date_metrics.csv.gz": "6ce6dc04dcc0e0fd013ce812b9bfc2cf98d2d35b478c38b0dfc98b0a6685ea5c",
+    "persistence__liquidity_tier_tier_1_per_date_metrics.csv.gz": "1e69b344254002b410f3c27e7717e1912145feee898aa68255b4e9db405dbfb0",
+    "persistence__liquidity_tier_tier_2_per_date_metrics.csv.gz": "ea3316cbf68fda0678660d4d529df11f0301c5cbda537bdd4154361415239f28",
+    "persistence__symbol_group_group_0_per_date_metrics.csv.gz": "48638b35bb9947c1e5cfacb6f138f590463c731680c3ec65476bb4a5baf70bae",
+    "persistence__symbol_group_group_1_per_date_metrics.csv.gz": "a7f69e505380fb7500025b209c6bf6e3769ade5dcfb173f4fa105f18229d890c",
+    "persistence__symbol_group_group_2_per_date_metrics.csv.gz": "74b24eb2956f1c49669c59d77e2cb0074bc3cfb57432ea5f422b0d4b54bef6d3",
+    "persistence__symbol_group_group_3_per_date_metrics.csv.gz": "a3f0b24f87288c939b354270bd2089a54830d0406744698ede98d11b0636f818",
+    "persistence__symbol_group_group_4_per_date_metrics.csv.gz": "ee2ed5926642c2a0d35b0b8cc698daf732bfd8a7aab906544a1d0babf760db0a",
+    "recent_return_bootstrap__liquidity_tier_tier_0_per_date_metrics.csv.gz": "100b5d2e65ae6bd0a25f736b16aafead1893451c3e5c01d8dbe664ed7559b07d",
+    "recent_return_bootstrap__liquidity_tier_tier_1_per_date_metrics.csv.gz": "14a9e8b0fc760807773aacecdce27cd233063255cf5278cab9a210963ccc6488",
+    "recent_return_bootstrap__liquidity_tier_tier_2_per_date_metrics.csv.gz": "d360485009e6cb9bda8e74635f68d8061ab4817fc4507040f5a37ba228cbb627",
+    "recent_return_bootstrap__symbol_group_group_0_per_date_metrics.csv.gz": "0c7843e8b571a97e346bb489874be03ca18084f2ea28461e2c8c3c9a645eac3b",
+    "recent_return_bootstrap__symbol_group_group_1_per_date_metrics.csv.gz": "c16055d43f22368bc09e3fcca54d5f0be1eee9fa3780fd1e6c13fc2ad48cafe6",
+    "recent_return_bootstrap__symbol_group_group_2_per_date_metrics.csv.gz": "17bb24b1f5ec69b6e4ea3ecac7ac73fdec4817e09dbceb636c3e4e76b230c11e",
+    "recent_return_bootstrap__symbol_group_group_3_per_date_metrics.csv.gz": "89b84c7ab6d78899b6c09f8f39c6dbf1d0dd89c15fc1a5731cafd9b8c31ae123",
+    "recent_return_bootstrap__symbol_group_group_4_per_date_metrics.csv.gz": "ca7b09af2220520d4732ef85ea91f6a424c832ccd698bf87fee2598beeddc183",
+    "slice_metric_summary.csv": "682912e16cca1133ed76d1c4f4791ec8039d71863610732cb19d555fdeba4044"
+  },
+  "candidates": [
+    "persistence",
+    "recent_return_bootstrap"
+  ],
+  "code_revision": "867b15bf24a6bffe08de9cb8d7bba7e67ec37da5",
+  "command": "C:\\Users\\USER\\anaconda3\\python.exe C:\\Users\\USER\\Desktop\\Stock-VN-forecashing\\evaluation\\run_metric_slices.py --config evaluation\\configs\\m2_6_metric_slices.yaml",
+  "config_path": "evaluation/configs/m2_6_metric_slices.yaml",
+  "config_sha256": "e8fd407c5823e14653f454b3651a8671cd828c83648daf129160f6ff28e66c46",
+  "dataset_fingerprint": "b52ff4784203b173979c6c1f23088b942edcbf21374987a6b269c71ed694ee3a",
+  "dropped_dates_total": 0,
+  "generated_at_utc": "2026-09-02T07:46:43.140595+00:00",
+  "input_dirs": [
+    "data/evaluation/m2_5",
+    "data/evaluation/m2_2"
+  ],
+  "input_hashes": {
+    "persistence_per_origin_metrics.csv.gz": "e2df45612faf63514b65b2f8caaa3c02b49c1d1c5ec556b43f24582d8db6ca88",
+    "recent_return_bootstrap_per_origin_metrics.csv.gz": "4059bf98246d70f919566f9bec4c4caa6dff56889cd2d457f37255057c931a3c"
+  },
+  "lockbox_opened": false,
+  "minimum_cross_section": 10,
+  "model_inference": false,
+  "output_dir": "data/evaluation/m2_6/slice_metrics",
+  "registry_sha256": "dcd71d14c5016b721111172d6a2ff384122eb74d2cc9c27252d359857e6726c6",
+  "schema_version": "m2_6_metric_slices_v1",
+  "slice_keys": [
+    "liquidity_tier",
+    "symbol_group"
+  ],
+  "slices_path": "data/evaluation/m2_6/origin_slices.csv.gz",
+  "slices_sha256": "8e474264cfc8b16af3dd2b053d9e965cdee2608f625f46556c57cc6aa83bd61b",
+  "training": false,
+  "worktree_dirty": true
+}
