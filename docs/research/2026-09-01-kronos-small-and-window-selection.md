@@ -676,3 +676,76 @@ return hiện tại. Chấm cùng bộ metric.
 - `data_pipeline/transforms.py:4-16` (normalize_lookback_window)
 - `evaluation/configs/inference.yaml:3-5, 20-23`, `evaluation/configs/m2_1_origins.yaml:8`, `evaluation/configs/m2_3_paired_inference.yaml:7-12`
 - `evaluation/research/origins.py:98-99, 181-194`
+
+---
+
+## 7. Cập nhật thực nghiệm — 2026-09-02
+
+> **Đây KHÔNG phải primary-source review.** Mục này ghi kết quả đo được của chính
+> dự án, để đối chiếu với các câu hỏi mở nêu ở §0.2. Nguồn của mọi con số dưới đây
+> là artifact trong repo, không phải tài liệu bên ngoài. Các mục §1 đến §6 giữ
+> nguyên tính chất khảo sát nguồn gốc và không được sửa theo kết quả này.
+
+**Nguồn bằng chứng:**
+`reports/milestone_2_research_eval/data_diagnostics/` (M2.4),
+`reports/milestone_2_research_eval/zero_shot_screen/` và
+`.../zero_shot_screen/paired_inference/` (M2.5).
+Thiết kế: 13,431 common origins, 98 ngày strided, `sample_count=10`,
+`T=0.6`, `top_p=0.9`, seed `20260901`, luật đọc kết quả đăng ký trước tại
+`SPEC.md` §8.6.
+
+### 7.1 Ba câu hỏi mở của §0.2 giờ trả lời được tới đâu
+
+| Câu hỏi mở (§0.2) | Kết quả đo được | Trạng thái |
+|---|---|---|
+| A — không có lookback ablation trong paper | Đã tự chạy: `small_l63` RankIC 0.0013, `small_l126` 0.0247, contrast −0.0235 CI [−0.0461, −0.0016] | Đã có bằng chứng nội bộ, chưa confirm |
+| C — không có CI cho small vs base | Đã tự đo: tại `L=126` chênh lệch RankIC −0.0020 CI [−0.0184, +0.0129] | Hoà về point estimate; **non-inferiority vẫn chưa chứng nhận được** |
+| E — không có kết quả nào cho thị trường VN | Nay đã có, cho zero-shot: không arm nào vượt `recent_return_bootstrap` với CI loại 0 | Đã trả lời, kết luận là **insufficient evidence** |
+
+### 7.2 Phát hiện §0.3(3) đã được kiểm định trực tiếp
+
+§0.3 nêu: `L` đồng thời là normalization window, nên ablation `L` không phải
+ablation context thuần. M2.4 đo mức độ: kênh giá bị rescale hệ số trung vị
+`1.364` và dịch tâm `0.572` đơn vị scale khi normalizer đổi từ 126 sang 63 phiên,
+trong khi kênh volume gần như không đổi (`0.974`).
+
+M2.5 thêm arm `small_l63_norm126` để tách bạch. Phân rã theo point estimate:
+
+| Contrast | Ý nghĩa | Δ RankIC | CI 95% |
+|---|---|---:|---|
+| `small_l63` vs `small_l126` | context **+** normalization | −0.0235 | [−0.0461, −0.0016] |
+| `small_l63` vs `small_l63_norm126` | chỉ normalization | −0.0211 | [−0.0437, +0.0001] |
+| `small_l63_norm126` vs `small_l126` | chỉ context | −0.0023 | [−0.0143, +0.0099] |
+
+Thành phần normalization mang khoảng 90% point estimate của contrast tổng, trong
+khi thành phần context nhỏ hơn một bậc độ lớn. **Cảnh báo bắt buộc:** ở 98 ngày,
+CI của cả hai thành phần riêng lẻ đều còn chứa 0; chỉ contrast tổng loại được 0.
+Đây là phân rã theo ước lượng điểm, chưa phải cơ chế đã chứng minh.
+
+Hệ quả cho §5.3: thí nghiệm E1 đã chạy và E2 đã chạy ở quy mô screen. E2 ở quy mô
+confirm vẫn cần, và **phải giữ arm `*_norm126`** — nếu bỏ, kết luận về `L` sẽ quy
+sai nguyên nhân.
+
+### 7.3 Hai phát hiện mới không nằm trong dự đoán của note
+
+1. **Calibration kém nghiêm trọng.** Mọi arm Kronos phủ 0.33–0.40 giá trị thực
+   tế trong dải danh nghĩa 80%, so với 0.689 của `recent_return_bootstrap`, và
+   CRPS kém hơn chính baseline ngây thơ đó (0.0253–0.0258 so với 0.0239). Note
+   không nêu khả năng này vì paper không công bố calibration diagnostic nào.
+   Không được mô tả khoảng dự báo Kronos là đã hiệu chỉnh.
+2. **Biên quyết định đã đăng ký nhỏ hơn độ phân giải của thiết kế.** Biên
+   non-inferiority `0.01` RankIC nằm dưới nửa độ rộng CI đo được (`0.0145` cho
+   cặp arm tương quan ở 98 ngày), nên test không thể qua bất kể chất lượng model.
+   Muốn biên đó kiểm định được cần khoảng 210 ngày ghép cặp.
+
+### 7.4 Điều note khuyến nghị mà thí nghiệm chưa làm
+
+- Arm `L=40` (§5.3 E3) chưa chạy. Đây vẫn là giá trị lookback daily duy nhất có
+  nguồn primary.
+- Biến thể tín hiệu path-average (§5.3 E4) chưa chấm.
+- Screen dùng một seed, một bộ `T/top_p`, không có nhóm mã unseen, và không cắt
+  lát theo thanh khoản. Ba thiếu sót đầu là hạn chế thiết kế; thiếu sót cuối là
+  giới hạn của runner, vốn chỉ giữ metric theo ngày.
+- Đăng ký của screen bỏ sót `small_l126` versus `recent_return_bootstrap`. Tính
+  bổ sung sau khi đã biết arm nào mạnh sẽ là post-hoc, nên phép so này được dời
+  sang đăng ký của vòng confirm.
