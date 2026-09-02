@@ -779,7 +779,54 @@ Rules:
    registration, and MUST report the group's realized liquidity composition from
    section 3.4, because the hash split is not liquidity-balanced.
 
-### 8.8 Multiple Comparisons
+### 8.8 Pre-Registered M2.7 Confirmation Rule
+
+Registered on 2026-09-02, before the run started and before any M2.7 result
+existed. The M2.5 screen could not test the registered non-inferiority margin
+because 98 dates resolve no better than about `0.047` in RankIC. This run exists
+to make that margin testable and nothing else.
+
+Design:
+
+- Arms: `small_l126` and `base_l126` only. Every other arm is deferred for
+  budget; that is a resource decision, not a finding.
+- Dates: the 196 origin dates at positions `{2, 5} mod 10` of the frozen
+  registry. The screen used `{0 mod 10}`, so the two date sets are disjoint and
+  the arms are not confirmed on the dates that selected them.
+- Ten sample paths, `T=0.6`, `top_p=0.9`, seed `20260901`, matching the screen so
+  the only intended difference is the date set.
+- The naive references keep their own 20 sample paths from M2.2. CRPS and
+  interval width therefore compare an ensemble of ten against an ensemble of
+  twenty and are read as directional only, not as a calibrated gap.
+
+Reading rule:
+
+1. **Primary.** `small_l126` versus `base_l126` on RankIC at 95%. SPEC section
+   8.6 rule 4 already fixed the bound: Kronos-small survives as the development
+   candidate when the paired RankIC lower bound exceeds `-0.01` and the paired
+   MW-DA lower bound exceeds `-1.0` percentage point. That bound MUST NOT be
+   changed now.
+2. **Gate.** Section 8.6 rule 5 applies unchanged: an arm is called useful only
+   if it beats `recent_return_bootstrap` on RankIC with an interval excluding
+   zero. `small_l126 versus recent_return_bootstrap` is registered here because
+   the M2.5 registration omitted it; it was deliberately left uncomputed rather
+   than added after the screen was read.
+3. **Secondary, descriptive only.** Comparisons against `persistence`, all other
+   metrics, and every slice result. These MUST NOT promote or reject a candidate
+   on their own.
+4. **Slices.** Section 8.7 applies. Slice results are a stability check: the
+   primary contrast is reported inside each `liquidity_tier` and each
+   `symbol_group` to show whether one part of the population carries it. No
+   training has happened, so every symbol is unseen and `symbol_group` is not
+   yet a holdout; it becomes one at M3.
+5. **Insufficient evidence is a valid outcome** and MUST be reported as such. An
+   interval containing zero is not equivalence.
+
+Multiplicity is controlled by declaring one primary metric on one comparison.
+The remaining comparisons are descriptive, so section 8.9 needs no correction
+here; it binds as soon as a secondary result is used to choose anything.
+
+### 8.9 Multiple Comparisons
 
 The grid, primary metric, promotion rule, and non-inferiority bound must be
 registered before evaluation. If many candidates are inspected, use a Model

@@ -51,6 +51,7 @@ class ScreenConfig:
     report_dir: Path
     horizon: int
     date_stride: int
+    date_residues: tuple
     sample_count: int
     seed: int
     temperature: float
@@ -87,6 +88,7 @@ def load_screen_config(path):
         report_dir=Path(raw["report_dir"]),
         horizon=int(raw["horizon"]),
         date_stride=int(raw["date_stride"]),
+        date_residues=tuple(int(value) for value in raw.get("date_residues", [0])),
         sample_count=int(sampling["sample_count"]),
         seed=int(sampling["seed"]),
         temperature=float(sampling["temperature"]),
@@ -105,6 +107,12 @@ def load_screen_config(path):
         raise ValueError("sample_count must allow ensemble statistics")
     if config.date_stride < 1 or config.batch_size < 1:
         raise ValueError("date_stride and batch_size must be positive")
+    if not config.date_residues:
+        raise ValueError("date_residues must select at least one date class")
+    if len(set(config.date_residues)) != len(config.date_residues):
+        raise ValueError("date_residues must be unique")
+    if any(value < 0 or value >= config.date_stride for value in config.date_residues):
+        raise ValueError("Every date residue must lie inside the stride")
     if len({arm.arm_id for arm in config.arms}) != len(config.arms):
         raise ValueError("Arm identifiers must be unique")
     for arm in config.arms:
@@ -142,6 +150,7 @@ def arm_cache_key(config, arm, registry_hash, selection):
             "registry_sha256": registry_hash,
             "selection_sha256": selection,
             "date_stride": config.date_stride,
+            "date_residues": list(config.date_residues),
             "horizon": config.horizon,
             "sample_count": config.sample_count,
             "seed": config.seed,
@@ -164,6 +173,15 @@ def arm_cache_key(config, arm, registry_hash, selection):
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
+def select_dates(all_dates, stride, residues):
+    """Keep the date classes this run registered, so runs can be made disjoint."""
+    position = np.arange(len(all_dates))
+    selected = all_dates[np.isin(position % stride, np.asarray(residues))]
+    if selected.size == 0:
+        raise ValueError("Date selection is empty")
+    return selected
+
+
 def load_inputs(config, max_dates=None):
     registry_hash = sha256_file(config.registry_path)
     registry_manifest = json.loads(
@@ -174,7 +192,11 @@ def load_inputs(config, max_dates=None):
 
     registry = pd.read_csv(config.registry_path)
     registry["origin_date"] = pd.to_datetime(registry["origin_date"])
-    dates = np.sort(registry["origin_date"].unique())[:: config.date_stride]
+    dates = select_dates(
+        np.sort(registry["origin_date"].unique()),
+        config.date_stride,
+        config.date_residues,
+    )
     if max_dates is not None:
         dates = dates[:max_dates]
     registry = registry[registry["origin_date"].isin(dates)].reset_index(drop=True)
@@ -375,7 +397,7 @@ No model was trained. The 2026 lockbox remains closed.
 - Origins per arm: {len(registry):,}
 - Evaluation dates: {registry['origin_date'].nunique():,}
 - Symbols: {registry['security_id'].nunique():,}
-- Date stride: {config.date_stride}
+- Date stride: {config.date_stride}, residues {list(config.date_residues)}
 - Sample paths per origin: {config.sample_count}
 - Sampling: `T={config.temperature}`, `top_p={config.top_p}`, `top_k={config.top_k}`,
   seed {config.seed}
@@ -509,6 +531,7 @@ def run_screen(config_path, command=None, max_dates=None, smoke=False):
         "device": device,
         "horizon": config.horizon,
         "date_stride": config.date_stride,
+        "date_residues": list(config.date_residues),
         "sample_count": config.sample_count,
         "sampling_seed": config.seed,
         "temperature": config.temperature,

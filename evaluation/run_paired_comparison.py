@@ -223,7 +223,7 @@ roughly twice as wide because each fold holds about a quarter of the dates.
 - Per-fold rows accompany the pooled row so a single regime cannot carry a
   conclusion on its own.
 - No multiple-comparison correction is applied yet. Once several model
-  candidates enter, SPEC section 8.8 requires a Model Confidence Set or an
+  candidates enter, SPEC section 8.9 requires a Model Confidence Set or an
   equivalent bootstrap correction before any winner is named.
 - The 2026 lockbox remains closed.
 

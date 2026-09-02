@@ -1,0 +1,17 @@
+schema_version: m2_6_metric_slices_v1
+slices_path: data/evaluation/m2_6/origin_slices.csv.gz
+slices_manifest_path: reports/milestone_2_research_eval/origin_slices/manifest.json
+input_dirs:
+  - data/evaluation/m2_7
+  - data/evaluation/m2_2
+output_dir: data/evaluation/m2_7/slice_metrics
+report_dir: reports/milestone_2_research_eval/confirmation/metric_slices
+candidates:
+  - small_l126
+  - base_l126
+  - recent_return_bootstrap
+  - persistence
+slice_keys:
+  - liquidity_tier
+  - symbol_group
+minimum_cross_section: 10

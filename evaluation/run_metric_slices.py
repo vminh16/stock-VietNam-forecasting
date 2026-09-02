@@ -211,7 +211,7 @@ intervals over these slice files carry any comparison.
   `{{candidate}}_per_date_metrics.csv.gz` convention, so
   `evaluation/run_paired_comparison.py` consumes them unchanged.
 - Slicing multiplies the number of comparisons. SPEC section 8.7 registers the
-  slice keys and section 8.8 requires a multiplicity correction before any slice
+  slice keys and section 8.9 requires a multiplicity correction before any slice
   result is read as evidence; an unregistered slice search is data snooping.
 - The 2026 lockbox remains closed.
 """
