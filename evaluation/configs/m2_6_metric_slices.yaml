@@ -1,0 +1,17 @@
+schema_version: m2_6_metric_slices_v1
+slices_path: data/evaluation/m2_6/origin_slices.csv.gz
+slices_manifest_path: reports/milestone_2_research_eval/origin_slices/manifest.json
+# The M2.5 screen predates the per-origin artifact, so only the naive references
+# can be sliced today. Kronos arms enter this list from the confirmation run on.
+input_dirs:
+  - data/evaluation/m2_5
+  - data/evaluation/m2_2
+output_dir: data/evaluation/m2_6/slice_metrics
+report_dir: reports/milestone_2_research_eval/metric_slices
+candidates:
+  - persistence
+  - recent_return_bootstrap
+slice_keys:
+  - liquidity_tier
+  - symbol_group
+minimum_cross_section: 10

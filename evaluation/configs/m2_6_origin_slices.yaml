@@ -1,0 +1,12 @@
+schema_version: m2_6_origin_slices_v1
+dataset_id: vn150_strict_v2
+dataset_dir: data/curated/vn150_strict_v2
+dataset_manifest_path: reports/milestone_1_data/vn150_strict_v2/dataset_manifest.json
+registry_path: data/evaluation/m2_1/common_origins.csv.gz
+registry_manifest_path: reports/milestone_2_research_eval/origin_registry/manifest.json
+output_path: data/evaluation/m2_6/origin_slices.csv.gz
+report_dir: reports/milestone_2_research_eval/origin_slices
+liquidity_lookback: 63
+tier_count: 3
+group_count: 5
+group_salt: vn150-strict-v2-m2-holdout

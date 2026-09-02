@@ -196,14 +196,17 @@ def _date_forecasts(rows, closes, config, candidate_id):
 
 
 def evaluate_candidate(config, registry, closes, candidate_id):
-    origins = [
-        summarize_origins(
-            _date_forecasts(rows, closes, config, candidate_id),
-            quantiles=config.interval_quantiles,
-        )
-        for _, rows in registry.groupby(["fold_id", "origin_date"], sort=True)
-    ]
-    return aggregate_dates(pd.concat(origins, ignore_index=True))
+    origins = pd.concat(
+        [
+            summarize_origins(
+                _date_forecasts(rows, closes, config, candidate_id),
+                quantiles=config.interval_quantiles,
+            )
+            for _, rows in registry.groupby(["fold_id", "origin_date"], sort=True)
+        ],
+        ignore_index=True,
+    )
+    return origins, aggregate_dates(origins)
 
 
 def _summary_rows(candidate_id, dates):
@@ -214,10 +217,10 @@ def _summary_rows(candidate_id, dates):
     return rows
 
 
-def _write_per_date_metrics(path, dates):
+def _write_metrics(path, frame):
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(f"{path.name}.tmp")
-    output = dates.copy()
+    output = frame.copy()
     output["origin_date"] = pd.to_datetime(output["origin_date"]).dt.strftime("%Y-%m-%d")
     with temporary.open("wb") as raw:
         with gzip.GzipFile(filename="", mode="wb", fileobj=raw, mtime=0) as compressed:
@@ -319,11 +322,13 @@ def evaluate_naive_references(config_path, command=None):
     summary_rows = []
     artifact_hashes = {}
     for candidate_id in BASELINE_IDS:
-        dates = evaluate_candidate(config, registry, closes, candidate_id)
-        per_date_path = _write_per_date_metrics(
-            config.output_dir / f"{candidate_id}_per_date_metrics.csv.gz", dates
-        )
-        artifact_hashes[per_date_path.name] = sha256_file(per_date_path)
+        origins, dates = evaluate_candidate(config, registry, closes, candidate_id)
+        for path, frame in (
+            (config.output_dir / f"{candidate_id}_per_date_metrics.csv.gz", dates),
+            (config.output_dir / f"{candidate_id}_per_origin_metrics.csv.gz", origins),
+        ):
+            written = _write_metrics(path, frame)
+            artifact_hashes[written.name] = sha256_file(written)
         summary_rows.extend(_summary_rows(candidate_id, dates))
 
     summary = pd.DataFrame(summary_rows)

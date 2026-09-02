@@ -289,7 +289,8 @@ def evaluate_arm(config, arm, registry, frames, device, progress=None):
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
 
-    dates = aggregate_dates(pd.concat(origin_frames, ignore_index=True))
+    origins = pd.concat(origin_frames, ignore_index=True)
+    dates = aggregate_dates(origins)
     runtime = {
         "arm_id": arm.arm_id,
         "lookback": arm.lookback,
@@ -299,12 +300,12 @@ def evaluate_arm(config, arm, registry, frames, device, progress=None):
         "origins_per_second": processed / elapsed if elapsed > 0 else float("nan"),
         "peak_vram_gb": peak_vram,
     }
-    return dates, runtime
+    return origins, dates, runtime
 
 
-def _write_dates(path, dates):
+def _write_metrics(path, frame):
     path.parent.mkdir(parents=True, exist_ok=True)
-    output = dates.copy()
+    output = frame.copy()
     output["origin_date"] = pd.to_datetime(output["origin_date"]).dt.strftime("%Y-%m-%d")
     output.to_csv(path, index=False, compression="gzip")
     return path
@@ -313,8 +314,10 @@ def _write_dates(path, dates):
 def _resume_arm(config, arm, cache_key):
     """Return a completed arm's dates and runtime when its cache key still matches."""
     path = config.output_dir / f"{arm.arm_id}_per_date_metrics.csv.gz"
+    origin_path = config.output_dir / f"{arm.arm_id}_per_origin_metrics.csv.gz"
     sidecar = config.output_dir / f"{arm.arm_id}_cache.json"
-    if not path.exists() or not sidecar.exists():
+    # A run predating the per-origin artifact cannot be sliced, so it is not resumable.
+    if not path.exists() or not origin_path.exists() or not sidecar.exists():
         return None
     record = json.loads(sidecar.read_text(encoding="utf-8"))
     if record.get("cache_key") != cache_key:
@@ -448,16 +451,20 @@ def run_screen(config_path, command=None, max_dates=None, smoke=False):
             dates, runtime = resumed
         else:
             print(f"Arm {arm.arm_id} on {device}", flush=True)
-            dates, runtime = evaluate_arm(
+            origins, dates, runtime = evaluate_arm(
                 config, arm, registry, frames, device, progress=progress
             )
-            _write_dates(
+            _write_metrics(
                 config.output_dir / f"{arm.arm_id}_per_date_metrics.csv.gz", dates
+            )
+            _write_metrics(
+                config.output_dir / f"{arm.arm_id}_per_origin_metrics.csv.gz", origins
             )
             _record_arm(config, arm, cache_key, runtime)
 
-        path = config.output_dir / f"{arm.arm_id}_per_date_metrics.csv.gz"
-        artifact_hashes[path.name] = sha256_file(path)
+        for name in ("per_date", "per_origin"):
+            path = config.output_dir / f"{arm.arm_id}_{name}_metrics.csv.gz"
+            artifact_hashes[path.name] = sha256_file(path)
         runtime = {**runtime, "cache_key": cache_key}
         runtime_rows.append(runtime)
         for fold_id, fold in dates.groupby("fold_id", sort=True):
