@@ -1,0 +1,60 @@
+{
+  "artifact_hashes": {
+    "paired_comparisons.csv": "31cd8ea658f3f6b2aeaf616dd84f7e82fc59d2558852b672d51270bfe539f49a",
+    "paired_inference_report.md": "b242f7a8a441a873a3eb755462f58706eda2f4bc7b81ead2e8ab6550ea8bcd53"
+  },
+  "bootstrap": {
+    "confidence": 0.95,
+    "mean_block_dates": 10,
+    "method": "stationary",
+    "replicates": 5000,
+    "seed": 20260901
+  },
+  "code_revision": "7eb785c6111f0dea5070d6581e7949e7b1cb5b8e",
+  "command": "C:\\Users\\USER\\anaconda3\\envs\\stock\\python.exe C:\\Users\\USER\\Desktop\\Stock-VN-forecashing\\evaluation\\run_paired_comparison.py --config evaluation\\configs\\m2_8_paired_inference.yaml",
+  "comparisons": [
+    {
+      "left": "small_l126",
+      "right": "short_term_reversal"
+    },
+    {
+      "left": "base_l126",
+      "right": "short_term_reversal"
+    },
+    {
+      "left": "small_l126",
+      "right": "momentum_126_21"
+    },
+    {
+      "left": "base_l126",
+      "right": "momentum_126_21"
+    }
+  ],
+  "config_path": "evaluation/configs/m2_8_paired_inference.yaml",
+  "config_sha256": "1f57e20cd9b9b3f3c4cdaf4f23790889d8a0a2798431ca3ca1312608d966218e",
+  "generated_at_utc": "2026-09-03T03:28:22.309140+00:00",
+  "input_dirs": [
+    "data/evaluation/m2_7",
+    "data/evaluation/m2_8"
+  ],
+  "input_hashes": {
+    "base_l126_per_date_metrics.csv.gz": "aebd2b1dc7c472dadcd56b98f77602945af78a0115cc2109e2a9ebe6564bc060",
+    "momentum_126_21_per_date_metrics.csv.gz": "745db3dbb3b716bc94fba67fa67bcd6a8bee5ede4ed481ebd41255536bea37d9",
+    "short_term_reversal_per_date_metrics.csv.gz": "846222e0ce83a998effcf96dced13f7adf349c496fe063420c722c66da899f40",
+    "small_l126_per_date_metrics.csv.gz": "9b129bae2e16e83fd94f203a10dcc2c5ad38e0f575b1642c7dbf121b9a2af997"
+  },
+  "lockbox_opened": false,
+  "metrics": [
+    "DA",
+    "MW-DA",
+    "RankIC",
+    "HitRate@Top10",
+    "CRPS",
+    "coverage",
+    "interval_width"
+  ],
+  "model_inference": false,
+  "restrict_dates_to": "small_l126",
+  "schema_version": "m2_3_paired_inference_v1",
+  "worktree_dirty": true
+}

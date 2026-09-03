@@ -97,8 +97,18 @@ half-width 0.0186 exceeds the 0.0100 margin; that margin needs about 681 paired
 dates, not the 210 previously estimated. RankIC rises as liquidity falls. Evidence
 is under `reports/milestone_2_research_eval/confirmation/`.
 
-**Next unit:** decide the backbone margin, either by running most of the registry
-or by registering a wider margin before the run. Register
+**Completed unit:** M2.8 added two ranking-capable references,
+`short_term_reversal` at RankIC 0.0153 and `momentum_126_21` at 0.0088 over all
+977 dates. The registered gate against the stronger of them does not pass:
++0.0060 [-0.0234, +0.0356] for `small_l126` and +0.0090 [-0.0184, +0.0378] for
+`base_l126`. M2.7's naive-gate win means "better than noise", not "better than a
+cheap alternative". Evidence is under
+`reports/milestone_2_research_eval/cross_sectional_references/`.
+
+**Next unit:** one registered run that both decides the backbone margin and reads
+the cross-sectional gate prospectively. Power it against `short_term_reversal`,
+whose contrast has a half-width of 0.0295 at 196 dates, not against
+`recent_return_bootstrap`. Register
 the `symbol_group` values used as an unseen-symbol holdout and the slice metrics
 to be read, per SPEC section 8.7, and add the Kronos-versus-naive contrast inside
 each liquidity tier. Use at least two sampling seeds. Do not fold training or

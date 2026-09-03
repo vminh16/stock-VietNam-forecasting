@@ -153,6 +153,30 @@ nominal 0.80. Evidence is under
 `reports/milestone_2_research_eval/confirmation/`, with the reading in
 `confirmation_decision.md`.
 
+M2.8 is complete and training-free. It added two ranking-capable references on
+all 977 dates: `short_term_reversal`, the negative trailing five-session return,
+at RankIC 0.0153, and `momentum_126_21`, a six-month formation return skipping
+the last month, at 0.0088. Compare with the M2.2 pair at 0.0000 and -0.0086: a
+cheap formula ranks this market, so beating M2.2 only means beating noise.
+
+By the registered rule, `short_term_reversal` is the gate, and the gate does not
+pass. On the 196 M2.7 dates it scores RankIC 0.0210 against 0.0270 for
+`small_l126` and 0.0300 for `base_l126`; the paired differences are +0.0060
+[-0.0234, +0.0356] and +0.0090 [-0.0184, +0.0378]. Neither model separates from a
+one-line formula on the primary product metric.
+
+One advantage survives: `small_l126` beats `short_term_reversal` on MW-DA by
++2.85 points with interval [+0.12, +5.62], while `base_l126` does not. MW-DA
+rewards being right when the move is large; RankIC rewards ordering the
+cross-section. RankIC is primary for a radar, so the gate stands.
+
+Both references emit point forecasts, so CRPS, coverage, and width are undefined
+for them and must not be compared. Neither reference is stable across regimes;
+both are negative in 2022. The reading is provisional because the Kronos side was
+measured first. Evidence is under
+`reports/milestone_2_research_eval/cross_sectional_references/`, with the reading
+in `gate_reading.md`.
+
 ## Research Direction
 
 - Daily data remains invariant.
@@ -202,12 +226,13 @@ and CRPS plus interval coverage/width ship with the M2.2 metric layer.
 8. M2.6 origin slices and per-origin metric persistence: complete.
 9. M2.7 confirmation on 196 disjoint dates: complete; naive gate cleared, the
    backbone margin still untestable.
-10. Decide the backbone margin, by more paired dates or a registered change to
-    the margin, then the M3 decision: next.
-11. Kronos-small objective and LoRA study.
-12. Path Viewer.
-13. Ranking and risk radar.
-14. Daily operations, cache, and deployment.
+10. M2.8 cross-sectional references and their gate: complete, gate not cleared.
+11. Decide the backbone margin and clear the cross-sectional gate, then the M3
+    decision: next.
+12. Kronos-small objective and LoRA study.
+13. Path Viewer.
+14. Ranking and risk radar.
+15. Daily operations, cache, and deployment.
 
 ## Non-Negotiables
 

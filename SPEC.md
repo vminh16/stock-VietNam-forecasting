@@ -1,10 +1,10 @@
 # SPEC - Vietnam Stock Market Radar with Kronos
 
-> **Version:** 2.7
+> **Version:** 2.8
 >
 > **Date:** 2026-09-03
 >
-> **Status:** M2.7 confirmation complete; naive gate cleared, backbone margin still untestable
+> **Status:** M2.8 cross-sectional gate not cleared; Kronos ties a five-day reversal formula on RankIC
 >
 > **Authority:** Source of truth for product, data, model, evaluation, and delivery decisions
 
@@ -284,7 +284,40 @@ result: a Top10 drawn where the signal lives is hardest to trade. Testing it
 requires a Kronos-versus-naive contrast inside each tier, which was not
 registered and was deliberately not computed.
 
-### 3.6 Baseline Interpretation
+### 3.6 M2.8 Cross-Sectional Gate Evidence
+
+The M2.2 references carry no ranking information, so M2.7's naive-gate result
+means "better than noise". M2.8 added two references that do rank, computed on
+all 977 dates with no seed and no model:
+
+| reference | RankIC | DA | MW-DA | HitRate@Top10 |
+|---|---:|---:|---:|---:|
+| `short_term_reversal` | 0.0153 | 50.10 | 47.50 | 49.98 |
+| `momentum_126_21` | 0.0088 | 50.53 | 50.55 | 50.69 |
+
+A cheap formula ranks this market. By the registered rule of section 8.10,
+`short_term_reversal` is the gate.
+
+**The gate does not pass.** On the 196 M2.7 dates, `small_l126` beats
+`short_term_reversal` on RankIC by `+0.0060` with interval `[-0.0234, +0.0356]`,
+and `base_l126` by `+0.0090` with `[-0.0184, +0.0378]`. The reference scores
+`0.0210` there against `0.0270` and `0.0300` for the two arms. Neither model
+separates from a one-line formula on the primary product metric.
+
+One model advantage survives: `small_l126` beats `short_term_reversal` on MW-DA
+by `+2.85` percentage points with interval `[+0.12, +5.62]`, which excludes zero.
+`base_l126` does not. MW-DA and RankIC answer different questions, and RankIC is
+primary for a radar, so this does not lift the gate.
+
+Neither reference is stable across regimes; both are negative in the falling 2022
+fold. This reading is provisional under section 8.10 because the Kronos side was
+measured first. Three consequences bind the next run: power it against
+`short_term_reversal` rather than `recent_return_bootstrap`, since that contrast
+has a half-width of `0.0295` at 196 dates; keep both references in the package;
+and re-read the M2.7 liquidity gradient against them per tier, because short-term
+reversal is itself known to concentrate in less liquid names.
+
+### 3.7 Baseline Interpretation
 
 - Zero-shot has not demonstrated actionable directional or ranking value.
 - The existing fine-tuning procedure has not demonstrated improvement.

@@ -166,12 +166,27 @@ coverage/width. The current paired t-test output is diagnostic, not canonical.
   contrast per tier, which does not exist yet.
 - Calibration is still broken on fresh dates: coverage 0.398 and 0.359 against a
   nominal 0.80.
+- M2.8 added ranking-capable references: `short_term_reversal` RankIC 0.0153 and
+  `momentum_126_21` 0.0088 over all 977 dates, against 0.0000 and -0.0086 for the
+  M2.2 pair. A cheap formula ranks this market.
+- The registered cross-sectional gate does NOT pass. small_l126 versus
+  short_term_reversal is +0.0060 [-0.0234, +0.0356] and base_l126 is +0.0090
+  [-0.0184, +0.0378]. Read M2.7's naive-gate win as "better than noise", not
+  "better than a cheap alternative".
+- One advantage survives: small_l126 beats short_term_reversal on MW-DA by +2.85
+  [+0.12, +5.62]. RankIC stays primary for a radar, so this does not lift the gate.
+- Both references are point forecasts. CRPS, coverage, and width are undefined for
+  them and MUST NOT be compared.
 
 ## Commands
 
 ```powershell
 # Unit tests
 $env:PYTHONPATH='finetune_csv'; python -m pytest tests -q
+
+# Cross-sectional references and their gate; neither runs a model
+python evaluation/run_cross_sectional_references.py --config evaluation/configs/m2_8_cross_sectional.yaml
+python evaluation/run_paired_comparison.py --config evaluation/configs/m2_8_paired_inference.yaml
 
 # M2.7 confirmation: run, then registered inference, then slices
 python evaluation/run_zero_shot_screen.py --config evaluation/configs/m2_7_confirmation.yaml
