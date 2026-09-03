@@ -80,7 +80,19 @@ tmp/
 .python-version
 
 # data
-data/
+# Frozen, hash-verified inputs are tracked so one clone reproduces a run: the
+# M1 curated prices, the immutable raw snapshot, and the M2.1 origin registry.
+# Everything else under data/ is regenerable output and stays out. A directory
+# cannot be re-included once its parent is excluded, so each level excludes its
+# contents with `dir/*` and then names the children to keep.
+data/*
+!data/curated/
+data/curated/*
+!data/curated/vn150_strict_v2/
+!data/raw/
+!data/evaluation/
+data/evaluation/*
+!data/evaluation/m2_1/
 data_cleaned
 
 #param

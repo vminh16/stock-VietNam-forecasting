@@ -16,28 +16,142 @@ The script computes no metric, writes nothing under `data/evaluation/` or
 `reports/`, and touches only dates the M2.5 screen already evaluated, so it
 cannot leak information about an unevaluated date.
 
-## 1. Get the repository and its inputs onto the host
+## 0. If the host is a fresh Google Cloud instance
+
+Skip this section on a host that already exists.
+
+### Quota
+
+An L4 needs `NVIDIA_L4_GPUS` quota in the target region, and it is often zero on
+a new project. Check before creating anything, because a quota request can take
+hours:
+
+```bash
+gcloud compute regions describe asia-southeast1 \
+  --format="table(quotas.metric,quotas.limit,quotas.usage)" | grep -i l4
+```
+
+If the limit is 0, request an increase in IAM and Admin, Quotas, before going
+further.
+
+### Create the instance
+
+L4s live in the G2 machine family, and the GPU comes with the machine type, so
+there is no separate accelerator flag. `g2-standard-8` gives one L4 with 24 GB
+of VRAM, 8 vCPU, and 32 GB of RAM, which is enough; the inference here is GPU
+bound, not CPU bound.
+
+Pick an image family that already carries a CUDA driver rather than installing
+one by hand. List what is currently published instead of trusting a name from a
+document, because these families are renamed over time:
+
+```bash
+gcloud compute images list --project deeplearning-platform-release \
+  --filter="family~'cu12'" --format="value(family)" | sort -u
+```
+
+Then create, substituting the family you picked:
+
+```bash
+gcloud compute instances create kronos-l4 \
+  --zone=asia-southeast1-b \
+  --machine-type=g2-standard-8 \
+  --image-project=deeplearning-platform-release \
+  --image-family=<family from the list above> \
+  --maintenance-policy=TERMINATE \
+  --boot-disk-size=100GB \
+  --boot-disk-type=pd-balanced \
+  --metadata="install-nvidia-driver=True"
+```
+
+`asia-southeast1` is the closest region to Vietnam; any region with L4 quota
+works. 100 GB is for the image itself, not for this project's data, which is
+under 600 MB including the model weights.
+
+### Spot instances
+
+`--provisioning-model=SPOT` cuts the price substantially and can be reclaimed at
+any time. Whether that is acceptable depends on the arm:
+
+- The screen runner resumes at **arm granularity**. A finished arm is cached and
+  skipped on restart.
+- A preemption **in the middle of** an arm loses that arm's work entirely. The
+  longest single arm, `base_l126` over 977 dates, is several hours, so a spot
+  preemption late in it is expensive in wall-clock terms even though the compute
+  was cheap.
+
+Spot is a good fit for the short benchmark and for the cheap `small_*` arms, and
+a poor fit for a single long `base_l126` run unless you accept restarting it.
+
+### First login
+
+```bash
+gcloud compute ssh kronos-l4 --zone=asia-southeast1-b
+nvidia-smi     # must print an L4 with 24 GB before continuing
+```
+
+On the first boot a Deep Learning VM image may ask to install the driver; answer
+yes and wait for it to finish. If `nvidia-smi` fails, nothing below will work.
+
+### Cost control
+
+Billing continues while the instance is RUNNING, whether or not anyone is
+connected. Closing the SSH window does **not** stop it.
+
+```bash
+gcloud compute instances stop kronos-l4 --zone=asia-southeast1-b     # keeps the disk
+gcloud compute instances delete kronos-l4 --zone=asia-southeast1-b   # removes everything
+```
+
+A stopped instance still bills for its disk, which is small. Check current L4
+pricing on the Compute Engine pricing page rather than relying on a figure
+quoted here.
+
+## 1. Get the repository onto the host
 
 ```bash
 git clone <this repo> stock-vn && cd stock-vn
 ```
 
-`data/` is gitignored, so two directories must be copied separately. They are
-small:
+That is the whole step. The frozen, hash-verified inputs are tracked:
 
-| what | size | why it is needed |
+| what | size | frozen by |
 |---|---:|---|
-| `data/curated/vn150_strict_v2/` | ~26 MB | the frozen M1 price data |
-| `data/evaluation/m2_1/` | ~7 MB | the frozen common-origin registry |
+| `data/curated/vn150_strict_v2/` | 27 MB | M1 |
+| `data/raw/2026-08-09/` | 14 MB | the immutable crawl snapshot |
+| `data/evaluation/m2_1/` | 6.6 MB | M2.1 |
+
+Regenerable output under `data/evaluation/m2_2` and later stays untracked, so a
+clone carries inputs only and each run recreates its own outputs.
+
+`.gitattributes` marks everything under `data/` as `-text`, so git stores and
+restores those bytes verbatim on every platform. Do not remove that rule. The
+curated CSVs hold bare LF; with `core.autocrlf=true` on Windows a checkout would
+rewrite them to CRLF, every `sha256_file` check against the manifests would
+fail, and the failure would read as data corruption rather than a line-ending
+conversion.
+
+Verify after cloning, before anything else:
 
 ```bash
-# from the machine that already has them, e.g.
-rsync -av data/curated/vn150_strict_v2/ USER@HOST:~/stock-vn/data/curated/vn150_strict_v2/
-rsync -av data/evaluation/m2_1/        USER@HOST:~/stock-vn/data/evaluation/m2_1/
+python - <<'CHECK'
+import json, sys
+from pathlib import Path
+sys.path.insert(0, ".")
+from data_pipeline.crawl import sha256_file
+m = json.loads(Path("reports/milestone_1_data/vn150_strict_v2/dataset_manifest.json").read_text(encoding="utf-8"))
+base = Path("data/curated/vn150_strict_v2")
+bad = [r for r, h in m["artifact_hashes"].items() if sha256_file(base / r) != h]
+print("checked:", len(m["artifact_hashes"]), "mismatched:", len(bad))
+CHECK
 ```
 
-Do **not** regenerate them on the host. The registry is hash-verified against
-its manifest, and a regenerated file will not match.
+Expect 155 checked and 0 mismatched. A non-zero count means the checkout altered
+the bytes; confirm `git check-attr text -- data/curated/vn150_strict_v2/symbols/FPT.csv`
+reports `text: unset` before looking anywhere else.
+
+Do not regenerate these inputs on the host. They are hash-verified against
+manifests recorded in `reports/`, and a rebuilt file will not match.
 
 ## 2. Environment
 
@@ -65,9 +179,23 @@ PY
 About 500 MB total. The benchmark prints each file's size, so a truncated
 download is visible immediately.
 
+`Kronos-base` and the tokenizer are also tracked through Git LFS, so a clone on
+a host with LFS installed already has them; without LFS the clone leaves
+134-byte pointer files, which the size check reports as 0.0 MB. `Kronos-small`
+is not tracked either way. Downloading all three from Hugging Face is the one
+path that works regardless, and it overwrites whatever the clone left behind.
+
 ## 4. Run it
 
+Start a `tmux` session first. An SSH drop, a closed laptop, or a sleeping Wi-Fi
+adapter kills a foreground process, and the real runs later are hours long:
+
 ```bash
+tmux new -s bench          # detach with ctrl-b then d, reattach with: tmux attach -t bench
+```
+
+```bash
+cd ~/stock-vn
 PYTHONPATH=finetune_csv python evaluation/benchmark_device.py --output device_benchmark_l4.json
 ```
 

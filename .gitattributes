@@ -1,0 +1,6 @@
+# Curated prices, the raw snapshot, and the origin registry are hash-verified
+# against their manifests at load time. Git MUST NOT rewrite their bytes: with
+# core.autocrlf=true a Windows checkout would turn LF into CRLF, every
+# sha256_file check would fail, and the failure would look like data corruption
+# rather than a line-ending conversion.
+data/** -text

@@ -1,0 +1,639 @@
+{
+  "snapshot_id": "2026-08-09",
+  "status": "complete",
+  "generated_at_utc": "2026-08-09T16:07:33.462954+00:00",
+  "provider": {
+    "name": "VnstockProvider",
+    "version": "4.0.4"
+  },
+  "request": {
+    "start": "2010-01-01",
+    "end": "2026-08-09",
+    "interval": "1D"
+  },
+  "universe": {
+    "path": "data_pipeline/universe_150.csv",
+    "rows": 150,
+    "sha256": "518eb01f4eebe18f5803b156918efad08da4f4512023a99d7c497bee83210a7c"
+  },
+  "calendar_symbols": {
+    "HOSE": "VNINDEX",
+    "HNX": "HNXINDEX",
+    "UPCOM": "UPCOMINDEX"
+  },
+  "failures": {},
+  "artifacts": {
+    "calendars/HNX.csv": {
+      "rows": 1997,
+      "sha256": "716e3f0a571fceb7046b862464b3d4d979b4e91c64b10b453ceab737dfa13c17"
+    },
+    "calendars/HOSE.csv": {
+      "rows": 1997,
+      "sha256": "3d7782803facf97d8f63a05adff22aa48da72d57fbae834000e2a7db04468117"
+    },
+    "calendars/UPCOM.csv": {
+      "rows": 1997,
+      "sha256": "acc5918034025a619cc1fc024d353abaca273b8e4b284105cfa81b3b7de94d52"
+    },
+    "symbols/ABB.csv": {
+      "rows": 1398,
+      "sha256": "5eb1e559769ae248664c2c2a876c207fafb914c7cb472831a005216ff35d663d"
+    },
+    "symbols/ABI.csv": {
+      "rows": 1941,
+      "sha256": "6c177930a2be5b84222dc26191ed19a62d293bb937851fe15a543cbf479f314f"
+    },
+    "symbols/ACB.csv": {
+      "rows": 1992,
+      "sha256": "3ffc3bc8224aaefd0157561e00bb51686b9d085d162fb691fc94c8654c56f66e"
+    },
+    "symbols/ACV.csv": {
+      "rows": 1991,
+      "sha256": "92d366c1dc0186547b5a1c907f120c7bb0eec4d5e9af73af6dd2011062fbfe3c"
+    },
+    "symbols/ANV.csv": {
+      "rows": 1997,
+      "sha256": "c65f9b9d533fe0b9166cf7aa383dfbc05f358288f8f250d66f6d4f316baa27c8"
+    },
+    "symbols/BAF.csv": {
+      "rows": 1165,
+      "sha256": "7a7c666a2d4b7658dd5f9c28113209114a5a60b078aa7fdea3b52976e642d833"
+    },
+    "symbols/BCM.csv": {
+      "rows": 1982,
+      "sha256": "c1b167fb28f50181223a76d773d9ccd555dc300491de6556c95f0f29a7388088"
+    },
+    "symbols/BID.csv": {
+      "rows": 1997,
+      "sha256": "a8da49d0fbe6933e9e6678f08cdc927ce950970765a5dd11246a1caff016e319"
+    },
+    "symbols/BMP.csv": {
+      "rows": 1997,
+      "sha256": "da227e056a56ae2a1f689a3f27970a87424070df519fd5673bc306ef3eeef101"
+    },
+    "symbols/BSI.csv": {
+      "rows": 1991,
+      "sha256": "447cb7a25cac6df86472d78782be9387d55010767a5cadd60864548f751f0f9d"
+    },
+    "symbols/BSR.csv": {
+      "rows": 1989,
+      "sha256": "f4e92a327b82cb3dc3a24d8ae684f83447e15bcfa9d51f8754d1ea865b8df6c6"
+    },
+    "symbols/BVH.csv": {
+      "rows": 1997,
+      "sha256": "a96fec40367482577da279d900921a31702b3bbe642507cd1204b74106b67ce5"
+    },
+    "symbols/BVS.csv": {
+      "rows": 2671,
+      "sha256": "58784c8977b36c664a4ddb2a617dc64eb1915ddd6be29994df90b2013546631b"
+    },
+    "symbols/BWE.csv": {
+      "rows": 1997,
+      "sha256": "cfdb5672e50a9a6ef28a5a531616daf8c6f4312c7f11ad2ac8cc5ee308e68ccf"
+    },
+    "symbols/C4G.csv": {
+      "rows": 1911,
+      "sha256": "69e3f694ff2b87389d4aed94c263799d63e0c8f8e55cfd6ffb9f3be19d37c0c2"
+    },
+    "symbols/CAP.csv": {
+      "rows": 1982,
+      "sha256": "8ea16f3b1f6ab9d2bd781408a7c19743ab4ce3f166c2c15caa58cb9273d9cdb2"
+    },
+    "symbols/CEO.csv": {
+      "rows": 1997,
+      "sha256": "3a00524115997b1685c9c1ee3937d43c35d05e9d311dfceb173f37a85764e9ea"
+    },
+    "symbols/CII.csv": {
+      "rows": 1997,
+      "sha256": "66280325df780f97599d285f3b2319ddcc13fa43c712e0ca59e66a12ad457420"
+    },
+    "symbols/CMG.csv": {
+      "rows": 1997,
+      "sha256": "bed1d3aac03bb45d5f7dad6d731423249181458b681ce5a6f12ae74807d200c3"
+    },
+    "symbols/CTD.csv": {
+      "rows": 1997,
+      "sha256": "96ca422367188dc80fd7ed886e8090df6bde1d78d97930506e38751b0d0bba57"
+    },
+    "symbols/CTG.csv": {
+      "rows": 1997,
+      "sha256": "843197d08a24ee877e5bcd5e05a4591d9bee3ada8721c06dac9331935fbf20b4"
+    },
+    "symbols/CTR.csv": {
+      "rows": 1990,
+      "sha256": "74853ff5f2600126e114e27d15884ffbfb34ec929787a3e41134d6833ab5ba75"
+    },
+    "symbols/CTS.csv": {
+      "rows": 1997,
+      "sha256": "d40f2340e2a21abc770be4acaaa1ec8d9cd66e1f2240554e0fc731406967797a"
+    },
+    "symbols/DBC.csv": {
+      "rows": 1991,
+      "sha256": "deaf11366fc714c1b53914e87887d8d40cf09d1db3c86a7e1927d8b3fe3806be"
+    },
+    "symbols/DCM.csv": {
+      "rows": 1997,
+      "sha256": "cb3bcc583706d2b81cd0a47f2b0a0282530a4c6e83c3c657b082dd62fdca5ef6"
+    },
+    "symbols/DDV.csv": {
+      "rows": 1779,
+      "sha256": "c3b691ddd5500ed5b7e7be017db85b9833d4e7139d5bdf6f06f85edd5963898d"
+    },
+    "symbols/DGW.csv": {
+      "rows": 1997,
+      "sha256": "7f5e24e61db5aba56052127c2af8db7cc4f7a39857d41f7d372d56692dfd7310"
+    },
+    "symbols/DIG.csv": {
+      "rows": 1997,
+      "sha256": "1d88475ceef7eb8f75e17a976e30a40690c69b5afe75657e43d0e0296848f233"
+    },
+    "symbols/DP3.csv": {
+      "rows": 1875,
+      "sha256": "aa11116c8f4144d96e59aa3cabdb4eb1e5f5e3742de20fd55ca825b0ad9d9b46"
+    },
+    "symbols/DPM.csv": {
+      "rows": 1997,
+      "sha256": "4286c5f268228ad83eecc9b27ee48dc8ac0b83a87a796e3ef401694542920771"
+    },
+    "symbols/DSE.csv": {
+      "rows": 526,
+      "sha256": "bbff0c5319cb51406b87aa425ebfa499d3c00672c8276750a901cc1db835f242"
+    },
+    "symbols/DTD.csv": {
+      "rows": 1997,
+      "sha256": "a15fc90807df7c012332b89577be58683aff1253d98b6cfa6514c2ea2320b116"
+    },
+    "symbols/DVM.csv": {
+      "rows": 1012,
+      "sha256": "c261d6f94b9e4baa54a08c97f1191453fa955cc3cb60bbb12d7dc8914cc18447"
+    },
+    "symbols/DXG.csv": {
+      "rows": 1997,
+      "sha256": "450ac65c259451c45af827ab8100796a0260d66a23af3a9ee66a8f89044de210"
+    },
+    "symbols/DXP.csv": {
+      "rows": 1946,
+      "sha256": "13847ef56cadbd25c891558259805bc6f94e4e8d655d30fb2e4c35be10ddb03b"
+    },
+    "symbols/EIB.csv": {
+      "rows": 1997,
+      "sha256": "625720a3d71163dffed51f798fee44ef8d182ac644902e97104b1137c7153205"
+    },
+    "symbols/EVF.csv": {
+      "rows": 1986,
+      "sha256": "8e4cf95587c8ce6486ecd9c68dc336e0bec69548de22360d05911ade635a9fe5"
+    },
+    "symbols/FOX.csv": {
+      "rows": 1926,
+      "sha256": "3cd1fb64ff918d58be3c32a33eb7d19f1f0631a2f4e9d18bd5bd0e074d057f9f"
+    },
+    "symbols/FPT.csv": {
+      "rows": 1997,
+      "sha256": "4ddda91946088f111e9ddd713da1c5dec993301615f1334095f00908023c5109"
+    },
+    "symbols/FRT.csv": {
+      "rows": 1997,
+      "sha256": "ab13c03c2284e900d59554a33887cceb117f6e5c2753715cfb387212d4521b15"
+    },
+    "symbols/FTS.csv": {
+      "rows": 1997,
+      "sha256": "6df63232248e999fc6b28990549e686fbf119ebf26c2d727e881d30f985a481b"
+    },
+    "symbols/GAS.csv": {
+      "rows": 1997,
+      "sha256": "1c8cb207c550ecbc97917b6f1a542603c7dd600d6e8d075ca54df8eb897357ea"
+    },
+    "symbols/GEE.csv": {
+      "rows": 1072,
+      "sha256": "8c8fe7af035ed21004be2417b4a8f733d76eca86c11cfbf40f97b4dfa2cf8bda"
+    },
+    "symbols/GEX.csv": {
+      "rows": 1997,
+      "sha256": "7850a536e43bd585aecc131673618b52a68ad7e7d11a8561dfea16a954df5587"
+    },
+    "symbols/GMD.csv": {
+      "rows": 1997,
+      "sha256": "a02f8b277cbbd5d896d0b0ee665d6bdb3c58168b14bff60163d9118dfcd6861f"
+    },
+    "symbols/GVR.csv": {
+      "rows": 1991,
+      "sha256": "c3bc9bfbab309eacb15a7079be2b3d5e7a63afd47fa4476b1f1b2ec2b662e096"
+    },
+    "symbols/HAG.csv": {
+      "rows": 1997,
+      "sha256": "e3147f3790d3dcf00c25a2ae0ba31710617e13c41b6436428b6c9d817d1cd01b"
+    },
+    "symbols/HBC.csv": {
+      "rows": 1989,
+      "sha256": "91e5d0c4e07bc7d55e75771cec796cb4d9f315a64b653095513214543902a001"
+    },
+    "symbols/HCM.csv": {
+      "rows": 1997,
+      "sha256": "d41396ed42372977a53c4ad66129127ec4b6853f199d8e3b7bf17eac1bbda12b"
+    },
+    "symbols/HDB.csv": {
+      "rows": 1997,
+      "sha256": "a337c2a91fb948ca64fb176c9b4b18bdb77cee023c8275d34c55330f1c00b8f5"
+    },
+    "symbols/HDG.csv": {
+      "rows": 1997,
+      "sha256": "19769354728900ec063137edebc67ef7a16017dba76c31d139a64436fcb9db26"
+    },
+    "symbols/HHV.csv": {
+      "rows": 1500,
+      "sha256": "9d82f803d7fb2331d6f50eb2727cc49cc70f1786bc4a09fc0e6a1a3a73f8fa8f"
+    },
+    "symbols/HNG.csv": {
+      "rows": 1989,
+      "sha256": "e84567cdc485284c63545c9af8e0d4d28e9489221efc150613845b5145e0b8d4"
+    },
+    "symbols/HPG.csv": {
+      "rows": 1997,
+      "sha256": "508e8f84e85c603b9b5cc7e482ec17bc707c0ac5f9ce3ed01296835523164b6e"
+    },
+    "symbols/HSG.csv": {
+      "rows": 1997,
+      "sha256": "8b2f660858a80d0e7b3a77c2005a980d9c18a5510025d02b2b842cbac7db6e0e"
+    },
+    "symbols/HT1.csv": {
+      "rows": 1997,
+      "sha256": "309dfb3a8eb89973105ac57c69942d5f36307e517e16467b2508f970f1c0a457"
+    },
+    "symbols/HUT.csv": {
+      "rows": 1997,
+      "sha256": "6982abb1abae9f69cc9ba261de22b04ebe2c102cf8090186c53084ca5d92c00c"
+    },
+    "symbols/IDC.csv": {
+      "rows": 1972,
+      "sha256": "0c0f30baffef4b297f95abc19fe03f4e4fad45289638d928caf966815c27d6a1"
+    },
+    "symbols/IDV.csv": {
+      "rows": 1970,
+      "sha256": "a1f56b7080e72a51b07d25f16243b1ede65e7b5ed1e22bba1b59335431f0d33a"
+    },
+    "symbols/KBC.csv": {
+      "rows": 1997,
+      "sha256": "61ee55e69b589a6136b3e2b57204d5d1856a6cc8e9bf48da2cae77567349cd32"
+    },
+    "symbols/KDC.csv": {
+      "rows": 1997,
+      "sha256": "5586e1f927ae1482d6ae18de1f978b06d67425eeffbfdf0bf8e352f0cd528aec"
+    },
+    "symbols/KDH.csv": {
+      "rows": 1997,
+      "sha256": "82fd50c6846899766c2ad14b5fb8d451c6dfa617d2716a88acf30e1c94017b37"
+    },
+    "symbols/KOS.csv": {
+      "rows": 1992,
+      "sha256": "632ae6ac2f917530125dd2aa14b43f295efd38f387be661c89c9a4fd430cfba2"
+    },
+    "symbols/L14.csv": {
+      "rows": 1997,
+      "sha256": "9c33b1739658696d4f29182149f9ee9dad3b3da490c81b9a82926aa8db986704"
+    },
+    "symbols/L18.csv": {
+      "rows": 1547,
+      "sha256": "35742b41d797df74f26f37b289cf936196e14babba8283db57fdd634df2ccbf8"
+    },
+    "symbols/LAS.csv": {
+      "rows": 1993,
+      "sha256": "7d297dcb3cd04ea839f03d44863f1e68e70d381093a427c3bb63d4ec778ca32d"
+    },
+    "symbols/LHC.csv": {
+      "rows": 1786,
+      "sha256": "8d7bca75f278f9f573ee6b00f2541c23498f54f89bdbd882c0645540b2a03e16"
+    },
+    "symbols/LPB.csv": {
+      "rows": 1987,
+      "sha256": "dbe85b6cc6534e82b0f4b9787ccc28cc4736f400a421f0a83c356755f3d2c096"
+    },
+    "symbols/LTG.csv": {
+      "rows": 1668,
+      "sha256": "4177e354c0778107b6d60f6a01ffb4123e68090248dd797a224aa42ee95da597"
+    },
+    "symbols/MBB.csv": {
+      "rows": 1997,
+      "sha256": "a52d0544a0196a563ad61960fea3484d18a97373ecff0ff48f46205bb30f88f7"
+    },
+    "symbols/MBS.csv": {
+      "rows": 1997,
+      "sha256": "05b60ee95539a649b526073c546595b0f7686dfed62adce5764c45b13ecc4d34"
+    },
+    "symbols/MCH.csv": {
+      "rows": 1987,
+      "sha256": "2eb8a8e5af9da9cfffa955ccedfb5c2e63d5b962996dd90595ba1e3640666135"
+    },
+    "symbols/MFS.csv": {
+      "rows": 1799,
+      "sha256": "78ed9da42b37380d781d4cf31d0f16ed117f3a2b8f00fca5f86741e144c8c172"
+    },
+    "symbols/MPC.csv": {
+      "rows": 1997,
+      "sha256": "18b70d35d4aa9bfd1bc3923cca722717fcf4b39443b47bae5977427462484bf0"
+    },
+    "symbols/MSB.csv": {
+      "rows": 1401,
+      "sha256": "caab818af8228d1e2a7623b5365f7708a38f3aea9369d11788a14fe30a87f47b"
+    },
+    "symbols/MSN.csv": {
+      "rows": 1997,
+      "sha256": "3247901bb29c165b35f915a20b2512ddda57bc1f99e36527cd611ed7f28a1486"
+    },
+    "symbols/MSR.csv": {
+      "rows": 1997,
+      "sha256": "f24c3773cf99cb2b9cc2c7391e1ac3bcdd399d0a590c4a528ccacc510c611ca1"
+    },
+    "symbols/MWG.csv": {
+      "rows": 1997,
+      "sha256": "528b8fcaea09391945f2e5b8d61c3c1f2e7e939bb8c2e9daf45379a915a0df6e"
+    },
+    "symbols/NAB.csv": {
+      "rows": 1448,
+      "sha256": "860e9784f5f914652023f10d3b8f2f5c1aff9eadd444662a908616ad0b29e116"
+    },
+    "symbols/NDN.csv": {
+      "rows": 1997,
+      "sha256": "e651f45c831c84e514cf6d478ef42ead1be0d92d62ff261f2ad1642aca9cb7ce"
+    },
+    "symbols/NKG.csv": {
+      "rows": 1997,
+      "sha256": "7f45388a147c777cf65545baa3a066f4d12fbdd00478a71a22f72039b41ad426"
+    },
+    "symbols/NLG.csv": {
+      "rows": 1997,
+      "sha256": "b3d8b705a1e8e1e1c27d818df455436ed7c1e2535a8aaf5d2eadc29cf91d60e1"
+    },
+    "symbols/NT2.csv": {
+      "rows": 1997,
+      "sha256": "7226572cd579ffee589e2dc73226364a4a71828d17cf3da7bdf66dd0021fbb48"
+    },
+    "symbols/NTP.csv": {
+      "rows": 1992,
+      "sha256": "72b89715a40673fbcd1260acfdb94731f28b68127acb23978341a4bce2180025"
+    },
+    "symbols/NVL.csv": {
+      "rows": 1997,
+      "sha256": "0cd54becbe45dcf239d37c6b7a9acea78971b82a4925228444933303f8fc16ab"
+    },
+    "symbols/OCB.csv": {
+      "rows": 1376,
+      "sha256": "9c5c21648d23d26b3a7bce031269df4f125f3054abe1d39a7c6b6346d61c33ef"
+    },
+    "symbols/OIL.csv": {
+      "rows": 1997,
+      "sha256": "9ecdec5daf58994e2271c47a947bab3fa82cfd0dd5cf32bcbf471a915106421d"
+    },
+    "symbols/PAN.csv": {
+      "rows": 1990,
+      "sha256": "373bfc6380f4699a3ad18a60526a75a86d28fe3e82428465b5407bd88f12043d"
+    },
+    "symbols/PAT.csv": {
+      "rows": 1017,
+      "sha256": "bd4a1e3b8797adb2d5bc829e51de2f3e5e16e80ef4cfd9c8d869db74abf551ca"
+    },
+    "symbols/PC1.csv": {
+      "rows": 1997,
+      "sha256": "254df7002818c900011aaaea00a5601c3e8f540ceacf5346ce1ea1adfb9e5cb7"
+    },
+    "symbols/PDR.csv": {
+      "rows": 1997,
+      "sha256": "3842d76750edc4db9b415828775b1edc8c9f8624d768a78211118dfd43ba709b"
+    },
+    "symbols/PHR.csv": {
+      "rows": 1997,
+      "sha256": "2b51956855626cf970e5e1fa2e9a45f1ee151892c451fb9ada39784ffe772f9e"
+    },
+    "symbols/PLC.csv": {
+      "rows": 1982,
+      "sha256": "6df0fe28ff4c0d6498999d05f2c56e54003db3a215ac3660d47c63f78641cb31"
+    },
+    "symbols/PLX.csv": {
+      "rows": 1997,
+      "sha256": "b722b38aa448c3af7039f78a57ce9b588ebd44e3f84077eb3573e8caa661feb2"
+    },
+    "symbols/PNJ.csv": {
+      "rows": 1997,
+      "sha256": "c70c4646595a729127a91b4312d509dfe64f4bb7e08230dfac6e2d7547c919c5"
+    },
+    "symbols/POW.csv": {
+      "rows": 1988,
+      "sha256": "96ab1fabbc5901a9cd738de03917d9fc49d0d586810ef674d3fcbea4b1d65922"
+    },
+    "symbols/PSD.csv": {
+      "rows": 1811,
+      "sha256": "13dc2acd105006102b7c6ca45b225693af47456b34a0225e5a15a5ae73e74077"
+    },
+    "symbols/PVB.csv": {
+      "rows": 1997,
+      "sha256": "18f58b12f0883848720cef1939f239111bc290a36d552030a04a8b505a03e4a2"
+    },
+    "symbols/PVC.csv": {
+      "rows": 2713,
+      "sha256": "3ba04a4f52ae64f5b6901fb1d6143a8f34b45be714064a20edbfb62ae14ff1f2"
+    },
+    "symbols/PVD.csv": {
+      "rows": 1997,
+      "sha256": "d31396216dd99e3761ee07d3560af6d42a5d1e92763f8597811cad15e103b5f7"
+    },
+    "symbols/PVS.csv": {
+      "rows": 1997,
+      "sha256": "23788364c22d148c7ded9f5a890f7fbf81fde253c47ac85d5e1f14ccc0df24d1"
+    },
+    "symbols/PVT.csv": {
+      "rows": 1997,
+      "sha256": "1e777a7d26982d8c668763e4a73cce7f92d60573e6dd81bc3d83aba6756ee689"
+    },
+    "symbols/QNS.csv": {
+      "rows": 1997,
+      "sha256": "294561ceb185ec306ef536ff5152f9f8342ab5fd22e8b7131f00d4947cc36bba"
+    },
+    "symbols/REE.csv": {
+      "rows": 1997,
+      "sha256": "4ba4d22e76bf7a53d3f10697a6e8f19c006f05820752d71012a1da462b7440fb"
+    },
+    "symbols/SAB.csv": {
+      "rows": 1997,
+      "sha256": "3262d6bd5019944efddf3912883bef16a66d7451c64e2a1cd18abd6413129311"
+    },
+    "symbols/SBT.csv": {
+      "rows": 1997,
+      "sha256": "749d1b2360c993c5893b9bb9019efc6e45d1b2ba24927059fa410c5f5d0ad635"
+    },
+    "symbols/SGP.csv": {
+      "rows": 1945,
+      "sha256": "b8b553dee131233a073081e4b9a1f4587043c0ae2d621a5af3ee86f1b41aef9a"
+    },
+    "symbols/SHB.csv": {
+      "rows": 1994,
+      "sha256": "f8a72d2dec753cdd282439d193ca4bed691b88f1b6aa460630a7671bc844f511"
+    },
+    "symbols/SHS.csv": {
+      "rows": 1997,
+      "sha256": "9bbc638702ee4982903e8dc16225880048866c3196a3e149c2aa640c07d58479"
+    },
+    "symbols/SIP.csv": {
+      "rows": 1784,
+      "sha256": "662e68471299ca91b6ad9ab6e522246a17dd7cb87000f4975671034f563b1962"
+    },
+    "symbols/SJS.csv": {
+      "rows": 1997,
+      "sha256": "48c7c921ee2b27cbdd6d09420d99e56793655f0233443b4775256b212b2010bb"
+    },
+    "symbols/SLS.csv": {
+      "rows": 1977,
+      "sha256": "40b91b57569493dac288dae66bdb0cb6a42db6716a3d1640251d9edbe4483cee"
+    },
+    "symbols/SSB.csv": {
+      "rows": 1342,
+      "sha256": "8ba71a8ae2cf3f4c882f492762a6427f4c447af6ae6a8f7cad567f39a14f6901"
+    },
+    "symbols/SSI.csv": {
+      "rows": 1997,
+      "sha256": "67ce8a29e40f9bb6967783ac79f81763f61f460ea079819508f7e52bd1e8775b"
+    },
+    "symbols/STB.csv": {
+      "rows": 1997,
+      "sha256": "ae0f53386af12d21c2e3920fa8d246f9ec893b10f9db2380b1ec75ed49961de7"
+    },
+    "symbols/TAL.csv": {
+      "rows": 630,
+      "sha256": "0ae0f8fbea64e36b8645b238877ce448f6e55e6af7c2a47dc7d0c8ec8af44e3d"
+    },
+    "symbols/TCB.csv": {
+      "rows": 1997,
+      "sha256": "fe6d799c66c40033dc0cc943e03528fa758c03407f3de007bd877006cc37e1b9"
+    },
+    "symbols/TCH.csv": {
+      "rows": 1997,
+      "sha256": "a5b35a0f96e53b3d341fae58db84fbb9fb1df56fa32eec8be5ed95aa18254f12"
+    },
+    "symbols/TCX.csv": {
+      "rows": 199,
+      "sha256": "bb12ad5da369c8d9449eb72ecd014fcfcd94410c5cb1a7f106b87c7f4cb5af57"
+    },
+    "symbols/TMB.csv": {
+      "rows": 1541,
+      "sha256": "68b9e8df06392ade4c7f40bdbf9da9789104bdec76111ca1ff369cddac534c19"
+    },
+    "symbols/TNG.csv": {
+      "rows": 1998,
+      "sha256": "b0c6effb6c6975720de74065a0545b317708707b97f4ac77fe3b5a49f1483ca6"
+    },
+    "symbols/TPB.csv": {
+      "rows": 1997,
+      "sha256": "7ccd087aa7f5fb5c14b15e4f9e13e296c7ad01addcf4cf5b6ab72dee997c771c"
+    },
+    "symbols/TVD.csv": {
+      "rows": 1851,
+      "sha256": "8d455f6621df8817a6bf75dee1c579921119ba445c9d58ebda43eac72b86483b"
+    },
+    "symbols/VC3.csv": {
+      "rows": 1997,
+      "sha256": "9c1496014e5bf0d6b3ff833b313ffc50b4526be7351f1f9f613e6aa4dc95823e"
+    },
+    "symbols/VCB.csv": {
+      "rows": 1997,
+      "sha256": "a9f5e6f43241996eba8fea96f4c1fc987f505d061beda91c7f7bf5594380c86c"
+    },
+    "symbols/VCG.csv": {
+      "rows": 1992,
+      "sha256": "823dd389402597352dede993dcf9a878bf8e09b54a4fd45bca732dc4152dd68e"
+    },
+    "symbols/VCI.csv": {
+      "rows": 1997,
+      "sha256": "bf48ca80683a16ba40ad698f44f9d15a97201cb7924df9122deeda942986912f"
+    },
+    "symbols/VCK.csv": {
+      "rows": 159,
+      "sha256": "adb11851a9e08a02ceae13396cb09dc45a8d7b13f1f314beeed6946c9e356158"
+    },
+    "symbols/VCS.csv": {
+      "rows": 1997,
+      "sha256": "7ead0c2739cab88fdba417b9080758ca5c426956e51f0610b9520d4f758fdfd6"
+    },
+    "symbols/VEA.csv": {
+      "rows": 1997,
+      "sha256": "625450315e800f1c78bc7da6a6321e28e07e3941425b7bcd2a41a4434c1c7bb0"
+    },
+    "symbols/VEF.csv": {
+      "rows": 1990,
+      "sha256": "3358f241f27ee92c2352901ec5d73d7f99c9f301437e52d3430f278da7e0d925"
+    },
+    "symbols/VFS.csv": {
+      "rows": 1514,
+      "sha256": "fe977742466ad5c15f7d9d6da2ac115d1e7301c70b8802cb74b02e16870b21f3"
+    },
+    "symbols/VGC.csv": {
+      "rows": 1990,
+      "sha256": "ad52444085cf0d4130e65c242a3b16db8da44d74715805196c23e857d22007ef"
+    },
+    "symbols/VGI.csv": {
+      "rows": 1965,
+      "sha256": "e5c9a8fc9c132570f19a81722d37637c15eb67ab11ca13870440971b15d7d55e"
+    },
+    "symbols/VGT.csv": {
+      "rows": 1987,
+      "sha256": "c5da2c02801a97f99a2a0faa89c5111dbf08a8d37015732b8c031e9c0638a466"
+    },
+    "symbols/VHC.csv": {
+      "rows": 1997,
+      "sha256": "79b2f848c1cdd70b802b05a005a4e8b31b95e051656d2ce82b6bb1e24f9fa8ad"
+    },
+    "symbols/VHM.csv": {
+      "rows": 1997,
+      "sha256": "ee2bc9d968aec5558dd04f6941f6f9f3b93adbb347053df5ee428db58dc8e5dd"
+    },
+    "symbols/VIB.csv": {
+      "rows": 1990,
+      "sha256": "7201baa89bab5c0c63615c5086380de3ad34af0d577e578a24fcf49273095dd8"
+    },
+    "symbols/VIC.csv": {
+      "rows": 1997,
+      "sha256": "ee79f7bfc3f03931adcc6d03126d74f71073d4e46dd2bfe7c721901ac75ee45e"
+    },
+    "symbols/VIX.csv": {
+      "rows": 1987,
+      "sha256": "4de8be827dfa7b11cad953849a70a59792300dcd77cd0f37df6d383d50c1fed4"
+    },
+    "symbols/VJC.csv": {
+      "rows": 1997,
+      "sha256": "9b59bc52c88773350360b8d462ac9f180a8cb1a00f8e196a77fd9d56b1f25ddc"
+    },
+    "symbols/VND.csv": {
+      "rows": 1991,
+      "sha256": "d2eca709fa8c2af2e6bf18f3d95216b3cbd80eed486397151a34a2687b806c69"
+    },
+    "symbols/VNM.csv": {
+      "rows": 1997,
+      "sha256": "a642cd73a3f06f53bd3b403e245ffdc61129d7ae25c3aeb2d1c0bf8b015390d5"
+    },
+    "symbols/VPB.csv": {
+      "rows": 1997,
+      "sha256": "1b9fa38405989cc43316f47c78366d6928dd2fe8fe4e9e08d7255f4d5f75f253"
+    },
+    "symbols/VPI.csv": {
+      "rows": 1997,
+      "sha256": "4ad56c2dcc2e5797f1525e16033e85e766df8259a078d4fa53eb0d052e78364b"
+    },
+    "symbols/VPL.csv": {
+      "rows": 312,
+      "sha256": "345821ec7d6ef37e97fce5f7f15cb5b4936d40c226b4ee6151f9b752bf8f81d9"
+    },
+    "symbols/VPX.csv": {
+      "rows": 162,
+      "sha256": "ddb59b0b56835971993fb838a4936280254201a11277bb15ac7e8d7f80fedcd6"
+    },
+    "symbols/VRE.csv": {
+      "rows": 1997,
+      "sha256": "72d39558148b7d0d3889cc0147b80da16e666c954a00f107285616f7c513f22e"
+    },
+    "symbols/VSC.csv": {
+      "rows": 1997,
+      "sha256": "222a5a04da0cd330fd0d9a1ddb4228df5b474cfe84a58bb07554ba634f8c0306"
+    },
+    "symbols/VTP.csv": {
+      "rows": 1915,
+      "sha256": "7105713321f68d9dc0b8b245e56f9ca9190292acbb36f725508dcdef1bea1177"
+    }
+  }
+}
