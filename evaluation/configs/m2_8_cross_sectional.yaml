@@ -1,0 +1,12 @@
+schema_version: m2_8_cross_sectional_v1
+dataset_id: vn150_strict_v2
+dataset_dir: data/curated/vn150_strict_v2
+dataset_manifest_path: reports/milestone_1_data/vn150_strict_v2/dataset_manifest.json
+registry_path: data/evaluation/m2_1/common_origins.csv.gz
+registry_manifest_path: reports/milestone_2_research_eval/origin_registry/manifest.json
+output_dir: data/evaluation/m2_8
+report_dir: reports/milestone_2_research_eval/cross_sectional_references
+horizon: 5
+# Matches M2.2 so every non-model reference shares one sample count. The paths
+# are identical by construction, so this number changes no ranking metric.
+sample_count: 20

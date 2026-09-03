@@ -1,0 +1,21 @@
+schema_version: m2_3_paired_inference_v1
+input_dirs:
+  - data/evaluation/m2_7
+  - data/evaluation/m2_8
+report_dir: reports/milestone_2_research_eval/cross_sectional_references/paired_inference
+restrict_dates_to: small_l126
+comparisons:
+  # SPEC 8.10: both M2.7 arms against both cross-sectional references. The gate
+  # is read only against the reference with the higher pooled RankIC over all
+  # 977 dates; that choice is fixed by baseline data alone, before any Kronos
+  # number enters, so it cannot be made after seeing which one Kronos beats.
+  - {left: small_l126, right: short_term_reversal}
+  - {left: base_l126, right: short_term_reversal}
+  - {left: small_l126, right: momentum_126_21}
+  - {left: base_l126, right: momentum_126_21}
+bootstrap:
+  method: stationary
+  mean_block_dates: 10
+  replicates: 5000
+  confidence: 0.95
+  seed: 20260901

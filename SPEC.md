@@ -881,6 +881,48 @@ configuration by repeatedly viewing the final period.
 
 ---
 
+### 8.10 Pre-Registered M2.8 Cross-Sectional Gate
+
+Registered on 2026-09-03, before either reference was computed.
+
+M2.2's references carry no ranking information by construction: `persistence`
+predicts one number for every symbol and `recent_return_bootstrap` resamples
+each symbol's own past. Beating them on RankIC shows only that a model beats
+noise. This subsection adds two references that do rank, so a model can be asked
+whether it beats a cheap known effect computed from the same closes.
+
+- `short_term_reversal`: the negative of the trailing five-session return, the
+  horizon this project forecasts.
+- `momentum_126_21`: the 126-session formation return skipping the most recent
+  21 sessions, rescaled to the horizon by simple proportion.
+
+Both are deterministic, take no seed, read only closes up to the origin, and fit
+inside the registered `L=126` history. Both emit point forecasts replicated
+across samples, so CRPS, interval coverage, and interval width are undefined for
+them and MUST NOT be reported as a probabilistic comparison.
+
+Gate rule:
+
+1. Section 8.6 rule 5 stays in force and becomes **necessary but not
+   sufficient**. A model must additionally beat the stronger cross-sectional
+   reference on RankIC with a paired 95% interval excluding zero before any
+   ranking claim is made.
+2. The stronger reference is the one with the higher pooled RankIC over all 977
+   registered dates. That choice is fixed by baseline data alone, before any
+   model number enters it, so it cannot be selected after seeing which reference
+   a model happens to beat.
+3. This subsection only **raises** the bar. It cannot turn a model failure into a
+   pass, which is why adding it after the M2.7 arms were measured is admissible.
+   The reverse move, weakening a gate after seeing a result, remains forbidden.
+
+Scope limit on the first reading. The M2.7 arms already exist, so their side of
+this comparison was measured before the references were. That is weaker than a
+fully prospective test, and the first reading MUST be labelled as provisional.
+The confirmatory reading is the one taken inside the next registered run, where
+both sides are computed after registration.
+
+---
+
 ## 9. Inference, Ranking, And Risk
 
 ### 9.1 Forecast Artifact
