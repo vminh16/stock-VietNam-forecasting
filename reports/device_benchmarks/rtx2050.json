@@ -1,0 +1,288 @@
+{
+  "schema_version": "device_benchmark_v1",
+  "generated_at_utc": "2026-09-03T08:32:40.879550+00:00",
+  "hostname": "LAPTOP-4U8PQDBC",
+  "environment": {
+    "python": "3.10.20",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "torch": "2.5.1+cu121",
+    "cuda_available": true,
+    "cuda_version": "12.1",
+    "tf32_matmul": false,
+    "tf32_cudnn": true,
+    "cudnn_benchmark": false,
+    "gpu_name": "NVIDIA GeForce RTX 2050",
+    "gpu_memory_gb": 4.0,
+    "gpu_capability": "8.6"
+  },
+  "prerequisites": [
+    {
+      "name": "tokenizer",
+      "path": "pretrained/Kronos-Tokenizer-base/model.safetensors",
+      "present": true,
+      "detail": "15.1 MB"
+    },
+    {
+      "name": "kronos_small",
+      "path": "pretrained/Kronos-small/model.safetensors",
+      "present": true,
+      "detail": "94.4 MB"
+    },
+    {
+      "name": "kronos_base",
+      "path": "pretrained/Kronos-base/model.safetensors",
+      "present": true,
+      "detail": "390.3 MB"
+    },
+    {
+      "name": "curated_data",
+      "path": "data/curated/vn150_strict_v2/symbols",
+      "present": true,
+      "detail": "150 files, 25.9 MB"
+    },
+    {
+      "name": "dataset_manifest",
+      "path": "reports/milestone_1_data/vn150_strict_v2/dataset_manifest.json",
+      "present": true,
+      "detail": "0.1 MB"
+    },
+    {
+      "name": "origin_registry",
+      "path": "data/evaluation/m2_1/common_origins.csv.gz",
+      "present": true,
+      "detail": "6.6 MB"
+    },
+    {
+      "name": "registry_manifest",
+      "path": "reports/milestone_2_research_eval/origin_registry/manifest.json",
+      "present": true,
+      "detail": "0.0 MB"
+    }
+  ],
+  "correctness": {
+    "shape": [
+      8,
+      10,
+      5
+    ],
+    "expected_shape": [
+      8,
+      10,
+      5
+    ],
+    "shape_ok": true,
+    "all_finite": true,
+    "max_abs_return": 0.1419086191150698,
+    "plausible_magnitude": true,
+    "repeatable_same_seed": true,
+    "max_repeat_delta": 0.0
+  },
+  "fingerprint": {
+    "arm_id": "small_l126",
+    "origins": 8,
+    "sample_count": 10,
+    "seed": 20260901,
+    "origin_ids": [
+      "a7a0b87f923497a3b411a7e78ae3a07244d1854d99943a66359dcc4552ef89d4",
+      "cb3d6f0aa83e605aa8cb344ed171cff189cf5ad386557bbb03bbb9679416ab93",
+      "abb21a7a2f3d1dc9a5827d214a24a999e1760da1bfb74adbf0f07d7a8e1d349a",
+      "6be28da082874f95fcf17db9b67cc0d8f4bd373615910da3a9b7cc9b5c177eb7",
+      "6651c5e95594aa645a50d069f548e75c660a07db1c9be1fa1cfae32bb60f65d9",
+      "dd74193dae39517e8333747b5eec219ee8ba8dbdd6c243d1b5b859b7f29e2734",
+      "a2c2e7341a1a60ede51bd973e4d5d8fb07f415b23e57aa35939edad27adf81bc",
+      "d78f2bbda381cfffa63d42cb822228e15d02e3da584e6cf3877316296acb7d2c"
+    ],
+    "sha256": "d4b2e364de40dd7ae5544ef75330612b98261566fc0f17248ac92654e186b188",
+    "mean": -0.0013160804402177705,
+    "std": 0.03321510212166482,
+    "first_five": [
+      -0.01600402042292348,
+      -0.004551986826773824,
+      -0.0182664255398437,
+      -0.0039629446277754665,
+      0.0013675312720249355
+    ]
+  },
+  "throughput": [
+    {
+      "arm_id": "small_l126",
+      "sample_count": 10,
+      "batch_size": 2,
+      "effective_sequences": 20,
+      "origins": 16,
+      "seconds": 2.869,
+      "origins_per_second": 5.5771,
+      "peak_vram_gb": 0.195,
+      "status": "ok"
+    },
+    {
+      "arm_id": "small_l126",
+      "sample_count": 10,
+      "batch_size": 8,
+      "effective_sequences": 80,
+      "origins": 16,
+      "seconds": 3.167,
+      "origins_per_second": 5.0528,
+      "peak_vram_gb": 0.434,
+      "status": "ok"
+    },
+    {
+      "arm_id": "small_l126",
+      "sample_count": 10,
+      "batch_size": 16,
+      "effective_sequences": 160,
+      "origins": 16,
+      "seconds": 3.354,
+      "origins_per_second": 4.7708,
+      "peak_vram_gb": 0.754,
+      "status": "ok"
+    },
+    {
+      "arm_id": "small_l126",
+      "sample_count": 20,
+      "batch_size": 2,
+      "effective_sequences": 40,
+      "origins": 16,
+      "seconds": 5.398,
+      "origins_per_second": 2.9638,
+      "peak_vram_gb": 0.275,
+      "status": "ok"
+    },
+    {
+      "arm_id": "small_l126",
+      "sample_count": 20,
+      "batch_size": 8,
+      "effective_sequences": 160,
+      "origins": 16,
+      "seconds": 6.67,
+      "origins_per_second": 2.3988,
+      "peak_vram_gb": 0.754,
+      "status": "ok"
+    },
+    {
+      "arm_id": "small_l126",
+      "sample_count": 20,
+      "batch_size": 16,
+      "effective_sequences": 320,
+      "origins": 16,
+      "seconds": 6.501,
+      "origins_per_second": 2.4611,
+      "peak_vram_gb": 1.391,
+      "status": "ok"
+    },
+    {
+      "arm_id": "base_l126",
+      "sample_count": 10,
+      "batch_size": 2,
+      "effective_sequences": 20,
+      "origins": 16,
+      "seconds": 10.791,
+      "origins_per_second": 1.4828,
+      "peak_vram_gb": 0.538,
+      "status": "ok"
+    },
+    {
+      "arm_id": "base_l126",
+      "sample_count": 10,
+      "batch_size": 8,
+      "effective_sequences": 80,
+      "origins": 16,
+      "seconds": 15.2,
+      "origins_per_second": 1.0526,
+      "peak_vram_gb": 0.927,
+      "status": "ok"
+    },
+    {
+      "arm_id": "base_l126",
+      "sample_count": 10,
+      "batch_size": 16,
+      "effective_sequences": 160,
+      "origins": 16,
+      "seconds": 18.412,
+      "origins_per_second": 0.869,
+      "peak_vram_gb": 1.433,
+      "status": "ok"
+    },
+    {
+      "arm_id": "base_l126",
+      "sample_count": 20,
+      "batch_size": 2,
+      "effective_sequences": 40,
+      "origins": 16,
+      "seconds": 22.049,
+      "origins_per_second": 0.7257,
+      "peak_vram_gb": 0.666,
+      "status": "ok"
+    },
+    {
+      "arm_id": "base_l126",
+      "sample_count": 20,
+      "batch_size": 8,
+      "effective_sequences": 160,
+      "origins": 16,
+      "seconds": 35.879,
+      "origins_per_second": 0.4459,
+      "peak_vram_gb": 1.433,
+      "status": "ok"
+    },
+    {
+      "arm_id": "base_l126",
+      "sample_count": 20,
+      "batch_size": 16,
+      "effective_sequences": 320,
+      "origins": 16,
+      "seconds": 227.301,
+      "origins_per_second": 0.0704,
+      "peak_vram_gb": 2.46,
+      "status": "ok"
+    }
+  ],
+  "projections": [
+    {
+      "arm_id": "base_l126",
+      "sample_count": 10,
+      "best_batch_size": 2,
+      "origins_per_second": 1.4828,
+      "dates": 977,
+      "projected_origins": 133899,
+      "projected_hours": 25.08
+    },
+    {
+      "arm_id": "base_l126",
+      "sample_count": 20,
+      "best_batch_size": 2,
+      "origins_per_second": 0.7257,
+      "dates": 977,
+      "projected_origins": 133899,
+      "projected_hours": 51.25
+    },
+    {
+      "arm_id": "small_l126",
+      "sample_count": 10,
+      "best_batch_size": 2,
+      "origins_per_second": 5.5771,
+      "dates": 977,
+      "projected_origins": 133899,
+      "projected_hours": 6.67
+    },
+    {
+      "arm_id": "small_l126",
+      "sample_count": 20,
+      "best_batch_size": 2,
+      "origins_per_second": 2.9638,
+      "dates": 977,
+      "projected_origins": 133899,
+      "projected_hours": 12.55
+    }
+  ],
+  "settings": {
+    "horizon": 5,
+    "temperature": 0.6,
+    "top_k": 0,
+    "top_p": 0.9,
+    "clip": 5.0,
+    "max_context": 512,
+    "origins_per_cell": 16,
+    "warmup_batches": 1
+  }
+}

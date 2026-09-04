@@ -9,9 +9,9 @@ Runs five checks and writes one JSON report:
                     compared numerically before their results are pooled
 5. throughput     - origins per second across arms, batch sizes, sample counts
 
-It computes no metric, writes nothing under `data/evaluation/` or `reports/`,
-and evaluates only dates the M2.5 screen already used, so it cannot leak
-information about an unevaluated date.
+It computes no metric, writes nothing except the report at `--output`, and
+evaluates only dates the M2.5 screen already used, so it cannot leak information
+about an unevaluated date.
 """
 
 import argparse
@@ -349,6 +349,9 @@ def main(argv=None):
     parser.add_argument("--project-dates", type=int, default=977)
     parser.add_argument("--skip-throughput", action="store_true")
     args = parser.parse_args(argv)
+    # Created up front: the report is written after the grid, and a missing
+    # directory would throw away a run that already took its full time.
+    args.output.parent.mkdir(parents=True, exist_ok=True)
 
     print("=" * 62)
     print("1. ENVIRONMENT")
