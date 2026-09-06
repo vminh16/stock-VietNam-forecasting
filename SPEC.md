@@ -1,10 +1,10 @@
 # SPEC - Vietnam Stock Market Radar with Kronos
 
-> **Version:** 2.9
+> **Version:** 2.10
 >
 > **Date:** 2026-09-06
 >
-> **Status:** M2.8 cross-sectional gate not cleared; Kronos ties a five-day reversal formula on RankIC
+> **Status:** M2.8 cross-sectional gate not cleared; M2.9 finds pooled seed noise immaterial but fold-level seed noise large
 >
 > **Authority:** Source of truth for product, data, model, evaluation, and delivery decisions
 
@@ -327,6 +327,49 @@ reversal is itself known to concentrate in less liquid names.
   identical forecast origins.
 
 ---
+
+### 3.8 M2.9 Sampling-Noise Evidence
+
+Kronos samples rather than computes, so a metric carries seed noise that the
+section 8.5 bootstrap never resampled. Five replicates of `small_l126` over the
+196 M2.7 dates, differing only in their RNG stream, measure it. Read against
+section 8.11, registered before any replicate existed.
+
+Pooled over 196 dates, `sd_seed` on RankIC is `0.001849` against the registered
+threshold of `0.003763`. **Rule 4 applies**: intervals widen by a factor of
+`1.0075`, and every earlier reading stands. CRPS varies by twelve parts per
+million and interval width by 0.3%, so the calibration finding of section 3.5 is
+not a seed artifact.
+
+Two qualifications carry forward. The M2.8 margin over `short_term_reversal` on
+RankIC, `+0.0060`, is 3.2 times the seed noise on that metric, so the point
+estimate is unstable even though the gate reading does not change. The one
+interval that excluded zero, MW-DA at `+2.85` with `[+0.12, +5.62]`, becomes
+`[+0.044, +5.656]` once seed noise is included; it still excludes zero and must
+now be described as unreplicated.
+
+Split by fold, at 49 dates each, the noise is much larger:
+
+| fold | RankIC mean | sd across seeds | sd as share of mean |
+|---|---:|---:|---:|
+| eval_2022 | 0.036349 | 0.003880 | 11% |
+| eval_2023 | 0.027216 | 0.006575 | 24% |
+| eval_2024 | 0.025299 | 0.006759 | 27% |
+| eval_2025 | 0.010798 | 0.008930 | 83% |
+
+Quartering the dates raises `sd_seed` by 2.1 to 4.8 times against the 2.0 that
+independent averaging predicts, so 2025 carries genuinely higher per-date
+variance rather than merely fewer dates. A single-seed RankIC on a partition of
+the evaluation set is therefore imprecise by an amount that has never been
+measured, which reaches into the liquidity-tier evidence of section 3.4 and the
+per-regime readings behind section 3.6. Those readings are not overturned; their
+precision is unknown. Any future claim resting on a partition MUST either
+average over seeds or state that its precision is unmeasured.
+
+Full reading in
+`reports/milestone_2_research_eval/seed_variance/decision.md`. Readout 3 of
+section 8.11, the ten replicate-versus-replicate contrasts that calibrate the
+bootstrap against a sampler compared with itself, is still outstanding.
 
 ## 4. Data System Specification
 
