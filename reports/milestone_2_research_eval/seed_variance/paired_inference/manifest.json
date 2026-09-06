@@ -1,0 +1,84 @@
+{
+  "artifact_hashes": {
+    "paired_comparisons.csv": "4d204af949e8398938cc298c0b8b925efd4a1b39116c1a3484d576f80a3d9844",
+    "paired_inference_report.md": "e9673efdaa1781f84fc69e6c32ac24e9c029e9833310b3166ceb4ff9669349d4"
+  },
+  "bootstrap": {
+    "confidence": 0.95,
+    "mean_block_dates": 10,
+    "method": "stationary",
+    "replicates": 5000,
+    "seed": 20260901
+  },
+  "code_revision": "2eab7b25109e9b12492e8db9527479112a54cb95",
+  "command": "/home/nguyenvanminh16082k5/Stock-VN-forecashing/.venv/bin/python /home/nguyenvanminh16082k5/Stock-VN-forecashing/evaluation/run_paired_comparison.py --config evaluation/configs/m2_9_paired_inference.yaml",
+  "comparisons": [
+    {
+      "left": "small_l126_r1",
+      "right": "small_l126_r2"
+    },
+    {
+      "left": "small_l126_r1",
+      "right": "small_l126_r3"
+    },
+    {
+      "left": "small_l126_r1",
+      "right": "small_l126_r4"
+    },
+    {
+      "left": "small_l126_r1",
+      "right": "small_l126_r5"
+    },
+    {
+      "left": "small_l126_r2",
+      "right": "small_l126_r3"
+    },
+    {
+      "left": "small_l126_r2",
+      "right": "small_l126_r4"
+    },
+    {
+      "left": "small_l126_r2",
+      "right": "small_l126_r5"
+    },
+    {
+      "left": "small_l126_r3",
+      "right": "small_l126_r4"
+    },
+    {
+      "left": "small_l126_r3",
+      "right": "small_l126_r5"
+    },
+    {
+      "left": "small_l126_r4",
+      "right": "small_l126_r5"
+    }
+  ],
+  "config_path": "evaluation/configs/m2_9_paired_inference.yaml",
+  "config_sha256": "d7aba13ded895723b30af8bd51c2ca197db39daf351846a59370da997c8f70d7",
+  "generated_at_utc": "2026-09-06T14:55:17.968912+00:00",
+  "input_dirs": [
+    "data/evaluation/m2_9"
+  ],
+  "input_hashes": {
+    "small_l126_r1_per_date_metrics.csv.gz": "829bc6fa336dc5b023754b3890011b6d791667f78d83ea931aaa46dfae356819",
+    "small_l126_r2_per_date_metrics.csv.gz": "7071dee477ff3321c6f5cb6bbe0340577ede799bd64bbc59f4c3f637e28684b1",
+    "small_l126_r3_per_date_metrics.csv.gz": "f2714437a873c2a414d772e9c5e4486b47bbc9f0e0f868e5f62c2ca06c97313d",
+    "small_l126_r4_per_date_metrics.csv.gz": "dc5de31ec627ed2fc22f14902f8aed54a66cc828c0fca0f15278147f2e4065bd",
+    "small_l126_r5_per_date_metrics.csv.gz": "10988ae09e4d2e4590e143184975c6d0ce1fd8c6ba6a098da6618e5b356d4a28"
+  },
+  "lockbox_opened": false,
+  "metrics": [
+    "DA",
+    "MW-DA",
+    "RankIC",
+    "HitRate@Top10",
+    "CRPS",
+    "coverage",
+    "interval_width"
+  ],
+  "model_inference": false,
+  "restrict_dates_to": "small_l126_r1",
+  "schema_version": "m2_3_paired_inference_v1",
+  "worktree_dirty": true
+}
