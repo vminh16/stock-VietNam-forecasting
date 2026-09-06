@@ -336,6 +336,15 @@ origins per second by paging; it is plain per-step overhead. Keep
 
 The L4 ran 3.1 to 3.3 times faster than the RTX 2050 across every matched cell.
 
+Running several processes at once does not help either. Two concurrent
+`small_l126` runs on the L4 held about 9 origins per second each, an aggregate of
+18 against the 18.45 a single process reaches alone. The card is already
+saturated by one process at batch 2, which is why neither a wider batch nor a
+second process buys anything: `auto_regressive_inference` has no KV cache, so
+each of the five prediction steps re-runs the transformer over the whole
+context window and the work is about five times larger than the output implies.
+Schedule runs serially and keep the runtime numbers clean.
+
 ## 6. Send back
 
 The JSON file. It carries the environment, the fingerprint, every throughput
