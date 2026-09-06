@@ -249,13 +249,21 @@ truncated download.
 | host | greedy sha256 | mean | std |
 |---|---|---:|---:|
 | reference | `1ae1ad8f8209e67901f42ead7d03e0e5f97db89785c386fdd28fa7fac62d8b69` | `0.0022560544` | `0.0261763182` |
+| L4 | `19d4c4b30a099af7be5667e4870e8ea8a258867a00432b08e49545ff98d970c1` | `0.0022560600` | `0.0261763151` |
+
+Those two agree to eight significant figures, about two float32 units in the
+last place, while the sampled fingerprint on the same pair of hosts disagrees in
+the mean by `1.7e-3`, some three hundred thousand times more. The hashes still
+differ, because the last bits do. That is the whole point of keeping both
+fingerprints: the greedy one says the hosts run the same model, and the sampled
+one says their forecast paths are not interchangeable.
 
 Verified on the reference host: identical output under seeds `20260901`, `1` and
 `999999`, maximum difference exactly `0.0`, while the sampler moved a single
 five-day return by `0.1024` between two of those seeds. The full record is
 `reports/device_benchmarks/rtx2050_greedy.json`, a fingerprint-only pass;
 `rtx2050.json` is the earlier full run and predates this check, so it carries no
-`greedy_fingerprint` field.
+`greedy_fingerprint` field; `l4_greedy.json` is the matching pass on the L4.
 
 `fingerprint` decodes through the sampler the real runs use, at
 `temperature 0.6, top_p 0.9`. It will **not** match across hosts and a mismatch
@@ -267,10 +275,6 @@ different draw. Measured between the reference RTX 2050 and the L4:
 |---|---|---|---|---:|---:|
 | reference | RTX 2050, capability 8.6 | 2.5.1+cu121 | `d4b2e364de40dd7ae5544ef75330612b98261566fc0f17248ac92654e186b188` | `-0.0013160804` | `0.0332151021` |
 | L4 | NVIDIA L4, capability 8.9 | 2.13.0+cu130 | `b5111bc69a62b88a848107ff7a7c981eb4b1b6cffa5122a755a578d94bc85705` | `+0.0003587479` | `0.0299944685` |
-
-The L4 also predates the greedy check, so its integrity has been argued from the
-three items below rather than measured directly. Re-run the benchmark there to
-fill in its `greedy_fingerprint`.
 
 Those means differ by more than the earlier version of this runbook treated as
 proof of a broken host, and the host was not broken. The evidence that settled
