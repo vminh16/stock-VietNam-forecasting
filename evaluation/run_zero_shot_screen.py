@@ -4,7 +4,7 @@ import json
 import subprocess
 import sys
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -120,6 +120,20 @@ def load_screen_config(path):
         if arm.lookback > config.max_context:
             raise ValueError(f"{arm.arm_id}: lookback exceeds max_context")
     return config
+
+
+def select_arms(config, arm_ids):
+    """Keep the named arms so one config can be split across parallel processes.
+
+    `arm_cache_key` does not read the arm list, so an arm run this way lands on
+    the same cache key, and the same result, as it would inside a full run.
+    """
+    wanted = list(dict.fromkeys(arm_ids))
+    known = {arm.arm_id: arm for arm in config.arms}
+    missing = [arm_id for arm_id in wanted if arm_id not in known]
+    if missing:
+        raise ValueError(f"Config has no arm named: {', '.join(missing)}")
+    return replace(config, arms=tuple(known[arm_id] for arm_id in wanted))
 
 
 def _git_value(*args):
@@ -438,9 +452,11 @@ arms against each other and not against the M0 report.
 """
 
 
-def run_screen(config_path, command=None, max_dates=None, smoke=False):
+def run_screen(config_path, command=None, max_dates=None, smoke=False, arm_ids=None):
     config_path = Path(config_path)
     config = load_screen_config(config_path)
+    if arm_ids is not None:
+        config = select_arms(config, arm_ids)
     registry, frames, registry_hash, registry_manifest, dataset_manifest = load_inputs(
         config, max_dates=max_dates
     )
@@ -501,6 +517,10 @@ def run_screen(config_path, command=None, max_dates=None, smoke=False):
     runtimes = pd.DataFrame(runtime_rows)
     config.report_dir.mkdir(parents=True, exist_ok=True)
     prefix = "smoke_" if smoke else ""
+    if arm_ids is not None:
+        # A filtered run writes its own report set, so several of them can share
+        # one output directory without overwriting each other's audit trail.
+        prefix += "_".join(sorted(arm_ids)) + "_"
     summary_path = config.report_dir / f"{prefix}metric_summary.csv"
     summary.to_csv(summary_path, index=False, lineterminator="\n")
     runtime_path = config.report_dir / f"{prefix}runtime_summary.csv"
@@ -576,14 +596,26 @@ def main(argv=None):
     parser.add_argument("--config", required=True, type=Path)
     parser.add_argument("--max-dates", type=int, default=None)
     parser.add_argument("--smoke", action="store_true")
+    parser.add_argument(
+        "--arms",
+        nargs="+",
+        default=None,
+        help="Run only these arms. Cache keys do not depend on the arm list, so "
+        "a filtered run produces the same result as the same arm inside a full run.",
+    )
     args = parser.parse_args(argv)
     command = " ".join(
         [sys.executable, __file__, "--config", str(args.config)]
         + (["--max-dates", str(args.max_dates)] if args.max_dates else [])
         + (["--smoke"] if args.smoke else [])
+        + (["--arms", *args.arms] if args.arms else [])
     )
     manifest, summary, runtimes = run_screen(
-        args.config, command=command, max_dates=args.max_dates, smoke=args.smoke
+        args.config,
+        command=command,
+        max_dates=args.max_dates,
+        smoke=args.smoke,
+        arm_ids=args.arms,
     )
 
     print(f"Origins per arm: {manifest['origins_per_arm']:,}")

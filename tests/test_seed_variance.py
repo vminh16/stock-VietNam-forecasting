@@ -16,7 +16,7 @@ from evaluation.run_seed_variance import (
     read_decision,
     spread,
 )
-from evaluation.run_zero_shot_screen import _origin_seed
+from evaluation.run_zero_shot_screen import _origin_seed, select_arms
 
 VARIANCE_CONFIG = ROOT / "evaluation" / "configs" / "m2_9_seed_variance.yaml"
 PAIRED_CONFIG = ROOT / "evaluation" / "configs" / "m2_9_paired_inference.yaml"
@@ -129,3 +129,33 @@ def test_two_replicates_are_refused(tmp_path):
     )
     with pytest.raises(ValueError, match="fewer than 3"):
         load_replicates(config)
+
+
+# The five replicates are independent, so they can be split across processes.
+# These guard the one property that makes that safe.
+
+
+def test_a_filtered_arm_lands_on_the_same_cache_key_as_a_full_run():
+    from evaluation.run_zero_shot_screen import arm_cache_key, load_screen_config
+
+    config = load_screen_config(VARIANCE_CONFIG)
+    subset = select_arms(config, ["small_l126_r3"])
+    full = {arm.arm_id: arm_cache_key(config, arm, "reg", "sel") for arm in config.arms}
+    assert arm_cache_key(subset, subset.arms[0], "reg", "sel") == full["small_l126_r3"]
+    assert len(set(full.values())) == 5
+
+
+def test_select_arms_keeps_the_requested_order_without_repeats():
+    from evaluation.run_zero_shot_screen import load_screen_config
+
+    config = load_screen_config(VARIANCE_CONFIG)
+    subset = select_arms(config, ["small_l126_r4", "small_l126_r1", "small_l126_r4"])
+    assert [arm.arm_id for arm in subset.arms] == ["small_l126_r4", "small_l126_r1"]
+
+
+def test_select_arms_names_an_unknown_arm():
+    from evaluation.run_zero_shot_screen import load_screen_config
+
+    config = load_screen_config(VARIANCE_CONFIG)
+    with pytest.raises(ValueError, match="small_l126_r9"):
+        select_arms(config, ["small_l126_r9"])
