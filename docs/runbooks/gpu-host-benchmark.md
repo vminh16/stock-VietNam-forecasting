@@ -258,6 +258,22 @@ differ, because the last bits do. That is the whole point of keeping both
 fingerprints: the greedy one says the hosts run the same model, and the sampled
 one says their forecast paths are not interchangeable.
 
+**Never compare a sha256 across hosts, greedy included.** Both fingerprints hash
+the bytes of float64 values produced by float32 arithmetic, so a last-bit
+difference changes the digest. No two hosts with different rounding can ever
+match, and demanding it sets an impossible bar.
+
+The acceptance test between hosts is numeric:
+
+| greedy comparison | reading |
+|---|---|
+| `mean` and `std` agree to 7 significant figures or better | pass, same model |
+| they agree to only 3 or 4 | investigate: a different dtype, autocast, or TF32 setting |
+| they differ in the first or second figure | stop: wrong checkpoint, wrong tokenizer, or a truncated download |
+
+Compare the digest only against the **same** host's earlier report, where it does
+catch a swapped checkpoint or a corrupted re-download.
+
 Verified on the reference host: identical output under seeds `20260901`, `1` and
 `999999`, maximum difference exactly `0.0`, while the sampler moved a single
 five-day return by `0.1024` between two of those seeds. The full record is
