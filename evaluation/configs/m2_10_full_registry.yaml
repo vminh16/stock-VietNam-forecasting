@@ -1,0 +1,42 @@
+schema_version: m2_5_zero_shot_screen_v1
+dataset_id: vn150_strict_v2
+dataset_dir: data/curated/vn150_strict_v2
+dataset_manifest_path: reports/milestone_1_data/vn150_strict_v2/dataset_manifest.json
+registry_path: data/evaluation/m2_1/common_origins.csv.gz
+registry_manifest_path: reports/milestone_2_research_eval/origin_registry/manifest.json
+tokenizer_path: pretrained/Kronos-Tokenizer-base
+output_dir: data/evaluation/m2_10
+report_dir: reports/milestone_2_research_eval/full_registry
+horizon: 5
+# The 683 dates no earlier run has touched. M2.5 screened on {0 mod 10} and
+# selected these two arms there; M2.7 confirmed on {2, 5 mod 10} and M2.9 reused
+# those same dates. The seven residues below are the exact complement, so every
+# gate in SPEC 8.12 is read prospectively on both sides for the first time.
+# 98 + 196 + 683 = 977.
+date_stride: 10
+date_residues: [1, 3, 4, 6, 7, 8, 9]
+# Unchanged from M2.5, M2.7 and M2.9, so a difference against those runs cannot
+# come from the sampler.
+sampling:
+  sample_count: 10
+  seed: 20260901
+  temperature: 0.6
+  top_k: 0
+  top_p: 0.9
+runtime:
+  max_context: 512
+  clip: 5.0
+  # Measured, not assumed: batch 2 was fastest on both hosts, and throughput fell
+  # 19% from batch 2 to batch 64 on the L4 at 8.60 GB of 22.03 GB peak.
+  batch_size: 2
+# The two arms M2.5 selected and M2.7 confirmed. Adding an arm here would reopen
+# the screen and require a new registration.
+arms:
+  - arm_id: small_l126
+    model_path: pretrained/Kronos-small
+    lookback: 126
+    normalizer_lookback: 126
+  - arm_id: base_l126
+    model_path: pretrained/Kronos-base
+    lookback: 126
+    normalizer_lookback: 126

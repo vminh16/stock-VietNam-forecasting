@@ -1,0 +1,32 @@
+schema_version: m2_3_paired_inference_v1
+input_dirs:
+  - data/evaluation/m2_10
+  - data/evaluation/m2_2
+  - data/evaluation/m2_8
+report_dir: reports/milestone_2_research_eval/full_registry/paired_inference
+# The references were computed on all 977 dates. Restricting to small_l126's
+# dates intersects them down to the registered 683 without recomputing anything.
+restrict_dates_to: small_l126
+comparisons:
+  # PRIMARY FAMILY, SPEC 8.12. Four readings, fixed before the run.
+  # P1 and P2: the SPEC 8.10 cross-sectional gate, on RankIC, prospective on
+  # both sides for the first time.
+  - {left: small_l126, right: short_term_reversal}
+  - {left: base_l126, right: short_term_reversal}
+  # P3: the SPEC 8.6 rule 5 naive gate, necessary but not sufficient.
+  - {left: small_l126, right: recent_return_bootstrap}
+  - {left: base_l126, right: recent_return_bootstrap}
+  # P4: the SPEC 8.6 rule 4 non-inferiority margin. The M2.7 sizing put the
+  # requirement at about 681 paired dates; this run has 683.
+  - {left: small_l126, right: base_l126}
+  # SECONDARY. Reported, never used to decide.
+  - {left: small_l126, right: momentum_126_21}
+  - {left: base_l126, right: momentum_126_21}
+  - {left: small_l126, right: persistence}
+  - {left: base_l126, right: persistence}
+bootstrap:
+  method: stationary
+  mean_block_dates: 10
+  replicates: 5000
+  confidence: 0.95
+  seed: 20260901

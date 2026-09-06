@@ -1,6 +1,6 @@
 # SPEC - Vietnam Stock Market Radar with Kronos
 
-> **Version:** 2.10
+> **Version:** 2.11
 >
 > **Date:** 2026-09-06
 >
@@ -1095,6 +1095,137 @@ Two independent noise sources combine as `sqrt(sigma_date^2 + sd_seed^2)`.
 This subsection cannot manufacture a pass for any model. It only widens
 intervals or leaves them alone, so registering it after M2.7 and M2.8 were
 measured is admissible under the same asymmetry that governs section 8.10.
+
+---
+
+### 8.12 Pre-Registered M2.10 Full-Registry Confirmation
+
+Registered on 2026-09-06, before the run started and before any of its numbers
+existed.
+
+Every Kronos gate so far has been read on dates that had already been used for
+something. M2.5 screened five arms on the 98 dates `{0 mod 10}` and selected two
+of them there. M2.7 confirmed those two on the 196 dates `{2, 5 mod 10}`. M2.8
+registered the cross-sectional gate after those arms were measured and could
+therefore only be read provisionally, and M2.9 reused the same 196 dates again.
+This subsection reads every gate once, prospectively, on dates none of that
+touched.
+
+#### Data contract
+
+| item | value | how it is enforced |
+|---|---|---|
+| dataset | `vn150_strict_v2` | `dataset_manifest.json`, 155 artifact hashes |
+| dataset fingerprint | `b52ff4784203b173979c6c1f23088b942edcbf21374987a6b269c71ed694ee3a` | recorded in the run manifest |
+| origin registry | `data/evaluation/m2_1/common_origins.csv.gz` | `registry_sha256` `dcd71d14c5016b721111172d6a2ff384122eb74d2cc9c27252d359857e6726c6`, checked against the M2.1 manifest at load; a mismatch raises |
+| registry contents | 133,937 origins, 977 dates, 147 symbols, 2022-01-04 to 2025-12-24 | frozen at M2.1 |
+| evaluated dates | **683**, `{1, 3, 4, 6, 7, 8, 9 mod 10}` | `98 + 196 + 683 = 977`, and the three sets are disjoint by construction |
+| evaluated origins | 93,637 | 22,642 / 22,951 / 23,870 / 24,174 across the four folds |
+| horizon | 5 sessions | registry field |
+| minimum cross-section | 10 symbols per date | registry field |
+| lockbox | 2026 closed, `lockbox_start = 2026-01-01` | no origin in the registry reaches it |
+| host | one host for every arm | results from two hosts MUST NOT be pooled; section 3.8 |
+
+The 683 dates are the exact complement of every date any earlier Kronos run has
+seen. That is what makes this reading prospective, and it is checkable: the
+three residue sets partition the registry.
+
+#### Candidates
+
+`small_l126` and `base_l126`, unchanged from M2.7. Adding an arm here would
+reopen the M2.5 screen and require its own registration.
+
+References are the four already computed on all 977 dates, unchanged and with no
+seed: `short_term_reversal`, `momentum_126_21` from M2.8, and
+`recent_return_bootstrap`, `persistence` from M2.2. Restricting the paired
+inference to `small_l126`'s dates intersects them onto the 683 without
+recomputing anything.
+
+Sampling is identical to M2.5, M2.7 and M2.9: 10 samples, seed `20260901`,
+temperature `0.6`, `top_k 0`, `top_p 0.9`, `max_context 512`, `clip 5.0`,
+`batch_size 2`. A difference against those runs therefore cannot come from the
+sampler.
+
+#### Budget
+
+At the L4 rates measured in M2.9 and the device benchmark, 93,637 origins at
+17.15 origins per second for `small_l126` and 4.55 for `base_l126`:
+
+| arm | hours |
+|---|---:|
+| `small_l126` | 1.52 |
+| `base_l126` | 5.72 |
+| **total** | **7.24** |
+
+#### Reading rule
+
+Four primary readings, fixed here. Everything else in the paired configuration
+is secondary: reported, never used to decide.
+
+1. **Cross-sectional gate, section 8.10.** `small_l126` and `base_l126` against
+   `short_term_reversal` on RankIC. An arm passes when its paired 95% interval
+   excludes zero in its favour. `short_term_reversal` is the registered gate
+   because it holds the higher pooled RankIC over all 977 dates, `0.0153` against
+   `0.0088`, a choice made from baseline data alone before any model number
+   entered it.
+2. **Naive gate, section 8.6 rule 5.** Each arm against
+   `recent_return_bootstrap` on RankIC, interval excluding zero. Necessary but
+   not sufficient, per section 8.10.
+3. **Non-inferiority, section 8.6 rule 4.** `small_l126` against `base_l126`.
+   Kronos-small survives as the development candidate when the RankIC paired
+   lower bound exceeds `-0.01` and the MW-DA paired lower bound exceeds `-1.0`
+   percentage point. The M2.7 reading could not resolve this margin and its
+   sizing put the requirement at about 681 paired dates; this run has 683.
+4. **Seed correction, section 8.11.** Every primary interval that supports a
+   claim about a model rather than about a run MUST have `sd_seed` added in
+   quadrature to its `se_date` before it is read. The M2.9 measurements supply
+   `sd_seed` for `small_l126`: `0.001849` on RankIC, `0.284525` on MW-DA,
+   `0.261367` on DA, `0.003410` on coverage, `0.000176` on interval width,
+   `0.000012` on CRPS, `0.378377` on HitRate@Top10.
+
+`base_l126` has no measured seed component, because M2.9 excluded it by design.
+Rather than assume one, this registers a contingency: **if any `base_l126`
+primary interval ends within three times the corresponding `small_l126`
+`sd_seed` of its decision boundary, that reading is provisional** and stands
+only until a seed measurement for `base_l126` is run. Readings further from the
+boundary than that are final.
+
+#### Acceptance criteria
+
+The run is accepted as evidence when all of the following hold, independently of
+what the gates say:
+
+- all 683 dates evaluated for both arms, `valid_dates = 683` in each summary
+- `origin_rows = 93,637` for each arm
+- the manifest records `registry_sha256 = dcd71d14...` and `lockbox_opened: false`
+- `worktree_dirty: false`
+- every arm ran on one host, and that host's greedy fingerprint matches the
+  reference to at least seven significant figures per the benchmark runbook
+
+A gate that fails is a result, not a defect. Section 8.6 already states that
+failing the naive gate is a valid and reportable outcome, and the same applies
+here.
+
+#### What this run cannot settle
+
+Registered in advance so it is not discovered afterwards.
+
+- **Fold and slice readings.** M2.9 measured seed noise on a 49-date fold at up
+  to 83% of that fold's own mean. This run's folds hold about 171 dates each, so
+  the noise is smaller but still unmeasured, and slices cut the cross-section
+  further. Every fold-level and slice-level number from this run MUST carry an
+  explicit statement that its precision is unmeasured, unless seeds are run for
+  it.
+- **`base_l126` seed noise**, per the contingency above.
+- **Calibration against a probabilistic reference.** All four references emit
+  point forecasts replicated across samples, so CRPS, interval coverage and
+  interval width remain undefined for them and MUST NOT be compared. The
+  calibration finding stands on its own evidence.
+- **The lookback question.** `L = 63` against `L = 126` was read only at screen
+  scale on 98 dates. This run carries no `L = 63` arm and settles nothing there.
+
+No threshold in this subsection may be changed after the run is read. A changed
+threshold requires a new registration and a new run.
 
 ---
 
