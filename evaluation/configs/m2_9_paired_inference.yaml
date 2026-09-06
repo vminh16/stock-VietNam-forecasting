@@ -1,0 +1,26 @@
+schema_version: m2_3_paired_inference_v1
+input_dirs:
+  - data/evaluation/m2_9
+report_dir: reports/milestone_2_research_eval/seed_variance/paired_inference
+restrict_dates_to: small_l126_r1
+# SPEC 8.11 readout 3, diagnostic only. Each contrast compares the sampler with
+# itself, so every interval SHOULD contain zero. SPEC 8.9 applies: about one in
+# twenty may exclude zero by chance, and materially more than that indicts the
+# bootstrap's calibration rather than the model.
+comparisons:
+  - {left: small_l126_r1, right: small_l126_r2}
+  - {left: small_l126_r1, right: small_l126_r3}
+  - {left: small_l126_r1, right: small_l126_r4}
+  - {left: small_l126_r1, right: small_l126_r5}
+  - {left: small_l126_r2, right: small_l126_r3}
+  - {left: small_l126_r2, right: small_l126_r4}
+  - {left: small_l126_r2, right: small_l126_r5}
+  - {left: small_l126_r3, right: small_l126_r4}
+  - {left: small_l126_r3, right: small_l126_r5}
+  - {left: small_l126_r4, right: small_l126_r5}
+bootstrap:
+  method: stationary
+  mean_block_dates: 10
+  replicates: 5000
+  confidence: 0.95
+  seed: 20260901

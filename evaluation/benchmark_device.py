@@ -5,8 +5,10 @@ Runs five checks and writes one JSON report:
 1. environment    - python, torch, CUDA, GPU name and memory
 2. prerequisites  - every path the screen runner needs, with sizes
 3. correctness    - one real batch produces finite returns of the right shape
-4. fingerprint    - a fixed batch under a fixed seed, hashed, so two hosts can be
-                    compared numerically before their results are pooled
+4. fingerprint    - a fixed batch under a fixed seed, hashed twice: once through
+                    the sampler the runs actually use, and once with greedy
+                    decoding, which is the only one of the two that separates a
+                    wrong checkpoint from a difference in float32 rounding
 5. throughput     - origins per second across arms, batch sizes, sample counts
 
 It computes no metric, writes nothing except the report at `--output`, and
@@ -42,6 +44,14 @@ TOP_K = 0
 TOP_P = 0.9
 CLIP = 5.0
 MAX_CONTEXT = 512
+
+# A second, deterministic fingerprint. top_k=1 leaves one token after filtering,
+# so softmax gives it probability 1 and the multinomial draw is forced. Sampling
+# is what makes the ordinary fingerprint differ between hosts, so this is the
+# only one of the two that can tell a wrong checkpoint from a rounding change.
+GREEDY_TEMPERATURE = 1.0
+GREEDY_TOP_K = 1
+GREEDY_TOP_P = 1.0
 
 ARM_SPECS = {
     "small_l63": ("pretrained/Kronos-small", 63, 63),
@@ -167,7 +177,8 @@ def _arm(arm_id):
     )
 
 
-def _predict(predictor, frames, rows, arm, sample_count, seed, device):
+def _predict(predictor, frames, rows, arm, sample_count, seed, device,
+             temperature=TEMPERATURE, top_k=TOP_K, top_p=TOP_P):
     from evaluation.research.kronos_runner import build_batch, run_batch
 
     batch = build_batch(frames, rows, arm, clip=CLIP)
@@ -177,15 +188,30 @@ def _predict(predictor, frames, rows, arm, sample_count, seed, device):
         horizon=HORIZON,
         sample_count=sample_count,
         seed=seed,
-        temperature=TEMPERATURE,
-        top_k=TOP_K,
-        top_p=TOP_P,
+        temperature=temperature,
+        top_k=top_k,
+        top_p=top_p,
         device=device,
     )
 
 
+def _fingerprint(values, rows, sample_count, seed, arm_id):
+    flat = np.asarray(values, dtype=np.float64).reshape(-1)
+    return {
+        "arm_id": arm_id,
+        "origins": int(len(rows)),
+        "sample_count": sample_count,
+        "seed": seed,
+        "origin_ids": rows["origin_id"].tolist(),
+        "sha256": hashlib.sha256(flat.tobytes()).hexdigest(),
+        "mean": float(flat.mean()),
+        "std": float(flat.std()),
+        "first_five": [float(value) for value in flat[:5]],
+    }
+
+
 def check_correctness_and_fingerprint(registry, frames, device):
-    """One fixed batch, twice, under one seed: sane values and repeatable ones."""
+    """One fixed batch three ways: sampled twice for repeatability, then greedy."""
     from evaluation.research.kronos_runner import load_predictor
 
     arm = _arm(FINGERPRINT_ARM)
@@ -199,9 +225,20 @@ def check_correctness_and_fingerprint(registry, frames, device):
     )
     first = _predict(predictor, frames, rows, arm, 10, FINGERPRINT_SEED, device)
     second = _predict(predictor, frames, rows, arm, 10, FINGERPRINT_SEED, device)
+    greedy = _predict(
+        predictor,
+        frames,
+        rows,
+        arm,
+        1,
+        FINGERPRINT_SEED,
+        device,
+        temperature=GREEDY_TEMPERATURE,
+        top_k=GREEDY_TOP_K,
+        top_p=GREEDY_TOP_P,
+    )
     del predictor
 
-    flat = np.asarray(first, dtype=np.float64).reshape(-1)
     correctness = {
         "shape": list(first.shape),
         "expected_shape": [len(rows), 10, HORIZON],
@@ -212,18 +249,10 @@ def check_correctness_and_fingerprint(registry, frames, device):
         "repeatable_same_seed": bool(np.array_equal(first, second)),
         "max_repeat_delta": float(np.abs(first - second).max()),
     }
-    fingerprint = {
-        "arm_id": arm.arm_id,
-        "origins": int(len(rows)),
-        "sample_count": 10,
-        "seed": FINGERPRINT_SEED,
-        "origin_ids": rows["origin_id"].tolist(),
-        "sha256": hashlib.sha256(flat.tobytes()).hexdigest(),
-        "mean": float(flat.mean()),
-        "std": float(flat.std()),
-        "first_five": [float(value) for value in flat[:5]],
-    }
-    return correctness, fingerprint
+    fingerprint = _fingerprint(first, rows, 10, FINGERPRINT_SEED, arm.arm_id)
+    greedy_fingerprint = _fingerprint(greedy, rows, 1, FINGERPRINT_SEED, arm.arm_id)
+    greedy_fingerprint["decoding"] = "greedy"
+    return correctness, fingerprint, greedy_fingerprint
 
 
 def measure_throughput(registry, frames, device, arm_ids, batch_sizes, sample_counts,
@@ -389,11 +418,15 @@ def main(argv=None):
     print(f"   {len(registry)} origins over {registry['origin_date'].nunique()} dates")
 
     print("\n3-4. CORRECTNESS AND FINGERPRINT")
-    correctness, fingerprint = check_correctness_and_fingerprint(registry, frames, device)
+    correctness, fingerprint, greedy_fingerprint = check_correctness_and_fingerprint(
+        registry, frames, device
+    )
     for key, value in correctness.items():
         print(f"   {key:<24} {value}")
-    print(f"   fingerprint sha256       {fingerprint['sha256']}")
-    print(f"   fingerprint mean/std     {fingerprint['mean']:.10f} / {fingerprint['std']:.10f}")
+    print(f"   sampled sha256           {fingerprint['sha256']}")
+    print(f"   sampled mean/std         {fingerprint['mean']:.10f} / {fingerprint['std']:.10f}")
+    print(f"   greedy sha256            {greedy_fingerprint['sha256']}")
+    print(f"   greedy mean/std          {greedy_fingerprint['mean']:.10f} / {greedy_fingerprint['std']:.10f}")
 
     throughput = []
     projections = []
@@ -426,6 +459,7 @@ def main(argv=None):
         "prerequisites": prerequisites,
         "correctness": correctness,
         "fingerprint": fingerprint,
+        "greedy_fingerprint": greedy_fingerprint,
         "throughput": throughput,
         "projections": projections,
         "settings": {
@@ -433,6 +467,9 @@ def main(argv=None):
             "temperature": TEMPERATURE,
             "top_k": TOP_K,
             "top_p": TOP_P,
+            "greedy_temperature": GREEDY_TEMPERATURE,
+            "greedy_top_k": GREEDY_TOP_K,
+            "greedy_top_p": GREEDY_TOP_P,
             "clip": CLIP,
             "max_context": MAX_CONTEXT,
             "origins_per_cell": args.origins_per_cell,

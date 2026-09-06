@@ -1,8 +1,8 @@
 # SPEC - Vietnam Stock Market Radar with Kronos
 
-> **Version:** 2.8
+> **Version:** 2.9
 >
-> **Date:** 2026-09-03
+> **Date:** 2026-09-06
 >
 > **Status:** M2.8 cross-sectional gate not cleared; Kronos ties a five-day reversal formula on RankIC
 >
@@ -953,6 +953,77 @@ this comparison was measured before the references were. That is weaker than a
 fully prospective test, and the first reading MUST be labelled as provisional.
 The confirmatory reading is the one taken inside the next registered run, where
 both sides are computed after registration.
+
+---
+
+### 8.11 Pre-Registered M2.9 Sampling-Noise Budget
+
+Registered on 2026-09-06, before any seed replicate was computed.
+
+Every Kronos arm in this project is a **sampler**, not a deterministic map. The
+L4 host benchmark showed how sharp that is. Against the RTX 2050 reference the
+same checkpoint, tokenizer, code path and seed produced fingerprint elements
+that were bit-identical in two of five positions and agreed to about `5e-8` in
+the rest, with identical peak VRAM in all thirteen shared throughput cells, yet
+the pooled mean moved from `-0.0013160804` to `+0.0003587479` and the pooled
+standard deviation from `0.0332151021` to `0.0299944685`. Roughly one to three
+of the eighty sampled paths diverged outright, because a float32 difference of
+order `1e-7` in the logits flips a token at a top-p boundary and every later
+step of that path is then a different draw.
+
+The consequence is a gap in the inference contract. Section 8.5's paired
+stationary block bootstrap resamples **forecast dates**. It does not resample the
+generation RNG, so no interval reported in M2.5, M2.7 or M2.8 contains the
+sampling component of its own uncertainty. Those intervals are therefore
+understated by an unmeasured amount. This subsection measures that amount before
+any further compute is committed.
+
+Design:
+
+- One arm, `small_l126`, on the 196 dates of the M2.7 confirmation run,
+  `{2, 5 mod 10}`. Same dates, so the result is directly comparable to the
+  intervals those dates already produced.
+- Five replicates that differ **only** in their RNG stream. The screen runner
+  derives its per-origin seed as `sha256(seed | arm_id | origin_date)`, so five
+  arm identifiers over one identical model, lookback, normalizer, sample count,
+  temperature, top-k and top-p vary the stream and nothing else.
+- `base_l126` is deliberately excluded from this first reading. It costs about
+  four times as much per replicate, and it shares the sampler this measurement
+  is about, so a null result on `small_l126` transfers by construction while a
+  positive result would force a redesign before the larger arm is worth running.
+
+Readout, fixed in advance:
+
+1. **Primary.** The standard deviation across the five replicates of pooled
+   RankIC, written `sd_seed`.
+2. The same statistic for DA, MW-DA, HitRate@Top10, CRPS, interval coverage and
+   interval width, reported but not used to decide.
+3. **Secondary, diagnostic.** All ten replicate-versus-replicate paired
+   contrasts under the section 8.5 bootstrap. These compare a sampler with
+   itself, so their intervals SHOULD contain zero. Section 8.9 applies: at 95%
+   confidence roughly one contrast in twenty may exclude zero by chance, and
+   finding materially more than that indicts the bootstrap's calibration rather
+   than the model.
+
+Decision rule:
+
+The M2.8 primary contrast has a half-width of `0.0295` on these same 196 dates,
+so its date-resampling standard error is `sigma_date = 0.0295 / 1.96 = 0.01505`.
+Two independent noise sources combine as `sqrt(sigma_date^2 + sd_seed^2)`.
+
+4. If `sd_seed <= 0.25 * sigma_date`, that is `sd_seed <= 0.00376`, sampling
+   noise inflates every reported interval by at most `sqrt(1 + 0.25^2) = 1.031`,
+   which is 3.1% and changes no reading. Single-seed runs stand. The measured
+   value is recorded as a bounded caveat on M2.5, M2.7 and M2.8.
+5. If `sd_seed > 0.00376`, sampling noise is material. Every later run MUST
+   average its forecasts over at least three registered seeds, the M2.7 and M2.8
+   intervals MUST be re-read as understated by the measured factor, and the
+   sizing of the main run MUST be recomputed against the combined standard
+   error before that run starts.
+
+This subsection cannot manufacture a pass for any model. It only widens
+intervals or leaves them alone, so registering it after M2.7 and M2.8 were
+measured is admissible under the same asymmetry that governs section 8.10.
 
 ---
 

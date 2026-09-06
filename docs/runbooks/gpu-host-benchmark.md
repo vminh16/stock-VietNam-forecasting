@@ -4,17 +4,18 @@ Run this on any new GPU host before committing hours of inference to it. It
 answers three questions that change the plan:
 
 1. **Is the host set up correctly?** Every input path is checked with its size.
-2. **Does it produce the same numbers as the host that ran M2.5 and M2.7?** A new
-   GPU architecture can change floating-point results. If the numbers differ,
-   results from the two hosts MUST NOT be pooled into one paired comparison, and
-   any arm reused across hosts has to be re-run.
-3. **How fast is it, at which batch size?** On the 4 GB RTX 2050 larger batches
-   were *slower* because they paged through system RAM. A 24 GB card should not
-   behave that way, but that is a measurement, not an assumption.
+2. **Is it running the same model as the host that ran M2.5 and M2.7?** The
+   greedy fingerprint answers that. The sampled fingerprint will differ between
+   any two hosts and is not an integrity check; section 5 explains why. Either
+   way, results from two hosts MUST NOT be pooled into one paired comparison,
+   and any arm reused across hosts has to be re-run.
+3. **How fast is it, at which batch size?** Both hosts measured so far are
+   fastest at `batch 2`, for different reasons. Treat that as a measurement to
+   repeat, not an assumption to carry over.
 
-The script computes no metric, writes nothing under `data/evaluation/` or
-`reports/`, and touches only dates the M2.5 screen already evaluated, so it
-cannot leak information about an unevaluated date.
+The script computes no metric, writes nothing except the report at `--output`,
+and touches only dates the M2.5 screen already evaluated, so it cannot leak
+information about an unevaluated date.
 
 ## 0. If the host is a fresh Google Cloud instance
 
@@ -204,15 +205,25 @@ sample counts 10 and 20, 48 origins per cell after 2 warmup batches. Expect
 roughly 15-30 minutes. An out-of-memory cell is recorded as failed and the run
 continues, which is the point of including batch 64.
 
+A line like `CUDACachingAllocator.cpp:3933 memory allocation failed with OOM on
+device 0` is a warning, not a failure. The allocator frees its cache and retries,
+and the cell reports `ok` on the next line. On the L4 that happened at
+`base_l126, 20 samples, batch 64`, which still finished at 2.13 origins per
+second.
+
 Useful variants:
 
 ```bash
-# fast sanity pass, no throughput grid
+# fast sanity pass, no throughput grid, about 2 minutes
 PYTHONPATH=finetune_csv python evaluation/benchmark_device.py --skip-throughput
 
-# wider batch search on a large card
-PYTHONPATH=finetune_csv python evaluation/benchmark_device.py --batch-sizes 16 32 64 128 256
+# narrow grid, if a large batch is destabilising the host
+PYTHONPATH=finetune_csv python evaluation/benchmark_device.py   --arms small_l126 --batch-sizes 2 8 16 --sample-counts 10
 ```
+
+Searching batches above 64 is not worth the time. Neither host measured so far
+gained anything from a larger batch, and the L4 lost 19% between batch 2 and
+batch 64 while using 8.60 GB of 22.03.
 
 ## 5. Reading the result
 
@@ -225,39 +236,85 @@ All of these must hold before the host is used for anything:
 - `plausible_magnitude: true` (no five-day return above 200%)
 - `repeatable_same_seed: true` and `max_repeat_delta: 0.0`
 
-Then compare the fingerprint against the host that produced the committed M2.5
-and M2.7 results:
+The report then carries two fingerprints over the same eight origins, and they
+answer different questions.
 
-| host | GPU | fingerprint sha256 | mean | std |
-|---|---|---|---:|---:|
-| reference | RTX 2050, capability 8.6, torch 2.9.1 | `d4b2e364de40dd7ae5544ef75330612b98261566fc0f17248ac92654e186b188` | `-0.0013160804` | `0.0332151021` |
+`greedy_fingerprint` decodes with `top_k=1`, so filtering leaves one token, its
+softmax probability is 1, and the multinomial draw is forced. It depends on the
+checkpoint, the tokenizer and the inputs, and not on the RNG. **This is the one
+that tests host integrity.** If two hosts disagree on it beyond float32
+rounding, something is actually wrong: wrong checkpoint, wrong tokenizer, or a
+truncated download.
 
-- **Hash matches** - the two hosts are numerically identical. Results can be
-  pooled, and an arm already run on the reference host does not need re-running.
-- **Hash differs, mean and std agree to about four decimals** - the same model,
-  different floating-point accumulation, most likely TF32. Results MUST NOT be
-  pooled into one paired comparison. Either re-run every arm on the new host, or
-  disable TF32 and re-check:
+| host | greedy sha256 | mean | std |
+|---|---|---:|---:|
+| reference | `1ae1ad8f8209e67901f42ead7d03e0e5f97db89785c386fdd28fa7fac62d8b69` | `0.0022560544` | `0.0261763182` |
 
-  ```python
-  torch.backends.cuda.matmul.allow_tf32 = False
-  torch.backends.cudnn.allow_tf32 = False
-  ```
+Verified on the reference host: identical output under seeds `20260901`, `1` and
+`999999`, maximum difference exactly `0.0`, while the sampler moved a single
+five-day return by `0.1024` between two of those seeds. The full record is
+`reports/device_benchmarks/rtx2050_greedy.json`, a fingerprint-only pass;
+`rtx2050.json` is the earlier full run and predates this check, so it carries no
+`greedy_fingerprint` field.
 
-- **Mean and std differ materially** - not a precision issue. Stop and
-  investigate: wrong checkpoint, wrong tokenizer, or a truncated download.
+`fingerprint` decodes through the sampler the real runs use, at
+`temperature 0.6, top_p 0.9`. It will **not** match across hosts and a mismatch
+is not evidence of a fault. A float32 difference of order `1e-7` in the logits
+flips a token at a top-p boundary, and every later step of that path is then a
+different draw. Measured between the reference RTX 2050 and the L4:
 
-The `tf32_matmul` and `tf32_cudnn` flags in the environment block record what the
-host had enabled, so a later mismatch is explainable.
+| host | GPU | torch | sampled sha256 | mean | std |
+|---|---|---|---|---:|---:|
+| reference | RTX 2050, capability 8.6 | 2.5.1+cu121 | `d4b2e364de40dd7ae5544ef75330612b98261566fc0f17248ac92654e186b188` | `-0.0013160804` | `0.0332151021` |
+| L4 | NVIDIA L4, capability 8.9 | 2.13.0+cu130 | `b5111bc69a62b88a848107ff7a7c981eb4b1b6cffa5122a755a578d94bc85705` | `+0.0003587479` | `0.0299944685` |
+
+The L4 also predates the greedy check, so its integrity has been argued from the
+three items below rather than measured directly. Re-run the benchmark there to
+fill in its `greedy_fingerprint`.
+
+Those means differ by more than the earlier version of this runbook treated as
+proof of a broken host, and the host was not broken. The evidence that settled
+it, and the evidence to collect on any future host:
+
+1. **`first_five`, element by element.** Two of the five entries were identical
+   to the last bit and the other three agreed to about `5e-8`. Same checkpoint,
+   same tokenizer, same code path, same RNG stream.
+2. **`peak_vram_gb` per throughput cell.** All thirteen cells the two hosts share
+   matched to two decimals. A different model or a different graph would not do
+   that.
+3. Roughly one to three of the eighty sampled paths diverged outright, which is
+   enough to move a pooled mean by `0.0017` and a pooled max from `0.1419` to
+   `0.0992` while leaving almost every individual number intact.
+
+So: compare `greedy_fingerprint` to judge the host, and compare `first_five` and
+`peak_vram_gb` to confirm. Do not read `mean` and `std` of the sampled
+fingerprint as an integrity check.
+
+Pooling is a separate question from integrity, and the answer is stricter.
+Because the sampled paths differ, results from two hosts MUST NOT be pooled into
+one paired comparison even when every check above passes. Run every arm of a
+comparison on one host.
+
+`tf32_matmul` and `tf32_cudnn` are recorded so a later mismatch is explainable.
+Both hosts above ran `matmul False, cudnn True`, so TF32 explains none of the
+difference between them. `requirements.txt` pins only `torch>=2.0.0`, which is
+why the two hosts are three minor versions apart; the exact version is recorded
+in the report rather than constrained.
 
 ### Check 5, throughput
 
 Read `projections` in the JSON: the best batch size per arm and the projected
 hours for a full 977-date run. Those hours drive the run plan directly.
 
-Watch for the batch-size curve shape. If throughput keeps rising to batch 64 or
-128, the earlier 4 GB result does not transfer and the planned run configs should
-raise `runtime.batch_size` from its current value of 2.
+Measured so far, batch size does not help and mildly hurts. On the L4 the best
+cell was `batch 2` for all four arm-and-sample combinations, and throughput fell
+monotonically to batch 64 (`small_l126` at 10 samples: 18.45 to 14.90 origins
+per second, down 19%) while peak VRAM reached only 8.60 GB of 22.03. That is not
+the 4 GB card's failure mode, where `base_l126` at 16 samples collapsed to 0.07
+origins per second by paging; it is plain per-step overhead. Keep
+`runtime.batch_size: 2` unless a host measures otherwise.
+
+The L4 ran 3.1 to 3.3 times faster than the RTX 2050 across every matched cell.
 
 ## 6. Send back
 
