@@ -1,0 +1,93 @@
+{
+  "amount_policy": "derived_ohlc4_compatibility_proxy",
+  "arms": [
+    {
+      "arm_id": "small_l126_r1",
+      "cache_key": "a82eadb507beb86c56a7f80ddc94645e728a298be335c4c87b2322d13ab650c6",
+      "lookback": 126,
+      "model_path": "pretrained/Kronos-small",
+      "model_sha256": "b082dfcbd8e8c142a725c8bbb99781802f38fec81210e13479effb32b3c3e020",
+      "normalizer_lookback": 126
+    },
+    {
+      "arm_id": "small_l126_r2",
+      "cache_key": "0dd1603706053c22eaa51cd390670e99edfbdfb6230863f20edc201ab744c4d1",
+      "lookback": 126,
+      "model_path": "pretrained/Kronos-small",
+      "model_sha256": "b082dfcbd8e8c142a725c8bbb99781802f38fec81210e13479effb32b3c3e020",
+      "normalizer_lookback": 126
+    },
+    {
+      "arm_id": "small_l126_r3",
+      "cache_key": "76264c42edd1e3f5ab957c489abad597ede9b80afa3beedb64b3349663afd53c",
+      "lookback": 126,
+      "model_path": "pretrained/Kronos-small",
+      "model_sha256": "b082dfcbd8e8c142a725c8bbb99781802f38fec81210e13479effb32b3c3e020",
+      "normalizer_lookback": 126
+    },
+    {
+      "arm_id": "small_l126_r4",
+      "cache_key": "9aeb0a3034ae751ceb3a18682584994792453d147e905be97edb4ca91545881c",
+      "lookback": 126,
+      "model_path": "pretrained/Kronos-small",
+      "model_sha256": "b082dfcbd8e8c142a725c8bbb99781802f38fec81210e13479effb32b3c3e020",
+      "normalizer_lookback": 126
+    },
+    {
+      "arm_id": "small_l126_r5",
+      "cache_key": "0e9f0312ee7be174ed022ae1efd4c22e0fb1c65fafafd5507fb07e1c45b08c99",
+      "lookback": 126,
+      "model_path": "pretrained/Kronos-small",
+      "model_sha256": "b082dfcbd8e8c142a725c8bbb99781802f38fec81210e13479effb32b3c3e020",
+      "normalizer_lookback": 126
+    }
+  ],
+  "artifact_hashes": {
+    "metric_summary.csv": "124412a9c6e229bc579d4ea5b4a691ae6b037660d466894d076e6ae28c383bc7",
+    "runtime_summary.csv": "4b3bd2283f394a4c4d2d883bbfa4a5aea065e3d1131bd31f42a842cd9f267d77",
+    "small_l126_r1_per_date_metrics.csv.gz": "829bc6fa336dc5b023754b3890011b6d791667f78d83ea931aaa46dfae356819",
+    "small_l126_r1_per_origin_metrics.csv.gz": "6c7eb401240acb2cb42db516af41023a60e7f5c7e219de3b932b88cbe92fc5d3",
+    "small_l126_r2_per_date_metrics.csv.gz": "7071dee477ff3321c6f5cb6bbe0340577ede799bd64bbc59f4c3f637e28684b1",
+    "small_l126_r2_per_origin_metrics.csv.gz": "b6771e4f732638a6303ae35a0bed65d148673dcb2cb309b54290cb7bee3bc994",
+    "small_l126_r3_per_date_metrics.csv.gz": "f2714437a873c2a414d772e9c5e4486b47bbc9f0e0f868e5f62c2ca06c97313d",
+    "small_l126_r3_per_origin_metrics.csv.gz": "46bb9f38acc0ff1691833665b71ff22dba13d1196f2d6943eda77c00ec1ca75c",
+    "small_l126_r4_per_date_metrics.csv.gz": "dc5de31ec627ed2fc22f14902f8aed54a66cc828c0fca0f15278147f2e4065bd",
+    "small_l126_r4_per_origin_metrics.csv.gz": "41e5a3a351c8312480738635c66ecb00b43fe6240194239c804e585dfbc01ca6",
+    "small_l126_r5_per_date_metrics.csv.gz": "10988ae09e4d2e4590e143184975c6d0ce1fd8c6ba6a098da6618e5b356d4a28",
+    "small_l126_r5_per_origin_metrics.csv.gz": "62546996f955e22b98d8ef1149aa6433505ad1fa115ea6f2825f80057a34375f",
+    "zero_shot_screen_report.md": "ffc233f4c40b548f248468348ae483f6f0fb4f3dbce2dec25df401c604845b2e"
+  },
+  "batch_size": 2,
+  "code_revision": "954bb46c53daaf9197e79ade6ec4885216e9a414",
+  "command": "/home/nguyenvanminh16082k5/Stock-VN-forecashing/.venv/bin/python /home/nguyenvanminh16082k5/Stock-VN-forecashing/evaluation/run_zero_shot_screen.py --config evaluation/configs/m2_9_seed_variance.yaml",
+  "config_path": "evaluation/configs/m2_9_seed_variance.yaml",
+  "config_sha256": "2e7fae87bc2e21890a02c2d18f0cf247f8b83a063070df289181ede3fd5749da",
+  "dataset_fingerprint": "b52ff4784203b173979c6c1f23088b942edcbf21374987a6b269c71ed694ee3a",
+  "dataset_id": "vn150_strict_v2",
+  "date_residues": [
+    2,
+    5
+  ],
+  "date_stride": 10,
+  "device": "cuda",
+  "evaluation_dates": 196,
+  "generated_at_utc": "2026-09-06T13:53:35.268350+00:00",
+  "horizon": 5,
+  "lockbox_opened": false,
+  "origins_per_arm": 26869,
+  "price_adjustment_status": "unverified_provider_history",
+  "registry_sha256": "dcd71d14c5016b721111172d6a2ff384122eb74d2cc9c27252d359857e6726c6",
+  "sample_count": 10,
+  "sampling_seed": 20260901,
+  "schema_version": "m2_5_zero_shot_screen_v1",
+  "selection_sha256": "3115038efc7c1400cf0fc2613a03e7190ffe0667ba693902fc78f1f4511a0d4d",
+  "smoke": false,
+  "symbols": 147,
+  "temperature": 0.6,
+  "tokenizer_path": "pretrained/Kronos-Tokenizer-base",
+  "tokenizer_sha256": "59d85f6af76a2c3b8240ea06cb21db4213b4eeca053f246b23e29cf832fc6bee",
+  "top_k": 0,
+  "top_p": 0.9,
+  "training": false,
+  "worktree_dirty": true
+}

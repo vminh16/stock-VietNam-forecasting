@@ -1,0 +1,148 @@
+{
+  "schema_version": "device_benchmark_v1",
+  "generated_at_utc": "2026-09-06T09:13:50.649233+00:00",
+  "hostname": "instance-20260709-031519",
+  "environment": {
+    "python": "3.10.12",
+    "platform": "Linux-6.8.0-1064-gcp-x86_64-with-glibc2.35",
+    "torch": "2.13.0+cu130",
+    "cuda_available": true,
+    "cuda_version": "13.0",
+    "tf32_matmul": false,
+    "tf32_cudnn": true,
+    "cudnn_benchmark": false,
+    "gpu_name": "NVIDIA L4",
+    "gpu_memory_gb": 22.03,
+    "gpu_capability": "8.9"
+  },
+  "prerequisites": [
+    {
+      "name": "tokenizer",
+      "path": "pretrained/Kronos-Tokenizer-base/model.safetensors",
+      "present": true,
+      "detail": "15.1 MB"
+    },
+    {
+      "name": "kronos_small",
+      "path": "pretrained/Kronos-small/model.safetensors",
+      "present": true,
+      "detail": "94.4 MB"
+    },
+    {
+      "name": "kronos_base",
+      "path": "pretrained/Kronos-base/model.safetensors",
+      "present": true,
+      "detail": "390.3 MB"
+    },
+    {
+      "name": "curated_data",
+      "path": "data/curated/vn150_strict_v2/symbols",
+      "present": true,
+      "detail": "150 files, 25.9 MB"
+    },
+    {
+      "name": "dataset_manifest",
+      "path": "reports/milestone_1_data/vn150_strict_v2/dataset_manifest.json",
+      "present": true,
+      "detail": "0.1 MB"
+    },
+    {
+      "name": "origin_registry",
+      "path": "data/evaluation/m2_1/common_origins.csv.gz",
+      "present": true,
+      "detail": "6.6 MB"
+    },
+    {
+      "name": "registry_manifest",
+      "path": "reports/milestone_2_research_eval/origin_registry/manifest.json",
+      "present": true,
+      "detail": "0.0 MB"
+    }
+  ],
+  "correctness": {
+    "shape": [
+      8,
+      10,
+      5
+    ],
+    "expected_shape": [
+      8,
+      10,
+      5
+    ],
+    "shape_ok": true,
+    "all_finite": true,
+    "max_abs_return": 0.09917817375333748,
+    "plausible_magnitude": true,
+    "repeatable_same_seed": true,
+    "max_repeat_delta": 0.0
+  },
+  "fingerprint": {
+    "arm_id": "small_l126",
+    "origins": 8,
+    "sample_count": 10,
+    "seed": 20260901,
+    "origin_ids": [
+      "a7a0b87f923497a3b411a7e78ae3a07244d1854d99943a66359dcc4552ef89d4",
+      "cb3d6f0aa83e605aa8cb344ed171cff189cf5ad386557bbb03bbb9679416ab93",
+      "abb21a7a2f3d1dc9a5827d214a24a999e1760da1bfb74adbf0f07d7a8e1d349a",
+      "6be28da082874f95fcf17db9b67cc0d8f4bd373615910da3a9b7cc9b5c177eb7",
+      "6651c5e95594aa645a50d069f548e75c660a07db1c9be1fa1cfae32bb60f65d9",
+      "dd74193dae39517e8333747b5eec219ee8ba8dbdd6c243d1b5b859b7f29e2734",
+      "a2c2e7341a1a60ede51bd973e4d5d8fb07f415b23e57aa35939edad27adf81bc",
+      "d78f2bbda381cfffa63d42cb822228e15d02e3da584e6cf3877316296acb7d2c"
+    ],
+    "sha256": "b5111bc69a62b88a848107ff7a7c981eb4b1b6cffa5122a755a578d94bc85705",
+    "mean": 0.00035874792170648595,
+    "std": 0.0299944684738898,
+    "first_five": [
+      -0.01600407772692891,
+      -0.004551972500772328,
+      -0.0182664255398437,
+      -0.0039629446277754665,
+      0.0013675599240277059
+    ]
+  },
+  "greedy_fingerprint": {
+    "arm_id": "small_l126",
+    "origins": 8,
+    "sample_count": 1,
+    "seed": 20260901,
+    "origin_ids": [
+      "a7a0b87f923497a3b411a7e78ae3a07244d1854d99943a66359dcc4552ef89d4",
+      "cb3d6f0aa83e605aa8cb344ed171cff189cf5ad386557bbb03bbb9679416ab93",
+      "abb21a7a2f3d1dc9a5827d214a24a999e1760da1bfb74adbf0f07d7a8e1d349a",
+      "6be28da082874f95fcf17db9b67cc0d8f4bd373615910da3a9b7cc9b5c177eb7",
+      "6651c5e95594aa645a50d069f548e75c660a07db1c9be1fa1cfae32bb60f65d9",
+      "dd74193dae39517e8333747b5eec219ee8ba8dbdd6c243d1b5b859b7f29e2734",
+      "a2c2e7341a1a60ede51bd973e4d5d8fb07f415b23e57aa35939edad27adf81bc",
+      "d78f2bbda381cfffa63d42cb822228e15d02e3da584e6cf3877316296acb7d2c"
+    ],
+    "sha256": "19d4c4b30a099af7be5667e4870e8ea8a258867a00432b08e49545ff98d970c1",
+    "mean": 0.0022560599660906232,
+    "std": 0.026176315132533854,
+    "first_five": [
+      -0.0037997428199834093,
+      -0.00021758347735767458,
+      0.0029919279172088142,
+      0.005971163165493065,
+      0.008153471608662866
+    ],
+    "decoding": "greedy"
+  },
+  "throughput": [],
+  "projections": [],
+  "settings": {
+    "horizon": 5,
+    "temperature": 0.6,
+    "top_k": 0,
+    "top_p": 0.9,
+    "greedy_temperature": 1.0,
+    "greedy_top_k": 1,
+    "greedy_top_p": 1.0,
+    "clip": 5.0,
+    "max_context": 512,
+    "origins_per_cell": 48,
+    "warmup_batches": 2
+  }
+}
