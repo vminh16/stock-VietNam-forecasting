@@ -1,0 +1,376 @@
+{
+  "schema_version": "device_benchmark_v1",
+  "generated_at_utc": "2026-09-06T07:28:22.714378+00:00",
+  "hostname": "instance-20260709-031519",
+  "environment": {
+    "python": "3.10.12",
+    "platform": "Linux-6.8.0-1064-gcp-x86_64-with-glibc2.35",
+    "torch": "2.13.0+cu130",
+    "cuda_available": true,
+    "cuda_version": "13.0",
+    "tf32_matmul": false,
+    "tf32_cudnn": true,
+    "cudnn_benchmark": false,
+    "gpu_name": "NVIDIA L4",
+    "gpu_memory_gb": 22.03,
+    "gpu_capability": "8.9"
+  },
+  "prerequisites": [
+    {
+      "name": "tokenizer",
+      "path": "pretrained/Kronos-Tokenizer-base/model.safetensors",
+      "present": true,
+      "detail": "15.1 MB"
+    },
+    {
+      "name": "kronos_small",
+      "path": "pretrained/Kronos-small/model.safetensors",
+      "present": true,
+      "detail": "94.4 MB"
+    },
+    {
+      "name": "kronos_base",
+      "path": "pretrained/Kronos-base/model.safetensors",
+      "present": true,
+      "detail": "390.3 MB"
+    },
+    {
+      "name": "curated_data",
+      "path": "data/curated/vn150_strict_v2/symbols",
+      "present": true,
+      "detail": "150 files, 25.9 MB"
+    },
+    {
+      "name": "dataset_manifest",
+      "path": "reports/milestone_1_data/vn150_strict_v2/dataset_manifest.json",
+      "present": true,
+      "detail": "0.1 MB"
+    },
+    {
+      "name": "origin_registry",
+      "path": "data/evaluation/m2_1/common_origins.csv.gz",
+      "present": true,
+      "detail": "6.6 MB"
+    },
+    {
+      "name": "registry_manifest",
+      "path": "reports/milestone_2_research_eval/origin_registry/manifest.json",
+      "present": true,
+      "detail": "0.0 MB"
+    }
+  ],
+  "correctness": {
+    "shape": [
+      8,
+      10,
+      5
+    ],
+    "expected_shape": [
+      8,
+      10,
+      5
+    ],
+    "shape_ok": true,
+    "all_finite": true,
+    "max_abs_return": 0.09917817375333748,
+    "plausible_magnitude": true,
+    "repeatable_same_seed": true,
+    "max_repeat_delta": 0.0
+  },
+  "fingerprint": {
+    "arm_id": "small_l126",
+    "origins": 8,
+    "sample_count": 10,
+    "seed": 20260901,
+    "origin_ids": [
+      "a7a0b87f923497a3b411a7e78ae3a07244d1854d99943a66359dcc4552ef89d4",
+      "cb3d6f0aa83e605aa8cb344ed171cff189cf5ad386557bbb03bbb9679416ab93",
+      "abb21a7a2f3d1dc9a5827d214a24a999e1760da1bfb74adbf0f07d7a8e1d349a",
+      "6be28da082874f95fcf17db9b67cc0d8f4bd373615910da3a9b7cc9b5c177eb7",
+      "6651c5e95594aa645a50d069f548e75c660a07db1c9be1fa1cfae32bb60f65d9",
+      "dd74193dae39517e8333747b5eec219ee8ba8dbdd6c243d1b5b859b7f29e2734",
+      "a2c2e7341a1a60ede51bd973e4d5d8fb07f415b23e57aa35939edad27adf81bc",
+      "d78f2bbda381cfffa63d42cb822228e15d02e3da584e6cf3877316296acb7d2c"
+    ],
+    "sha256": "b5111bc69a62b88a848107ff7a7c981eb4b1b6cffa5122a755a578d94bc85705",
+    "mean": 0.00035874792170648595,
+    "std": 0.0299944684738898,
+    "first_five": [
+      -0.01600407772692891,
+      -0.004551972500772328,
+      -0.0182664255398437,
+      -0.0039629446277754665,
+      0.0013675599240277059
+    ]
+  },
+  "throughput": [
+    {
+      "arm_id": "small_l126",
+      "sample_count": 10,
+      "batch_size": 2,
+      "effective_sequences": 20,
+      "origins": 48,
+      "seconds": 2.602,
+      "origins_per_second": 18.4505,
+      "peak_vram_gb": 0.195,
+      "status": "ok"
+    },
+    {
+      "arm_id": "small_l126",
+      "sample_count": 10,
+      "batch_size": 8,
+      "effective_sequences": 80,
+      "origins": 48,
+      "seconds": 2.763,
+      "origins_per_second": 17.3693,
+      "peak_vram_gb": 0.434,
+      "status": "ok"
+    },
+    {
+      "arm_id": "small_l126",
+      "sample_count": 10,
+      "batch_size": 16,
+      "effective_sequences": 160,
+      "origins": 48,
+      "seconds": 3.095,
+      "origins_per_second": 15.5093,
+      "peak_vram_gb": 0.754,
+      "status": "ok"
+    },
+    {
+      "arm_id": "small_l126",
+      "sample_count": 10,
+      "batch_size": 32,
+      "effective_sequences": 320,
+      "origins": 64,
+      "seconds": 4.244,
+      "origins_per_second": 15.0815,
+      "peak_vram_gb": 1.391,
+      "status": "ok"
+    },
+    {
+      "arm_id": "small_l126",
+      "sample_count": 10,
+      "batch_size": 64,
+      "effective_sequences": 640,
+      "origins": 64,
+      "seconds": 4.295,
+      "origins_per_second": 14.9026,
+      "peak_vram_gb": 2.665,
+      "status": "ok"
+    },
+    {
+      "arm_id": "small_l126",
+      "sample_count": 20,
+      "batch_size": 2,
+      "effective_sequences": 40,
+      "origins": 48,
+      "seconds": 5.166,
+      "origins_per_second": 9.2907,
+      "peak_vram_gb": 0.275,
+      "status": "ok"
+    },
+    {
+      "arm_id": "small_l126",
+      "sample_count": 20,
+      "batch_size": 8,
+      "effective_sequences": 160,
+      "origins": 48,
+      "seconds": 5.998,
+      "origins_per_second": 8.0028,
+      "peak_vram_gb": 0.754,
+      "status": "ok"
+    },
+    {
+      "arm_id": "small_l126",
+      "sample_count": 20,
+      "batch_size": 16,
+      "effective_sequences": 320,
+      "origins": 48,
+      "seconds": 6.181,
+      "origins_per_second": 7.7661,
+      "peak_vram_gb": 1.391,
+      "status": "ok"
+    },
+    {
+      "arm_id": "small_l126",
+      "sample_count": 20,
+      "batch_size": 32,
+      "effective_sequences": 640,
+      "origins": 64,
+      "seconds": 8.33,
+      "origins_per_second": 7.6831,
+      "peak_vram_gb": 2.665,
+      "status": "ok"
+    },
+    {
+      "arm_id": "small_l126",
+      "sample_count": 20,
+      "batch_size": 64,
+      "effective_sequences": 1280,
+      "origins": 64,
+      "seconds": 8.608,
+      "origins_per_second": 7.4345,
+      "peak_vram_gb": 5.21,
+      "status": "ok"
+    },
+    {
+      "arm_id": "base_l126",
+      "sample_count": 10,
+      "batch_size": 2,
+      "effective_sequences": 20,
+      "origins": 48,
+      "seconds": 10.552,
+      "origins_per_second": 4.5487,
+      "peak_vram_gb": 0.538,
+      "status": "ok"
+    },
+    {
+      "arm_id": "base_l126",
+      "sample_count": 10,
+      "batch_size": 8,
+      "effective_sequences": 80,
+      "origins": 48,
+      "seconds": 10.672,
+      "origins_per_second": 4.4977,
+      "peak_vram_gb": 0.927,
+      "status": "ok"
+    },
+    {
+      "arm_id": "base_l126",
+      "sample_count": 10,
+      "batch_size": 16,
+      "effective_sequences": 160,
+      "origins": 48,
+      "seconds": 10.974,
+      "origins_per_second": 4.3739,
+      "peak_vram_gb": 1.433,
+      "status": "ok"
+    },
+    {
+      "arm_id": "base_l126",
+      "sample_count": 10,
+      "batch_size": 32,
+      "effective_sequences": 320,
+      "origins": 64,
+      "seconds": 14.953,
+      "origins_per_second": 4.2801,
+      "peak_vram_gb": 2.46,
+      "status": "ok"
+    },
+    {
+      "arm_id": "base_l126",
+      "sample_count": 10,
+      "batch_size": 64,
+      "effective_sequences": 640,
+      "origins": 64,
+      "seconds": 14.994,
+      "origins_per_second": 4.2684,
+      "peak_vram_gb": 4.503,
+      "status": "ok"
+    },
+    {
+      "arm_id": "base_l126",
+      "sample_count": 20,
+      "batch_size": 2,
+      "effective_sequences": 40,
+      "origins": 48,
+      "seconds": 20.043,
+      "origins_per_second": 2.3949,
+      "peak_vram_gb": 0.666,
+      "status": "ok"
+    },
+    {
+      "arm_id": "base_l126",
+      "sample_count": 20,
+      "batch_size": 8,
+      "effective_sequences": 160,
+      "origins": 48,
+      "seconds": 22.242,
+      "origins_per_second": 2.1581,
+      "peak_vram_gb": 1.433,
+      "status": "ok"
+    },
+    {
+      "arm_id": "base_l126",
+      "sample_count": 20,
+      "batch_size": 16,
+      "effective_sequences": 320,
+      "origins": 48,
+      "seconds": 22.596,
+      "origins_per_second": 2.1242,
+      "peak_vram_gb": 2.46,
+      "status": "ok"
+    },
+    {
+      "arm_id": "base_l126",
+      "sample_count": 20,
+      "batch_size": 32,
+      "effective_sequences": 640,
+      "origins": 64,
+      "seconds": 30.39,
+      "origins_per_second": 2.106,
+      "peak_vram_gb": 4.503,
+      "status": "ok"
+    },
+    {
+      "arm_id": "base_l126",
+      "sample_count": 20,
+      "batch_size": 64,
+      "effective_sequences": 1280,
+      "origins": 64,
+      "seconds": 30.09,
+      "origins_per_second": 2.127,
+      "peak_vram_gb": 8.595,
+      "status": "ok"
+    }
+  ],
+  "projections": [
+    {
+      "arm_id": "base_l126",
+      "sample_count": 10,
+      "best_batch_size": 2,
+      "origins_per_second": 4.5487,
+      "dates": 977,
+      "projected_origins": 133899,
+      "projected_hours": 8.18
+    },
+    {
+      "arm_id": "base_l126",
+      "sample_count": 20,
+      "best_batch_size": 2,
+      "origins_per_second": 2.3949,
+      "dates": 977,
+      "projected_origins": 133899,
+      "projected_hours": 15.53
+    },
+    {
+      "arm_id": "small_l126",
+      "sample_count": 10,
+      "best_batch_size": 2,
+      "origins_per_second": 18.4505,
+      "dates": 977,
+      "projected_origins": 133899,
+      "projected_hours": 2.02
+    },
+    {
+      "arm_id": "small_l126",
+      "sample_count": 20,
+      "best_batch_size": 2,
+      "origins_per_second": 9.2907,
+      "dates": 977,
+      "projected_origins": 133899,
+      "projected_hours": 4.0
+    }
+  ],
+  "settings": {
+    "horizon": 5,
+    "temperature": 0.6,
+    "top_k": 0,
+    "top_p": 0.9,
+    "clip": 5.0,
+    "max_context": 512,
+    "origins_per_cell": 48,
+    "warmup_batches": 2
+  }
+}
