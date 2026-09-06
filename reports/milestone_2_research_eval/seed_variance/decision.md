@@ -78,16 +78,67 @@ does not overturn them; it says their precision has never been measured. Any
 future claim resting on a partition of the evaluation set should either average
 over seeds or carry an explicit statement that its precision is unknown.
 
+## Readout 3: the bootstrap is calibrated for runs, not for models
+
+Ten replicate-versus-replicate contrasts, seven metrics, under the section 8.5
+paired stationary block bootstrap. Every one of these compares a sampler with
+itself, so at 95% confidence roughly one interval in twenty should exclude zero.
+
+| scope | dates | rows | exclude zero | rate |
+|---|---:|---:|---:|---:|
+| pooled | 196 | 70 | 7 | 10.0% |
+| eval_2022 | 49 | 70 | 7 | 10.0% |
+| eval_2023 | 49 | 70 | 13 | 18.6% |
+| eval_2024 | 49 | 70 | 13 | 18.6% |
+| eval_2025 | 49 | 70 | 12 | 17.1% |
+
+The rows are not independent, since ten contrasts over five replicates share
+replicates and seven metrics share the same draws, so the counts alone are not a
+clean test. The mechanism is the stronger evidence, because it predicts exactly
+which metrics fail.
+
+Write `se_seed` for the seed standard error of a replicate difference,
+`sd_seed * sqrt(2)`, and `se_date` for the median bootstrap standard error of
+the same contrasts:
+
+| metric | sd_seed | se_seed | se_date | se_seed / se_date | excludes zero |
+|---|---:|---:|---:|---:|---:|
+| interval_width | 0.000176 | 0.000250 | 0.000129 | **1.94** | 2/10 |
+| coverage | 0.003410 | 0.004822 | 0.002552 | **1.89** | 3/10 |
+| DA | 0.261367 | 0.369629 | 0.285631 | **1.29** | 2/10 |
+| MW-DA | 0.284525 | 0.402379 | 0.451429 | 0.89 | 0/10 |
+| HitRate@Top10 | 0.378377 | 0.535107 | 0.832986 | 0.64 | 0/10 |
+| RankIC | 0.001849 | 0.002615 | 0.005201 | 0.50 | 0/10 |
+| CRPS | 0.000012 | 0.000017 | 0.000037 | 0.46 | 0/10 |
+
+The split is exact. Every metric whose seed noise exceeds the bootstrap's own
+standard error produces false positives, and no metric below that line produces
+any.
+
+The cause is not a bug. The paired date bootstrap conditions on the sample paths
+that were actually drawn. It answers "do these two realizations differ
+consistently across dates", and answers it correctly. It does not answer "do
+these two models differ", because it never resamples the draw. For a metric
+where the seed component is comparable to the date component, those two
+questions have different answers.
+
+Operationally: `sd_seed` in the table above is the reusable quantity. For any
+claim about a **model** rather than a **run**, add it in quadrature to whatever
+`se_date` that contrast carries. The inflation is small when `se_date` is large,
+which is why the M2.8 RankIC contrast moves by only 0.75%: its `se_date` is
+`0.01505` against a model-side seed component of `0.001849`. It is not small when
+`se_date` is itself tiny, which is the case for coverage and interval width.
+
+This does not touch the calibration finding of section 3.5. Nominal 80%
+intervals cover `0.395` to `0.404` across the five replicates, and the gap to
+`0.80` is more than a hundred times `sd_seed` on that metric.
+
 ## Outstanding
 
-Readout 3 of section 8.11, the ten replicate-versus-replicate paired contrasts
-under the section 8.5 bootstrap, has not been run. It is the calibration check
-on the bootstrap itself: these contrasts compare a sampler with itself, so at
-95% confidence roughly one in twenty may exclude zero and materially more would
-indict the interval machinery rather than the model. It needs no GPU.
+All three readouts of section 8.11 are complete. The registered decision, rule
+4, stands on the pooled RankIC number and is unaffected by readout 3, which
+section 8.11 registered as diagnostic rather than as a gate.
 
-The numbers above were computed from the pooled rows of `metric_summary.csv`,
-which are `summarize_metrics` applied to each replicate's per-date file, the
-same function and the same inputs `run_seed_variance.py` uses. That script has
-not been run because `data/evaluation/m2_9` is untracked and did not travel with
-the report directory.
+What is still unmeasured is the seed component for `base_l126`, excluded from
+this run by design, and the fold-level threshold that section 8.11 deliberately
+did not register. Both are recorded above as limits rather than as open gates.

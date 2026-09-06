@@ -366,10 +366,38 @@ per-regime readings behind section 3.6. Those readings are not overturned; their
 precision is unknown. Any future claim resting on a partition MUST either
 average over seeds or state that its precision is unmeasured.
 
-Full reading in
-`reports/milestone_2_research_eval/seed_variance/decision.md`. Readout 3 of
-section 8.11, the ten replicate-versus-replicate contrasts that calibrate the
-bootstrap against a sampler compared with itself, is still outstanding.
+Readout 3 calibrates the bootstrap by comparing a sampler with itself. Ten
+replicate contrasts over seven metrics should exclude zero about one time in
+twenty; they do so 10% of the time pooled and 17% to 19% inside each fold. The
+counts alone prove little, since the contrasts share replicates and the metrics
+share draws, but the mechanism predicts exactly which metrics fail. Writing
+`se_seed` for the seed standard error of a replicate difference and `se_date`
+for the bootstrap's own:
+
+| metric | se_seed / se_date | excludes zero |
+|---|---:|---:|
+| interval_width | 1.94 | 2/10 |
+| coverage | 1.89 | 3/10 |
+| DA | 1.29 | 2/10 |
+| MW-DA | 0.89 | 0/10 |
+| HitRate@Top10 | 0.64 | 0/10 |
+| RankIC | 0.50 | 0/10 |
+| CRPS | 0.46 | 0/10 |
+
+The split is exact: every metric whose seed noise exceeds the bootstrap's own
+standard error produces false positives and no metric below that line produces
+any. This is not a defect in the bootstrap. The paired date resampling
+conditions on the sample paths that were drawn, so it answers whether two
+realizations differ and answers it correctly; it never resamples the draw, so it
+does not answer whether two models differ. **Any interval supporting a claim
+about a model rather than a run MUST add `sd_seed` in quadrature to its
+`se_date`.** The inflation is negligible when `se_date` is large, which is why
+the M2.8 RankIC contrast moves by 0.75%, and is not negligible when `se_date` is
+itself small.
+
+Full reading in `reports/milestone_2_research_eval/seed_variance/decision.md`.
+The seed component for `base_l126` is still unmeasured; it was excluded from
+this run by design.
 
 ## 4. Data System Specification
 
