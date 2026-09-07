@@ -1,6 +1,6 @@
 # Evidence
 
-Sections 3.1 to 3.10 of `SPEC.md`, one file per subsection. Each summarises at
+Sections 3.1 to 3.11 of `SPEC.md`, one file per subsection. Each summarises at
 project level what a run found, and points at the full reading under `reports/`.
 
 ## What belongs here, and what does not
@@ -39,3 +39,4 @@ reader can trust the rest.
 | [3.8](3.8-m2-9-sampling-noise-evidence.md) | M2.9 sampling noise | [8.11](../registrations/8.11-pre-registered-m2-9-sampling-noise-budget.md) | `reports/milestone_2_research_eval/seed_variance/` |
 | [3.9](3.9-m2-10-full-registry-evidence.md) | M2.10 full registry | [8.12](../registrations/8.12-pre-registered-m2-10-full-registry-confirmation.md) | `reports/milestone_2_research_eval/full_registry/` |
 | [3.10](3.10-what-the-interval-metric-can-reach.md) | What the interval metric can reach | — | `tests/test_interval_ceiling.py` |
+| [3.11](3.11-m2-11-sampling-grid-evidence.md) | M2.11 sampling grid | [8.13](../registrations/8.13-pre-registered-m2-11-sampling-grid.md) | `reports/milestone_2_research_eval/sampling_grid/` |

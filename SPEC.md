@@ -1,10 +1,10 @@
 # SPEC - Vietnam Stock Market Radar with Kronos
 
-> **Version:** 2.14
+> **Version:** 2.15
 >
 > **Date:** 2026-09-06
 >
-> **Status:** M2.10 confirms the cross-sectional gate is not cleared on 683 unused dates; Kronos-small carried forward on distributional metrics, not on ranking
+> **Status:** M2.10 confirms the cross-sectional gate is not cleared; M2.11 finds 72% of the calibration gap is sampler configuration, and that opening it costs the whole ranking signal at ten draws
 >
 > **Authority:** Source of truth for product, data, model, evaluation, and delivery decisions
 
@@ -39,7 +39,7 @@ numbered subsection, so the contract does not grow with every run.
 | directory | holds | lifecycle |
 |---|---|---|
 | [`docs/registrations/`](docs/registrations/) | sections 8.6 to 8.13, the run plans committed **before** each run | **frozen** on commit; never edited afterwards |
-| [`docs/evidence/`](docs/evidence/) | sections 3.1 to 3.10, the project-level readings of what each run found | appended per run; corrected only by adding a later subsection |
+| [`docs/evidence/`](docs/evidence/) | sections 3.1 to 3.11, the project-level readings of what each run found | appended per run; corrected only by adding a later subsection |
 | [`reports/`](reports/) | the run artifacts themselves: manifests, metric tables, full readings | written once by the run that produced them |
 
 Section numbers are unchanged by that arrangement. A citation of "SPEC section
@@ -139,6 +139,7 @@ summarises a run at project level and points at the full reading under
 | 3.8 | M2.9 Sampling-Noise Evidence | [`docs/evidence/3.8-m2-9-sampling-noise-evidence.md`](docs/evidence/3.8-m2-9-sampling-noise-evidence.md) |
 | 3.9 | M2.10 Full-Registry Evidence | [`docs/evidence/3.9-m2-10-full-registry-evidence.md`](docs/evidence/3.9-m2-10-full-registry-evidence.md) |
 | 3.10 | What The Interval Metric Can Reach | [`docs/evidence/3.10-what-the-interval-metric-can-reach.md`](docs/evidence/3.10-what-the-interval-metric-can-reach.md) |
+| 3.11 | M2.11 Sampling Grid Evidence | [`docs/evidence/3.11-m2-11-sampling-grid-evidence.md`](docs/evidence/3.11-m2-11-sampling-grid-evidence.md) |
 
 ## 4. Data System Specification
 

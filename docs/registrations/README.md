@@ -33,7 +33,7 @@ evidence, not in the registration.
 | [8.10](8.10-pre-registered-m2-8-cross-sectional-gate.md) | M2.8 cross-sectional gate | ranking-capable references | [3.6](../evidence/3.6-m2-8-cross-sectional-gate-evidence.md) |
 | [8.11](8.11-pre-registered-m2-9-sampling-noise-budget.md) | M2.9 sampling-noise budget | 5 replicates, 196 dates | [3.8](../evidence/3.8-m2-9-sampling-noise-evidence.md) |
 | [8.12](8.12-pre-registered-m2-10-full-registry-confirmation.md) | M2.10 full-registry confirmation | 683 unused dates | [3.9](../evidence/3.9-m2-10-full-registry-evidence.md) |
-| [8.13](8.13-pre-registered-m2-11-sampling-grid.md) | M2.11 sampling grid | 2x2 sampler factorial, 98 dates | pending |
+| [8.13](8.13-pre-registered-m2-11-sampling-grid.md) | M2.11 sampling grid | 2x2 sampler factorial, 98 dates | [3.11](../evidence/3.11-m2-11-sampling-grid-evidence.md) |
 
 ## Adding one
 
