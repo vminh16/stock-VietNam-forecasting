@@ -1,0 +1,52 @@
+{
+  "amount_policy": "derived_ohlc4_compatibility_proxy",
+  "arms": [
+    {
+      "arm_id": "small_l126_t06_p100",
+      "cache_key": "46846bb195375dcb21db81682b208bebf59e1b9aad9237b8bbf234ee4cd83680",
+      "lookback": 126,
+      "model_path": "pretrained/Kronos-small",
+      "model_sha256": "b082dfcbd8e8c142a725c8bbb99781802f38fec81210e13479effb32b3c3e020",
+      "normalizer_lookback": 126
+    }
+  ],
+  "artifact_hashes": {
+    "metric_summary.csv": "3077ea488e86e4ab4a8831ce626e812009e2d0cf8759a8fa868b320f6ff56118",
+    "runtime_summary.csv": "df419db0415ed85d41cd0aeadef13f158610dfeb57708cb23f408f2d426f3518",
+    "small_l126_t06_p100_per_date_metrics.csv.gz": "48d5028b8917a212e29c4bccb44841118ad080a91e6eed17d3fb698dfdd185d5",
+    "small_l126_t06_p100_per_origin_metrics.csv.gz": "8dc93a4da5e7f02e6e7c134d4b3dff1e245522b8873cfa3e9ef677095a704967",
+    "zero_shot_screen_report.md": "4018d5c420c0b02e4994d5f63fc738586c91f638486eb7eb44e43bfebd51fa5f"
+  },
+  "batch_size": 2,
+  "code_revision": "2d127c79c68fce59686e920b7dff89c1f05bd676",
+  "command": "/home/nguyenvanminh16082k5/Stock-VN-forecashing/.venv/bin/python /home/nguyenvanminh16082k5/Stock-VN-forecashing/evaluation/run_zero_shot_screen.py --config evaluation/configs/m2_11_sampling_t06_p100.yaml",
+  "config_path": "evaluation/configs/m2_11_sampling_t06_p100.yaml",
+  "config_sha256": "3b61dad02a987ffa9f2e6eb7b88f9753ed3114a7edc1b4caa12222382320fc21",
+  "dataset_fingerprint": "b52ff4784203b173979c6c1f23088b942edcbf21374987a6b269c71ed694ee3a",
+  "dataset_id": "vn150_strict_v2",
+  "date_residues": [
+    0
+  ],
+  "date_stride": 10,
+  "device": "cuda",
+  "evaluation_dates": 98,
+  "generated_at_utc": "2026-09-07T15:06:34.236787+00:00",
+  "horizon": 5,
+  "lockbox_opened": false,
+  "origins_per_arm": 13431,
+  "price_adjustment_status": "unverified_provider_history",
+  "registry_sha256": "dcd71d14c5016b721111172d6a2ff384122eb74d2cc9c27252d359857e6726c6",
+  "sample_count": 10,
+  "sampling_seed": 20260901,
+  "schema_version": "m2_5_zero_shot_screen_v1",
+  "selection_sha256": "d67ec22fdbd4032cb0ff76f3f1a24f6412363e26d699743cacf31b44d712e533",
+  "smoke": false,
+  "symbols": 147,
+  "temperature": 0.6,
+  "tokenizer_path": "pretrained/Kronos-Tokenizer-base",
+  "tokenizer_sha256": "59d85f6af76a2c3b8240ea06cb21db4213b4eeca053f246b23e29cf832fc6bee",
+  "top_k": 0,
+  "top_p": 1.0,
+  "training": false,
+  "worktree_dirty": true
+}
