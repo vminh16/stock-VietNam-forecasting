@@ -1,0 +1,83 @@
+{
+  "artifact_hashes": {
+    "paired_comparisons.csv": "5845ad16d9c034c4200528146d01f084477a74e01bef9dec41ab96077587e249",
+    "paired_inference_report.md": "90fedc19f32b805985f720a3d3603ffadddebaf20cf82f51a1f1193620f5078a"
+  },
+  "bootstrap": {
+    "confidence": 0.95,
+    "mean_block_dates": 10,
+    "method": "stationary",
+    "replicates": 5000,
+    "seed": 20260901
+  },
+  "code_revision": "48f2ab701d3e56fc8b451daa4c7d7450966ff468",
+  "command": "C:\\Users\\USER\\anaconda3\\envs\\stock\\python.exe C:\\Users\\USER\\Desktop\\Stock-VN-forecashing\\evaluation\\run_paired_comparison.py --config evaluation\\configs\\m2_10_paired_inference.yaml",
+  "comparisons": [
+    {
+      "left": "small_l126",
+      "right": "short_term_reversal"
+    },
+    {
+      "left": "base_l126",
+      "right": "short_term_reversal"
+    },
+    {
+      "left": "small_l126",
+      "right": "recent_return_bootstrap"
+    },
+    {
+      "left": "base_l126",
+      "right": "recent_return_bootstrap"
+    },
+    {
+      "left": "small_l126",
+      "right": "base_l126"
+    },
+    {
+      "left": "small_l126",
+      "right": "momentum_126_21"
+    },
+    {
+      "left": "base_l126",
+      "right": "momentum_126_21"
+    },
+    {
+      "left": "small_l126",
+      "right": "persistence"
+    },
+    {
+      "left": "base_l126",
+      "right": "persistence"
+    }
+  ],
+  "config_path": "evaluation/configs/m2_10_paired_inference.yaml",
+  "config_sha256": "57cf0a5256100963734e53be6cfa6d0e349524dac302c3f56482b629b1b62959",
+  "generated_at_utc": "2026-09-07T12:18:01.043134+00:00",
+  "input_dirs": [
+    "data/evaluation/m2_10",
+    "data/evaluation/m2_2",
+    "data/evaluation/m2_8"
+  ],
+  "input_hashes": {
+    "base_l126_per_date_metrics.csv.gz": "36c18b8fc316d1bba3bb11590530820e6dc57695c57d81641464b2162fbbe21b",
+    "momentum_126_21_per_date_metrics.csv.gz": "745db3dbb3b716bc94fba67fa67bcd6a8bee5ede4ed481ebd41255536bea37d9",
+    "persistence_per_date_metrics.csv.gz": "27bf23d30da45fb6e479422ed22d864abb23a1f969c69322483093503b0b303f",
+    "recent_return_bootstrap_per_date_metrics.csv.gz": "97862bdb0548629043df5c725d0fcefd33dd8163125ba5927dbef087fe94d163",
+    "short_term_reversal_per_date_metrics.csv.gz": "846222e0ce83a998effcf96dced13f7adf349c496fe063420c722c66da899f40",
+    "small_l126_per_date_metrics.csv.gz": "d7655691ad57360f54f3cc0370465929e2e1c93178cd13050d41cac154c9ab0d"
+  },
+  "lockbox_opened": false,
+  "metrics": [
+    "DA",
+    "MW-DA",
+    "RankIC",
+    "HitRate@Top10",
+    "CRPS",
+    "coverage",
+    "interval_width"
+  ],
+  "model_inference": false,
+  "restrict_dates_to": "small_l126",
+  "schema_version": "m2_3_paired_inference_v1",
+  "worktree_dirty": true
+}

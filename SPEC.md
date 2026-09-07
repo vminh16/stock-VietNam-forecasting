@@ -1,10 +1,10 @@
 # SPEC - Vietnam Stock Market Radar with Kronos
 
-> **Version:** 2.11
+> **Version:** 2.12
 >
 > **Date:** 2026-09-06
 >
-> **Status:** M2.8 cross-sectional gate not cleared; M2.9 finds pooled seed noise immaterial but fold-level seed noise large
+> **Status:** M2.10 confirms the cross-sectional gate is not cleared on 683 unused dates; Kronos-small carried forward on distributional metrics, not on ranking
 >
 > **Authority:** Source of truth for product, data, model, evaluation, and delivery decisions
 
@@ -398,6 +398,74 @@ itself small.
 Full reading in `reports/milestone_2_research_eval/seed_variance/decision.md`.
 The seed component for `base_l126` is still unmeasured; it was excluded from
 this run by design.
+
+### 3.9 M2.10 Full-Registry Evidence
+
+The confirmatory reading. 683 dates in `{1, 3, 4, 6, 7, 8, 9 mod 10}`, 93,637
+origins per arm, disjoint from the 98 that selected these arms and the 196 that
+confirmed them, so both sides of every gate were computed after registration.
+Read against section 8.12; every interval below carries the section 8.11 seed
+correction.
+
+| reading | difference | seed-corrected interval | verdict |
+|---|---:|---|---|
+| `small_l126` vs `short_term_reversal`, RankIC | `+0.0054` | `[-0.0161, +0.0268]` | **fails** |
+| `base_l126` vs `short_term_reversal`, RankIC | `+0.0044` | `[-0.0172, +0.0260]` | **fails** |
+| `small_l126` vs `recent_return_bootstrap`, RankIC | `+0.0287` | `[+0.0072, +0.0503]` | passes |
+| `base_l126` vs `recent_return_bootstrap`, RankIC | `+0.0278` | `[+0.0033, +0.0522]` | passes, provisional |
+| `small_l126` vs `base_l126`, RankIC | `+0.0010` | `[-0.0089, +0.0109]` | passes, provisional |
+| `small_l126` vs `base_l126`, MW-DA | `+1.1711` | `[-0.2868, +2.6289]` | passes |
+
+**The section 8.10 cross-sectional gate is not cleared, confirmatorily.** Neither
+arm separates from a five-session reversal formula on RankIC, and neither
+separates from `momentum_126_21` either, at `+0.0117` and `+0.0107` with
+intervals containing zero. The conclusion no longer depends on which reference
+was chosen.
+
+The naive gate of section 8.6 rule 5 passes for both arms, which section 8.10
+already fixed as necessary and not sufficient.
+
+Non-inferiority passes: the RankIC lower bound is `-0.0089` against a registered
+`-0.01` and the MW-DA lower bound is `-0.2868` against `-1.0`. The RankIC bound
+clears by `0.0011`, eleven percent of its threshold.
+
+The section 8.12 contingency for `base_l126`, whose seed component M2.9 did not
+measure, marks a reading provisional when an interval ends within
+`3 x 0.001849 = 0.005547` of its boundary. It fires on exactly two readings: the
+`base_l126` naive gate, at `0.0033`, and the non-inferiority RankIC bound, at
+`0.0011`. Resolving them needs five `base_l126` replicates over the 196 M2.7
+dates, 8.55 hours.
+
+**Correction to section 3.6.** The MW-DA advantage of `small_l126` over
+`short_term_reversal`, the one interval that had excluded zero, replicates in
+size at `+2.81` against `+2.85` but its interval now contains zero,
+`[-0.1810, +5.7956]`. Its half-width widened from `2.75` at 196 dates to `2.94`
+at 683, which averaging cannot produce; MW-DA weights by move size, so a few
+very large days dominate its date-level distribution. **No metric now has either
+Kronos arm beating `short_term_reversal` with an interval excluding zero.**
+
+`small_l126` is nonetheless the better arm, on intervals that do exclude zero:
+CRPS `-0.0003` at `[-0.0005, -0.0001]`, coverage `+0.0401` at
+`[+0.0308, +0.0493]`, interval width `+0.0056` at `[+0.0049, +0.0064]`.
+`base_l126` scores MW-DA `49.40`, below the 50 a coin flip gives, at four times
+the compute. Carrying Kronos-small forward rests on these, not on the
+razor-thin non-inferiority margin.
+
+Calibration is confirmed a third time and is the project's most robust finding:
+nominal 80% intervals cover `0.393` and `0.353`, against a seed noise of
+`0.0034` on that metric.
+
+Fold RankIC for `small_l126` runs `0.0156 / 0.0175 / 0.0506 / -0.0004` across
+2022 to 2025. Scaling M2.9 to 171 dates puts `sd_seed` near `0.0020`, so the
+2025 value is indistinguishable from zero: the pooled figure is carried by 2024
+alone and the fold nearest deployment carries nothing.
+
+One acceptance criterion failed. `worktree_dirty: false` cannot be satisfied by
+any run, because the manifest is written after the run has created output inside
+the worktree. It is recorded as failed rather than reinterpreted; provenance
+rests instead on `code_revision` matching the registration commit `7dd81ce`.
+
+Full reading in `reports/milestone_2_research_eval/full_registry/decision.md`.
 
 ## 4. Data System Specification
 
