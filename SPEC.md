@@ -1,6 +1,6 @@
 # SPEC - Vietnam Stock Market Radar with Kronos
 
-> **Version:** 2.13
+> **Version:** 2.14
 >
 > **Date:** 2026-09-06
 >
@@ -1350,6 +1350,82 @@ Registered in advance so it is not discovered afterwards.
 
 No threshold in this subsection may be changed after the run is read. A changed
 threshold requires a new registration and a new run.
+
+---
+
+### 8.13 Pre-Registered M2.11 Sampling Grid
+
+Registered on 2026-09-07, before any cell was computed.
+
+Section 3.10 measured what the locked interval metric can reach: with ten
+samples a perfectly calibrated sampler covers `0.66`, not `0.80`. Against that
+ceiling `small_l126` reaches 59% and `recent_return_bootstrap` 104%. Two thirds
+of the calibration gap is real and belongs to the model or to how it is sampled.
+
+The sampling configuration is a candidate cause that has never been varied.
+`temperature 0.6` sharpens the token distribution and `top_p 0.9` cuts its tail;
+both narrow the sampled path, and both were inherited from the M0 baseline
+rather than chosen for this dataset. This subsection separates their two effects
+before any conclusion is drawn about the model itself.
+
+#### Design
+
+A 2x2 factorial over `temperature` in `{0.6, 1.0}` and `top_p` in `{0.9, 1.0}`,
+with `top_k` fixed at 0 and `sample_count` fixed at 10. At `top_k 0` and
+`top_p 1.0` the frozen sampler applies no filtering at all, so that corner is the
+model's undistorted predictive distribution.
+
+One arm, `small_l126`, on the **98 M2.5 screen dates**, `{0 mod 10}`. Those dates
+are already spent on selection and this study selects, so it must not touch the
+683 dates M2.10 reads its gates on. The `t06_p90` corner is recomputed under a
+new arm identifier rather than reused from M2.5, so that all four cells share one
+RNG stream construction and the factorial is internally consistent.
+
+Budget: 13,435 origins per cell at 17.14 origins per second, 0.22 hours a cell,
+**0.87 hours** in total.
+
+#### Reading rule
+
+1. **Primary is CRPS**, lowest wins. CRPS is a proper scoring rule: it penalises
+   an over-dispersed forecast as well as an under-dispersed one. Coverage is
+   **not** proper and MUST NOT be the primary, because any setting can raise it
+   by widening the interval past usefulness.
+2. Coverage and interval width are reported as diagnostics, read against the
+   `0.66` ceiling of section 3.10 rather than against `0.80`.
+3. **Guard.** The winning cell's RankIC must not fall more than `0.005` below the
+   best cell's. Seed noise on RankIC at 98 dates is about `0.0026`, so that
+   allows two standard deviations. A winner that fails the guard is reported and
+   **not** adopted, because a sampling change that buys calibration with ranking
+   is not a trade this project has registered.
+4. Ties inside one seed standard deviation on CRPS resolve toward the incumbent,
+   `temperature 0.6` with `top_p 0.9`. A study cannot promote a change it cannot
+   distinguish.
+
+#### What adoption would require
+
+A winning cell is a **candidate**, not a decision. The sampling configuration is
+part of every registered run in M2.5, M2.7, M2.9 and M2.10, so changing it
+invalidates comparability with all of them.
+
+Adopting a different setting therefore requires its own registration and a
+confirmatory run on dates disjoint from these 98, and every arm a gate compares
+must be recomputed under the new setting. Nothing measured here may be pooled
+with a run made under the incumbent setting.
+
+#### What this cannot settle
+
+- **The sample-count axis.** Section 3.10 settles it analytically: the ceiling is
+  `0.66` at ten samples, `0.73` at twenty, `0.77` at fifty. Raising it is a
+  change to a locked measurement and needs its own registration.
+- **Whether the residual gap is fixable at all.** If the undistorted corner,
+  `temperature 1.0` with `top_p 1.0`, still lands far below `0.66`, that locates
+  the deficit in the pretrained model rather than in the sampler, which is
+  evidence for M3 and not a result about sampling.
+- **`base_l126`.** Excluded to keep the study at one hour. The sampler is shared,
+  so a null result here transfers by construction; a positive one would need its
+  own run.
+
+No threshold in this subsection may be changed after the grid is read.
 
 ---
 
