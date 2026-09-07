@@ -1,6 +1,6 @@
 # SPEC - Vietnam Stock Market Radar with Kronos
 
-> **Version:** 2.12
+> **Version:** 2.13
 >
 > **Date:** 2026-09-06
 >
@@ -466,6 +466,62 @@ the worktree. It is recorded as failed rather than reinterpreted; provenance
 rests instead on `code_revision` matching the registration commit `7dd81ce`.
 
 Full reading in `reports/milestone_2_research_eval/full_registry/decision.md`.
+
+### 3.10 What The Interval Metric Can Reach
+
+A correction to how sections 3.3, 3.5, 3.8 and 3.9 state the calibration gap.
+The finding survives; its size was overstated.
+
+Section 8.2 fixes interval coverage as the share of outcomes inside the 10th and
+90th sample percentiles, and every run so far has drawn 10 samples. Ten draws do
+not resolve those percentiles. `np.quantile` interpolates between the first and
+second order statistic at the low end and the ninth and tenth at the high end,
+which lands inside the true decile, so the interval is systematically narrower
+than the distribution it came from.
+
+A **perfectly calibrated** sampler therefore cannot reach 0.80 under this
+measurement:
+
+| samples drawn | coverage of a perfect sampler |
+|---:|---:|
+| 10 | **0.66** |
+| 20 | 0.73 |
+| 50 | 0.77 |
+| 100 | 0.78 |
+| 1000 | 0.80 |
+
+The ceiling is close to distribution-free. Across a normal, a `t(3)`, a `t(5)`,
+a Laplace, a lognormal and a uniform it moves by less than two points at ten
+samples. `tests/test_interval_ceiling.py` pins these numbers.
+
+Read against the ceiling rather than the nominal level, the M2.10 result is:
+
+| candidate | coverage | share of the 0.66 ceiling |
+|---|---:|---:|
+| `recent_return_bootstrap` (M2.3) | 0.689 | 104% |
+| `small_l126` | 0.393 | 59% |
+| `base_l126` | 0.353 | 53% |
+
+So about a third of the gap that earlier sections describe as `0.39` against
+`0.80` is the estimator, not the model, and two thirds of it is real. Kronos
+reaches 59% of the coverage the measurement can deliver while the naive
+reference slightly exceeds it, which is what an over-dispersed reference does.
+
+Two consequences.
+
+The **comparison** in those sections was never affected. Every candidate is
+measured with the same estimator on the same origins, so the ordering and the
+paired intervals stand exactly as reported. Only the absolute statement, "covers
+0.39 of a nominal 0.80", invites a reader to attribute the whole shortfall to
+the model.
+
+The **headroom a fine-tune is aiming at** is `0.393` to `0.66`, not `0.393` to
+`0.80`, unless the sample count is also raised. Raising it is a change to a
+locked measurement and would require its own registration; the table above is
+what such a registration would be sized against.
+
+Section 8.2 is not amended. The definition stays as locked, and this subsection
+records how to read a number produced by it.
 
 ## 4. Data System Specification
 
