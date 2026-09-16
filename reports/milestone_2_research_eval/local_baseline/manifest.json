@@ -1,0 +1,52 @@
+{
+  "amount_policy": "derived_ohlc4_compatibility_proxy",
+  "arms": [
+    {
+      "arm_id": "small_l126",
+      "cache_key": "45a3d9faa3549415f14ad4f8571336d5c81b288f645b8f4858ee5c96f9e8ffa9",
+      "lookback": 126,
+      "model_path": "pretrained/Kronos-small",
+      "model_sha256": "b082dfcbd8e8c142a725c8bbb99781802f38fec81210e13479effb32b3c3e020",
+      "normalizer_lookback": 126
+    }
+  ],
+  "artifact_hashes": {
+    "metric_summary.csv": "ba902659227364a30b1e9066865cd89cb6ceda594086cfe2d79b540ddf42cc23",
+    "runtime_summary.csv": "69c6f3dd13dff6646b93b361db66982d830c61f2820dd1f7a986fa16d3890758",
+    "small_l126_per_date_metrics.csv.gz": "cd8a29c65546796a76361b2974726229d7cdf9956586f463b493a4f0b809c758",
+    "small_l126_per_origin_metrics.csv.gz": "e4e3383db831ac28edfc8aec78bcd0365c6258a36ea4289ce705511bac003761",
+    "zero_shot_screen_report.md": "b4d07145d09cf394a86e9a3c1ae769a88f75ad3d0892401261770daf7162fe8a"
+  },
+  "batch_size": 2,
+  "code_revision": "ba9404ba02353384837f3bd668346f26431e715c",
+  "command": "C:\\Users\\USER\\anaconda3\\envs\\stock\\python.exe C:\\Users\\USER\\Desktop\\Stock-VN-forecashing\\evaluation\\run_zero_shot_screen.py --config evaluation\\configs\\m2_12_local_baseline.yaml",
+  "config_path": "evaluation/configs/m2_12_local_baseline.yaml",
+  "config_sha256": "f54ba3aea21a3019b37551adfb7fec97a664303d5030807a561bfb5b31a055a5",
+  "dataset_fingerprint": "b52ff4784203b173979c6c1f23088b942edcbf21374987a6b269c71ed694ee3a",
+  "dataset_id": "vn150_strict_v2",
+  "date_residues": [
+    0
+  ],
+  "date_stride": 10,
+  "device": "cuda",
+  "evaluation_dates": 98,
+  "generated_at_utc": "2026-09-16T01:21:43.411867+00:00",
+  "horizon": 5,
+  "lockbox_opened": false,
+  "origins_per_arm": 13431,
+  "price_adjustment_status": "unverified_provider_history",
+  "registry_sha256": "dcd71d14c5016b721111172d6a2ff384122eb74d2cc9c27252d359857e6726c6",
+  "sample_count": 10,
+  "sampling_seed": 20260901,
+  "schema_version": "m2_5_zero_shot_screen_v1",
+  "selection_sha256": "d67ec22fdbd4032cb0ff76f3f1a24f6412363e26d699743cacf31b44d712e533",
+  "smoke": false,
+  "symbols": 147,
+  "temperature": 0.6,
+  "tokenizer_path": "pretrained/Kronos-Tokenizer-base",
+  "tokenizer_sha256": "59d85f6af76a2c3b8240ea06cb21db4213b4eeca053f246b23e29cf832fc6bee",
+  "top_k": 0,
+  "top_p": 0.9,
+  "training": false,
+  "worktree_dirty": true
+}

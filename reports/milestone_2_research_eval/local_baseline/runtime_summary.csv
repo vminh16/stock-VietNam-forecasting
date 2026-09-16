@@ -1,0 +1,2 @@
+arm_id,lookback,normalizer_lookback,origins,elapsed_seconds,origins_per_second,peak_vram_gb,cache_key
+small_l126,126,126,13431,2405.5134201,5.583423433755634,0.19527578353881836,45a3d9faa3549415f14ad4f8571336d5c81b288f645b8f4858ee5c96f9e8ffa9

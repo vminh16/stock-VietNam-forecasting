@@ -1,10 +1,10 @@
 # SPEC - Vietnam Stock Market Radar with Kronos
 
-> **Version:** 2.15
+> **Version:** 2.16
 >
-> **Date:** 2026-09-06
+> **Date:** 2026-09-16
 >
-> **Status:** M2.10 confirms the cross-sectional gate is not cleared; M2.11 finds 72% of the calibration gap is sampler configuration, and that opening it costs the whole ranking signal at ten draws
+> **Status:** M2 exit scope amended on 2026-09-16, withdrawing `base_l126` seed noise and M0 comparability; `L=40` and the section 11.4 closure steps remain
 >
 > **Authority:** Source of truth for product, data, model, evaluation, and delivery decisions
 
@@ -39,7 +39,7 @@ numbered subsection, so the contract does not grow with every run.
 | directory | holds | lifecycle |
 |---|---|---|
 | [`docs/registrations/`](docs/registrations/) | sections 8.6 to 8.14, the run plans committed **before** each run | **frozen** on commit; never edited afterwards |
-| [`docs/evidence/`](docs/evidence/) | sections 3.1 to 3.11, the project-level readings of what each run found | appended per run; corrected only by adding a later subsection |
+| [`docs/evidence/`](docs/evidence/) | sections 3.1 to 3.12, the project-level readings of what each run found | appended per run; corrected only by adding a later subsection |
 | [`reports/`](reports/) | the run artifacts themselves: manifests, metric tables, full readings | written once by the run that produced them |
 
 Section numbers are unchanged by that arrangement. A citation of "SPEC section
@@ -140,6 +140,7 @@ summarises a run at project level and points at the full reading under
 | 3.9 | M2.10 Full-Registry Evidence | [`docs/evidence/3.9-m2-10-full-registry-evidence.md`](docs/evidence/3.9-m2-10-full-registry-evidence.md) |
 | 3.10 | What The Interval Metric Can Reach | [`docs/evidence/3.10-what-the-interval-metric-can-reach.md`](docs/evidence/3.10-what-the-interval-metric-can-reach.md) |
 | 3.11 | M2.11 Sampling Grid Evidence | [`docs/evidence/3.11-m2-11-sampling-grid-evidence.md`](docs/evidence/3.11-m2-11-sampling-grid-evidence.md) |
+| 3.12 | M2.12 Local Baseline Evidence | [`docs/evidence/3.12-m2-12-local-baseline-evidence.md`](docs/evidence/3.12-m2-12-local-baseline-evidence.md) |
 
 ## 4. Data System Specification
 
@@ -734,7 +735,7 @@ versioned artifacts. Research failure is a valid exit when it is documented.
 | M0 Baseline Reference | **Complete** | Context harness | `manifest.json` and zero-shot freeze report |
 | M1 Data And Universe Foundation | **Complete** | M0 | Fixed VN150 snapshot, strict curated data, manifest, data-quality report |
 | M1.1 Data Readiness Closure | **Conditional complete** | M1 | `vn150_strict_v2` readiness report and preprocessing contract |
-| M2 Research Evaluation Harness | **In progress (M2.1 complete)** | M1 | Versioned folds, common-origin evaluation, block-bootstrap report |
+| M2 Research Evaluation Harness | **In progress (M2.1-M2.11 complete; M2.12 running)** | M1 | Versioned folds, common-origin evaluation, block-bootstrap report |
 | M3 Small-Model Adaptation | Planned | M2 | Experiment ledger and promoted model or documented no-improvement result |
 | M4 Kronos Path Viewer | Planned | Stable M2 artifact schema | Reproducible cached path visualization |
 | M5 Ranking And Risk Radar | Planned | M3 decision and M4 | Point-in-time ranking replay and metric report |
@@ -794,10 +795,55 @@ M2.7 confirmed two arms on 196 disjoint dates: both cleared the naive gate for
 the first time, but the registered backbone margin remains untestable and needs
 roughly 681 paired dates.
 
-Remaining before M2 can close: enough paired dates to decide the backbone margin
-or a registered change to that margin, at least two sampling seeds, a sampling
-temperature study that also restores comparability with the M0 baseline, and the
-`L=40` arm.
+M2.8 read the cross-sectional gate provisionally and M2.10 read it
+confirmatorily on 683 previously unused dates: neither arm separates from the
+five-session reversal reference on RankIC. M2.9 measured sampling noise on five
+replicates of `small_l126`. M2.11 ran the 2x2 sampler factorial, adopted nothing
+under its registered guard, and located 72% of the calibration gap in
+configuration rather than in the model.
+
+Remaining before M2 can close: the `L=40` arm, and the closure steps of section
+11.4. Two of the four original conditions were withdrawn on 2026-09-16; the
+record is immediately below.
+
+#### M2 Exit Scope Amendment
+
+Registered on 2026-09-16 with explicit user approval. This subsection **weakens**
+two conditions that section 11.2 had required before M2 could close. It is
+recorded here rather than applied silently, and neither condition may be
+described anywhere as satisfied.
+
+**Withdrawn: sampling seeds for `base_l126`.** The original condition read "at
+least two sampling seeds" without naming an arm. M2.9 measured five replicates
+of `small_l126`; `base_l126` has none. The arm is not carried into M3: it scores
+MW-DA `49.40` on the 683 M2.10 dates, below a coin flip, at four times the
+compute of `small_l126`, and its M2.5 RankIC advantage of `0.0020` is inside one
+seed standard deviation. Measuring its noise would cost roughly 26 hours on the
+local RTX 2050, at `5.53` origins per second against the L4's `17.14`.
+
+*What is given up:* the two M2.10 readings that the section 8.12 contingency
+flagged as too close to call stay **provisional and unresolved**. Neither
+direction of the `small_l126` against `base_l126` comparison may be asserted on
+those two metrics, now or later. The correct description is "not measured", not
+"measured and rejected".
+
+**Withdrawn: comparability with the M0 baseline.** The original condition
+required the sampling temperature study to "also restore comparability with the
+M0 baseline". That wording presumed the two differ only in sampler settings.
+`evaluation/configs/milestone0_baseline_zero_shot.yaml` shows six differences:
+backbone (`Kronos-base` against `Kronos-small`), dataset (`data_cleaned` against
+`vn150_strict_v2`), origin count (`eval_samples_limit: 2500` against the 133,937
+frozen origins), `train_end_date`, `sample_count` (20 against 10), and
+`temperature` (0.7 against 0.6). M1 replaced the data foundation, so no sampler
+setting can restore comparability; the two numbers describe different datasets.
+
+*What is given up:* the M0 zero-shot figure becomes historical record only. It
+MUST NOT be quoted as a comparison against any M2 result or any result after it.
+
+This is the same class of defect as the `worktree_dirty: false` acceptance
+criterion of section 8.12, which no run can satisfy and which is recorded as
+failed rather than reinterpreted. A condition that cannot be met is withdrawn in
+writing, never restated as met.
 
 Success: zero-shot small/base and naive baselines are comparable on identical
 origins without opening the final lockbox.
