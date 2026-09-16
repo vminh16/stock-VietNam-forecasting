@@ -38,7 +38,7 @@ numbered subsection, so the contract does not grow with every run.
 
 | directory | holds | lifecycle |
 |---|---|---|
-| [`docs/registrations/`](docs/registrations/) | sections 8.6 to 8.13, the run plans committed **before** each run | **frozen** on commit; never edited afterwards |
+| [`docs/registrations/`](docs/registrations/) | sections 8.6 to 8.14, the run plans committed **before** each run | **frozen** on commit; never edited afterwards |
 | [`docs/evidence/`](docs/evidence/) | sections 3.1 to 3.11, the project-level readings of what each run found | appended per run; corrected only by adding a later subsection |
 | [`reports/`](reports/) | the run artifacts themselves: manifests, metric tables, full readings | written once by the run that produced them |
 
@@ -626,6 +626,7 @@ a new run. Section numbers are unchanged, so a citation of "SPEC section
 | 8.11 | Pre-Registered M2.9 Sampling-Noise Budget | [`docs/registrations/8.11-pre-registered-m2-9-sampling-noise-budget.md`](docs/registrations/8.11-pre-registered-m2-9-sampling-noise-budget.md) |
 | 8.12 | Pre-Registered M2.10 Full-Registry Confirmation | [`docs/registrations/8.12-pre-registered-m2-10-full-registry-confirmation.md`](docs/registrations/8.12-pre-registered-m2-10-full-registry-confirmation.md) |
 | 8.13 | Pre-Registered M2.11 Sampling Grid | [`docs/registrations/8.13-pre-registered-m2-11-sampling-grid.md`](docs/registrations/8.13-pre-registered-m2-11-sampling-grid.md) |
+| 8.14 | Pre-Registered M2.12 Local Baseline | [`docs/registrations/8.14-pre-registered-m2-12-local-baseline.md`](docs/registrations/8.14-pre-registered-m2-12-local-baseline.md) |
 
 ## 9. Inference, Ranking, And Risk
 
