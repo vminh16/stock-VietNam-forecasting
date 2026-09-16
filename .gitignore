@@ -103,3 +103,6 @@ reports.docx
 # runtime cache and debug scratch
 output/
 scratch/
+
+# Claude Code local settings
+.claude/settings.local.json
