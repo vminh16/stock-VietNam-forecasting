@@ -1,0 +1,12 @@
+{
+  "cache_key": "0f7992559c42fb49d46671985cf039a5613091e6b7af89a6315185e727f05e41",
+  "runtime": {
+    "arm_id": "base_l126",
+    "elapsed_seconds": 9140.567221000001,
+    "lookback": 126,
+    "normalizer_lookback": 126,
+    "origins": 13431,
+    "origins_per_second": 1.4693836471267276,
+    "peak_vram_gb": 0.5372662544250488
+  }
+}

@@ -82,7 +82,9 @@ tmp/
 # data
 # Frozen, hash-verified inputs are tracked so one clone reproduces a run: the
 # M1 curated prices, the immutable raw snapshot, and the M2.1 origin registry.
-# Everything else under data/ is regenerable output and stays out. A directory
+# Every M2 evaluation output is tracked too: the per-origin and per-date files are
+# the evidence the reports are computed from. Everything else under data/ is
+# regenerable and stays out. A directory
 # cannot be re-included once its parent is excluded, so each level excludes its
 # contents with `dir/*` and then names the children to keep.
 data/*
@@ -92,11 +94,14 @@ data/curated/*
 !data/raw/
 !data/evaluation/
 data/evaluation/*
-!data/evaluation/m2_1/
+!data/evaluation/m2_*/
 data_cleaned
 
 #param
 finetune_csv/finetuned
+
+# Kronos-small weights: download from HuggingFace NeoQuasar/Kronos-small
+pretrained/Kronos-small/
 
 reports.docx
 

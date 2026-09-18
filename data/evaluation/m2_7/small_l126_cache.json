@@ -1,0 +1,12 @@
+{
+  "cache_key": "b2682eecb20884468d9130c7aa5857e4c01dcf2c072591192ec769db8b79ccfb",
+  "runtime": {
+    "arm_id": "small_l126",
+    "elapsed_seconds": 4807.8257232999995,
+    "lookback": 126,
+    "normalizer_lookback": 126,
+    "origins": 26869,
+    "origins_per_second": 5.588596913940889,
+    "peak_vram_gb": 0.19527578353881836
+  }
+}
