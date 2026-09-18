@@ -30,7 +30,7 @@ reader can trust the rest.
 | section | subject | registered by | full reading |
 |---|---|---|---|
 | [3.1](3.1-data-snapshot.md) | Data snapshot | — | `reports/milestone_1_data/` |
-| [3.2](3.2-baseline-model-evidence.md) | Baseline model evidence | — | `reports/milestone_0_baseline/` |
+| [3.2](3.2-baseline-model-evidence.md) | Baseline model evidence | — | `reports/milestone_0_baseline_freeze/` |
 | [3.3](3.3-m2-5-zero-shot-screen-evidence.md) | M2.5 zero-shot screen | [8.6](../registrations/8.6-pre-registered-m2-5-screen-rule.md) | `reports/milestone_2_research_eval/zero_shot_screen/` |
 | [3.4](3.4-m2-6-slice-readiness-evidence.md) | M2.6 slice readiness | [8.7](../registrations/8.7-registered-evaluation-slices.md) | `reports/milestone_2_research_eval/metric_slices/` |
 | [3.5](3.5-m2-7-confirmation-evidence.md) | M2.7 confirmation | [8.8](../registrations/8.8-pre-registered-m2-7-confirmation-rule.md) | `reports/milestone_2_research_eval/confirmation/` |

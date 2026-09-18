@@ -1,170 +1,88 @@
 # Stock-VN-Forecasting
 
-> Fine-tuning the Kronos time-series foundation model for Vietnamese stock market forecasting.
+[English](README.md) | [Tiếng Việt](README_VI.md)
 
-[English Version](./README.md) | [Bản Tiếng Việt](./README_VI.md)
+A research system that tests whether the Kronos time-series foundation model can
+forecast five-session returns for the VN150 universe of Vietnamese stocks, and
+whether adapting it to this market adds anything a simple formula does not.
 
----
+It is not an investment product and nothing it produces is investment advice.
 
-## Introduction
+## Status
 
-This project implements a complete pipeline to adapt the **Kronos Financial Foundation Model** (AAAI 2026) to the Vietnamese stock market (VN50 basket). Kronos is originally pre-trained on over 12 billion financial price candles from 45 international stock exchanges. 
+| milestone | state |
+|---|---|
+| M0 baseline freeze | complete |
+| M1 VN150 data foundation | complete |
+| M2 research evaluation harness | M2.1 to M2.13 complete; closure steps pending |
+| M3 small-model adaptation (fine-tuning) | next |
 
-Adapting this foundation model to Vietnam's frontier/emerging market environment involves addressing unique regional dynamics, including a ±7% daily price limit (on HOSE), a T+2 settlement cycle, and trading activity dominated by retail investors. This repository focuses on fine-tuning the model's tokenizer (BSQ codebook) and predictor (decoder-only Transformer) to capture local market regimes while maintaining strict temporal splits to prevent look-ahead bias.
+Zero-shot Kronos-small does not beat a five-session reversal formula at ranking
+stocks on 683 unused dates. That is the case for M3. Full detail in `SPEC.md`.
 
-### Key Features
+## Read first
 
-* **Sequential Fine-Tuning:** Tailored PyTorch scripts to fine-tune both the Tokenizer and the Predictor sequentially on Vietnamese stock price sequences.
-* **Temporal Validation:** Walk-forward out-of-sample (OOS) testing configuration to guarantee robust performance evaluation without data leakage.
-* **Real-time Inference & Business Logic:** Fast GPU/CPU batch inference execution mapped to customized financial metrics (Expected Return, VaR-based Risk Score, and Directional Trend).
-* **Dynamic Cache Management:** Dynamic cache naming (`prediction_cache_YYYYMMDD.json`) aligned with the latest historical trading date, preventing overwrites and tracking history.
-* **Interactive Dashboard:** Fast FastAPI-based web application with professional charts, interactive screener, and Explainable AI (XAI) token distribution views.
+1. [`AGENTS.md`](AGENTS.md): the operating rules. Immutable.
+2. [`SPEC.md`](SPEC.md): the contract. Data, metrics, gates, milestones.
+3. [`docs/experiments.md`](docs/experiments.md): every experiment with its
+   config, registration, evidence and report in one table.
 
----
+## Where things are
 
-## System Architecture
+| path | holds |
+|---|---|
+| `model/` | Kronos model code. Do not modify without approval |
+| `data_pipeline/` | crawl, audit and build of the VN150 dataset |
+| `evaluation/` | runners (`run_*.py`), configs, and the research harness in `evaluation/research/` |
+| `finetune_csv/` | fine-tuning code from M0. To be rewritten in M3 |
+| `tests/` | test suite |
+| `data/raw/`, `data/curated/` | the frozen crawl and the curated dataset, hash-verified |
+| `data/evaluation/` | per-origin and per-date outputs of every M2 run |
+| `reports/` | frozen run artifacts. Never rewritten |
+| `docs/registrations/` | run plans, committed **before** each run. Frozen |
+| `docs/evidence/` | what each run showed. Appended, never edited in place |
+| `docs/research/` | dated exploratory notes. Decide nothing on their own |
+| `docs/runbooks/` | operational guides, such as benchmarking a GPU host |
+| `docs/superpowers/plans/` | implementation plans per milestone |
 
-The following block diagram represents the end-to-end flow of the system:
+## Setup
 
-```mermaid
-graph TD
-    subgraph Data Preparation
-        A[vnstock API] --> B[Raw CSVs: data/]
-        B --> C[Cleaned CSVs: data_cleaned/]
-    end
-
-    subgraph Training Pipeline
-        C --> D[Tokenizer Fine-Tuning <br> BSQ Codebook Adaptation]
-        C --> E[Predictor Fine-Tuning <br> Transformer Decoder Optimization]
-    end
-
-    subgraph Inference Pipeline
-        D --> F[Inference Engine <br> pipeline/inference.py]
-        E --> F
-        C --> F
-        F --> G[Generate 50 Sample Paths]
-    end
-
-    subgraph Financial Logic
-        G --> H[5-Day Expected Return]
-        G --> I[VaR 5% & 95% Confidence]
-        H --> J[Rankings Engine]
-        I --> J
-    end
-
-    subgraph Application & Delivery
-        J --> K[FastAPI Backend <br> web/app.py]
-        K --> L[(Dynamic Cache <br> output/prediction_cache_*.json)]
-        K --> M[Web Dashboard & Screener <br> HTML/CSS/Lightweight Charts]
-    end
-```
-
----
-
-## Benchmarks & Evaluation
-
-### Portfolio Backtest Performance
-Comparison of cumulative returns for the Long-only portfolio between the baseline model and the fine-tuned version on out-of-sample testing:
-![Evaluation Comparison](figures/evaluation_comparison.png)
-
-### Tokenizer Reconstruction Quality
-Convergence trends of the Binary Spherical Quantization (BSQ) codebook adaptation during tokenizer training:
-| Tokenizer Losses | Tokenizer Metrics |
-| :---: | :---: |
-| ![Tokenizer Losses](figures/tokenizer_losses.png) | ![Tokenizer Metrics](figures/tokenizer_metrics.png) |
-
-*The Median MAPE (MdAPE) for Volume and Amount is maintained under `3.2%`, preserving transaction liquidity characteristics.*
-
-### Predictor Next-Token Performance
-Next-token prediction training performance of the Decoder-only Transformer on VN50 stocks:
-| Predictor Losses | Predictor Metrics |
-| :---: | :---: |
-| ![Predictor Losses](figures/predictor_losses.png) | ![Predictor Metrics](figures/predictor_metrics.png) |
-
----
-
-## Installation
-
-### Prerequisites
-* Python 3.10 or higher
-* CUDA-enabled GPU (Highly recommended for training/inference)
-
-### Setup Steps
-1. **Clone the Repository:**
-   ```bash
-   git clone https://github.com/vminh16/stock-VietNam-forecashing.git
-   cd stock-VietNam-forecashing
-   ```
-
-2. **Create and Activate Environment (Conda recommended):**
-   ```bash
-   conda create -n stock python=3.10 -y
-   conda activate stock
-   ```
-
-3. **Install Dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   pip install vnstock
-   ```
-
----
-
-## Usage
-
-### 1. Collect Data
-Download daily historical price data for VN50 stocks:
 ```bash
-python finetune_csv/data/collect_data.py
+conda create -n stock python=3.10
+conda activate stock
+pip install torch --index-url https://download.pytorch.org/whl/cu121
+pip install -r requirements.txt
 ```
 
-### 2. Run Fine-Tuning
-Execute the fine-tuning process sequentially:
+`pretrained/Kronos-base` and `pretrained/Kronos-Tokenizer-base` are in the
+repository. Kronos-small is not; download it from
+[NeoQuasar/Kronos-small](https://huggingface.co/NeoQuasar/Kronos-small) into
+`pretrained/Kronos-small/`.
+
+## Run
+
 ```bash
-# Fine-tune Tokenizer
-python finetune_csv/finetune_tokenizer.py --config finetune_csv/configs/config_vn50.yaml
-
-# Fine-tune Predictor
-python finetune_csv/finetune_base_model.py --config finetune_csv/configs/config_vn50.yaml
-
-# Run sequentially in one script
-python finetune_csv/train_sequential.py --config finetune_csv/configs/config_vn50.yaml
+python -m pytest tests/ -q
+python evaluation/run_zero_shot_screen.py --config evaluation/configs/m2_13_lookback_40.yaml
 ```
 
-### 3. Start Web Dashboard
-Run the FastAPI application locally:
-```bash
-python web/run.py
-```
-Open **`http://localhost:7070`** in your browser.
+`tests/test_dataloader.py` fails to import: it tests the M0 dataset class and is
+due to be replaced with the fine-tuning code in M3.
 
----
+Every run writes a `manifest.json` recording its command, whose interpreter
+path identifies the host, along with the code revision and input hashes.
+Results from different hosts must not be paired in one comparison; see
+`docs/evidence/3.12-m2-12-local-baseline-evidence.md`.
 
-## Project Structure
+## Rules that matter most
 
-* [model/](file:///c:/Users/USER/Desktop/Stock-VN-forecashing/model) - Core neural network code for Kronos (BSQ, Transformer, Predictor) — *architecture frozen by design*.
-* [pipeline/](file:///c:/Users/USER/Desktop/Stock-VN-forecashing/pipeline) - Isolated inference pipeline (PyTorch execution) configured via YAML.
-* [web/](file:///c:/Users/USER/Desktop/Stock-VN-forecashing/web) - FastAPI backend, CSS styling, and Javascript dashboard charts.
-* [output/](file:///c:/Users/USER/Desktop/Stock-VN-forecashing/output) - Directory for dynamically named cache files.
-* [finetune_csv/](file:///c:/Users/USER/Desktop/Stock-VN-forecashing/finetune_csv) - Data collecting scripts, configs, and training execution files.
-* [SPEC.md](file:///c:/Users/USER/Desktop/Stock-VN-forecashing/SPEC.md) - Deep-dive technical specifications and architectural constraints.
-
----
-
-## Citation
-
-```bibtex
-@misc{shi2025kronos,
-      title={Kronos: A Foundation Model for the Language of Financial Markets}, 
-      author={Yu Shi and Zongliang Fu and Shuo Chen and Bohan Zhao and Wei Xu and Changshui Zhang and Jian Li},
-      year={2025},
-      eprint={2508.02739},
-      archivePrefix={arXiv},
-      primaryClass={q-fin.ST},
-      url={https://arxiv.org/abs/2508.02739}, 
-}
-```
+- No training run without a registration committed first: data, folds,
+  candidates, budget, promotion rule and acceptance criteria.
+- A registered threshold may be raised after a result is seen, never lowered.
+- The 2026 lockbox stays closed until the final reading.
+- Every output traces to data, universe, model, config, revision, origin and
+  seed.
 
 ## License
 
-This project is licensed under the MIT License — see [LICENSE](./LICENSE).
+[MIT](LICENSE), inherited from the upstream Kronos repository.

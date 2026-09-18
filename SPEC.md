@@ -41,6 +41,7 @@ numbered subsection, so the contract does not grow with every run.
 | [`docs/registrations/`](docs/registrations/) | sections 8.6 to 8.15, the run plans committed **before** each run | **frozen** on commit; never edited afterwards |
 | [`docs/evidence/`](docs/evidence/) | sections 3.1 to 3.13, the project-level readings of what each run found | appended per run; corrected only by adding a later subsection |
 | [`reports/`](reports/) | the run artifacts themselves: manifests, metric tables, full readings | written once by the run that produced them |
+| [`docs/experiments.md`](docs/experiments.md) | one row per experiment joining its config, registration, evidence, report and host | navigation only; holds no decision |
 
 Section numbers are unchanged by that arrangement. A citation of "SPEC section
 8.12" or "section 3.9" resolves through the index table in section 8 or section
