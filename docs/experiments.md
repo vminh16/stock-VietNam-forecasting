@@ -41,6 +41,7 @@ also records the host the run executed on.
 | M2.11 | sampler 2x2 grid | `m2_11_sampling_{t06,t10}_{p90,p100}` | [8.13](registrations/8.13-pre-registered-m2-11-sampling-grid.md) | [3.11](evidence/3.11-m2-11-sampling-grid-evidence.md) | `sampling_grid/<cell>/` | L4 |
 | M2.12 | same-host reproducibility | `m2_12_local_baseline` | [8.14](registrations/8.14-pre-registered-m2-12-local-baseline.md) | [3.12](evidence/3.12-m2-12-local-baseline-evidence.md) | `local_baseline/` | local |
 | M2.13 | `L=40` context | `m2_13_lookback_40` | [8.15](registrations/8.15-pre-registered-m2-13-lookback-40.md) | [3.13](evidence/3.13-m2-13-lookback-40-evidence.md) | `lookback_40/` | local |
+| closeout | M2 decision ledger, hashes, lockbox check | — | — | — | `closeout/` | local |
 
 Report paths are relative to `reports/milestone_2_research_eval/`. Outputs are in
 `data/evaluation/m2_<n>/`. Paired-inference reports sit in a `paired_inference/`

@@ -1,10 +1,10 @@
 # SPEC - Vietnam Stock Market Radar with Kronos
 
-> **Version:** 2.16
+> **Version:** 2.17
 >
-> **Date:** 2026-09-16
+> **Date:** 2026-09-18
 >
-> **Status:** M2 exit scope amended on 2026-09-16, withdrawing `base_l126` seed noise and M0 comparability; `L=40` and the section 11.4 closure steps remain
+> **Status:** M2 complete on 2026-09-18; the decision ledger is `reports/milestone_2_research_eval/closeout/decision.md`. M3 is next
 >
 > **Authority:** Source of truth for product, data, model, evaluation, and delivery decisions
 
@@ -251,7 +251,7 @@ returns or future universe membership.
 | Model | Role | Status |
 |---|---|---|
 | Kronos-base, 102.3M | Frozen zero-shot reference | Frozen baseline |
-| Kronos-small, 24.7M | Development and deployment candidate on cost grounds | Research candidate, non-inferiority unproven |
+| Kronos-small, 24.7M | Development and deployment candidate | Carried into M3: non-inferior on MW-DA, provisionally on RankIC, and better on CRPS and coverage (section 3.9) |
 | Full fine-tuned small | Performance-ceiling challenger | Gated candidate |
 | Kronos-base fine-tuning | Expensive challenger only | Deferred by default |
 
@@ -352,14 +352,13 @@ optimum.
 
 ### 6.2 Candidate Grid
 
-The next pre-registered comparison is:
+M2 compared `L` in `{40, 63, 126}` at `H=5`, zero-shot (sections 3.3 and 3.13).
+Holding the normalizer at 126, a context of 63 or 40 sessions stays within two
+seed standard deviations of `L=126` on RankIC; shortening the normalizer as well
+is what loses the signal. `L=126` remains the incumbent because it is the only
+arm confirmed on dates that did not select it. `H` was not varied.
 
-```text
-Lookback L: 63, 126
-Horizon H: 5
-```
-
-`L=126` is the incumbent by history only. A primary-source review
+`L=126` was originally the incumbent by history only. A primary-source review
 (`docs/research/2026-09-01-kronos-small-and-window-selection.md`) found that every
 daily-frequency lookback the Kronos authors published falls in 40-96 bars, which
 leaves `L=126` outside their published range and `L=63` inside it. `L=63` is also
@@ -738,8 +737,8 @@ versioned artifacts. Research failure is a valid exit when it is documented.
 | M0 Baseline Reference | **Complete** | Context harness | `manifest.json` and zero-shot freeze report |
 | M1 Data And Universe Foundation | **Complete** | M0 | Fixed VN150 snapshot, strict curated data, manifest, data-quality report |
 | M1.1 Data Readiness Closure | **Conditional complete** | M1 | `vn150_strict_v2` readiness report and preprocessing contract |
-| M2 Research Evaluation Harness | **In progress (M2.1-M2.13 complete; section 11.4 closure pending)** | M1 | Versioned folds, common-origin evaluation, block-bootstrap report |
-| M3 Small-Model Adaptation | Planned | M2 | Experiment ledger and promoted model or documented no-improvement result |
+| M2 Research Evaluation Harness | **Complete** | M1 | Versioned folds, common-origin evaluation, block-bootstrap report |
+| M3 Small-Model Adaptation | **Next** | M2 | Experiment ledger and promoted model or documented no-improvement result |
 | M4 Kronos Path Viewer | Planned | Stable M2 artifact schema | Reproducible cached path visualization |
 | M5 Ranking And Risk Radar | Planned | M3 decision and M4 | Point-in-time ranking replay and metric report |
 | M6 Daily Operations And Deployment | Deferred | M4-M5 | Idempotent daily run, monitoring, cache lifecycle, deployment record |
@@ -781,7 +780,10 @@ not claim corporate-action-adjusted training data without new source evidence.
 
 ### M2 - Research Evaluation Harness
 
-**Status:** In progress. M2.1 froze 133,937 common symbol-origins over 977
+**Status:** Complete on 2026-09-18. Decision ledger and frozen hashes:
+`reports/milestone_2_research_eval/closeout/`.
+
+M2.1 froze 133,937 common symbol-origins over 977
 dates and 147 symbols for 2022-2025. Every row supports both `L={63,126}` at
 `H=5`; the 2026 lockbox remains unopened. M2.2 evaluated the two causal naive
 references on those origins with locked point metrics, ensemble CRPS, and 80%
@@ -808,9 +810,10 @@ configuration rather than in the model.
 M2.13 ran the `L=40` arm (section 3.13): with the normalizer held at 126 it
 matches `L=126` on RankIC at 2.4 times the throughput, as a screen only.
 
-Remaining before M2 can close: the closure steps of section 11.4. Two of the
-four original conditions were withdrawn on 2026-09-16; the record is
-immediately below.
+The section 11.4 closure steps were completed on 2026-09-18: artifact hashes
+and the lockbox check are frozen in `reports/milestone_2_research_eval/closeout/`.
+Two of the four original exit conditions were withdrawn on 2026-09-16; the
+record is immediately below.
 
 #### M2 Exit Scope Amendment
 
@@ -908,17 +911,17 @@ semantic change does not.
 
 ## 12. Decision Gates
 
-| Decision | Required evidence |
-|---|---|
-| Accept VN150 data foundation | Complete snapshot, deterministic hashes, strict valid segments, and explicit survivorship limitation |
-| Select small over base | Small is inside pre-registered non-inferiority bound and materially cheaper |
-| Select LoRA module family | Matched-parameter ablation with paired date-block intervals |
-| Increase LoRA rank | Train and validation both improve; not train loss alone |
-| Fine-tune tokenizer | Reconstruction mismatch plus repeated downstream benefit and compatibility plan |
-| Full fine-tune small | Broad LoRA remains demonstrably biased/underfit and full FT improves OOS |
-| Keep `L=126` | It belongs to the confidence set and shorter contexts do not match it at lower cost |
-| Keep `H=5` | It matches predeclared product utility and is not dominated by another feasible horizon |
-| Promote a model | Beats zero-shot and naive within statistical and practical bounds; no severe regime or calibration failure |
+| Decision | Required evidence | Status after M2 |
+|---|---|---|
+| Accept VN150 data foundation | Complete snapshot, deterministic hashes, strict valid segments, and explicit survivorship limitation | Accepted, conditionally (M1.1) |
+| Select small over base | Small is inside pre-registered non-inferiority bound and materially cheaper | Accepted; RankIC bound provisional (3.9) |
+| Select LoRA module family | Matched-parameter ablation with paired date-block intervals | Open, M3 |
+| Increase LoRA rank | Train and validation both improve; not train loss alone | Open, M3 |
+| Fine-tune tokenizer | Reconstruction mismatch plus repeated downstream benefit and compatibility plan | Not opened |
+| Full fine-tune small | Broad LoRA remains demonstrably biased/underfit and full FT improves OOS | Not opened |
+| Keep `L=126` | It belongs to the confidence set and shorter contexts do not match it at lower cost | Kept; screen evidence against the premise (3.13) |
+| Keep `H=5` | It matches predeclared product utility and is not dominated by another feasible horizon | Untested |
+| Promote a model | Beats zero-shot and naive within statistical and practical bounds; no severe regime or calibration failure | No model promoted; zero-shot fails the cross-sectional gate (3.9) |
 
 No experiment is required to produce a winner. Keeping zero-shot or stopping
 fine-tuning is a valid result.
