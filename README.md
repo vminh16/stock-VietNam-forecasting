@@ -14,7 +14,7 @@ It is not an investment product and nothing it produces is investment advice.
 |---|---|
 | M0 baseline freeze | complete |
 | M1 VN150 data foundation | complete |
-| M2 research evaluation harness | M2.1 to M2.13 complete; closure steps pending |
+| M2 research evaluation harness | complete; see `reports/milestone_2_research_eval/closeout/decision.md` |
 | M3 small-model adaptation (fine-tuning) | next |
 
 Zero-shot Kronos-small does not beat a five-session reversal formula at ranking

@@ -15,7 +15,7 @@ không, và việc tinh chỉnh nó cho thị trường này có đem lại gì 
 |---|---|
 | M0 đóng băng baseline | xong |
 | M1 nền dữ liệu VN150 | xong |
-| M2 bộ đánh giá nghiên cứu | xong M2.1 đến M2.13; còn bước đóng milestone |
+| M2 bộ đánh giá nghiên cứu | xong; xem `reports/milestone_2_research_eval/closeout/decision.md` |
 | M3 tinh chỉnh model nhỏ (fine-tune) | tiếp theo |
 
 Kronos-small zero-shot không xếp hạng cổ phiếu tốt hơn công thức đảo chiều 5
