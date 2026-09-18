@@ -1,6 +1,6 @@
 # Evidence
 
-Sections 3.1 to 3.12 of `SPEC.md`, one file per subsection. Each summarises at
+Sections 3.1 to 3.13 of `SPEC.md`, one file per subsection. Each summarises at
 project level what a run found, and points at the full reading under `reports/`.
 
 ## What belongs here, and what does not
@@ -41,3 +41,4 @@ reader can trust the rest.
 | [3.10](3.10-what-the-interval-metric-can-reach.md) | What the interval metric can reach | — | `tests/test_interval_ceiling.py` |
 | [3.11](3.11-m2-11-sampling-grid-evidence.md) | M2.11 sampling grid | [8.13](../registrations/8.13-pre-registered-m2-11-sampling-grid.md) | `reports/milestone_2_research_eval/sampling_grid/` |
 | [3.12](3.12-m2-12-local-baseline-evidence.md) | M2.12 local baseline | [8.14](../registrations/8.14-pre-registered-m2-12-local-baseline.md) | `reports/milestone_2_research_eval/local_baseline/` |
+| [3.13](3.13-m2-13-lookback-40-evidence.md) | M2.13 lookback-40 screen | [8.15](../registrations/8.15-pre-registered-m2-13-lookback-40.md) | `reports/milestone_2_research_eval/lookback_40/` |
